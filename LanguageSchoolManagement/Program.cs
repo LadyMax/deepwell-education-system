@@ -1,4 +1,6 @@
 using LanguageSchoolManagement.Data;
+using LanguageSchoolManagement.Domain.Entities;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
 namespace LanguageSchoolManagement
@@ -11,6 +13,8 @@ namespace LanguageSchoolManagement
 
             builder.Services.AddDbContext<AppDbContext>(options =>
                 options.UseSqlite(builder.Configuration.GetConnectionString("DefaultConnection")));
+
+            builder.Services.AddScoped<IPasswordHasher<User>, PasswordHasher<User>>();
 
             builder.Services.AddControllers();
             // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
@@ -36,7 +40,7 @@ namespace LanguageSchoolManagement
             using (var scope = app.Services.CreateScope())
             {
                 var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-                db.Database.EnsureCreated();
+                db.Database.Migrate();
             }
 
             app.Run();

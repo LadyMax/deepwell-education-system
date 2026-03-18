@@ -13,6 +13,7 @@ public class AppDbContext : DbContext
     public DbSet<Enrollment> Enrollments => Set<Enrollment>();
     public DbSet<CourseRequest> CourseRequests => Set<CourseRequest>();
     public DbSet<Message> Messages => Set<Message>();
+    public DbSet<StudentNumberSequence> StudentNumberSequences => Set<StudentNumberSequence>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -51,6 +52,12 @@ public class AppDbContext : DbContext
             e.HasKey(x => x.Id);
             e.HasOne(x => x.User).WithMany(u => u.CourseRequests).HasForeignKey(x => x.UserId).OnDelete(DeleteBehavior.Restrict);
             e.HasOne(x => x.Course).WithMany().HasForeignKey(x => x.CourseId).OnDelete(DeleteBehavior.Restrict);
+        });
+
+        modelBuilder.Entity<StudentNumberSequence>(e =>
+        {
+            e.HasKey(x => x.Id);
+            e.Property(x => x.Id).ValueGeneratedOnAdd();
         });
 
         modelBuilder.Entity<Message>(e =>

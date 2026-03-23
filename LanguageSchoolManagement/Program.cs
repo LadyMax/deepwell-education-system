@@ -2,6 +2,7 @@ using System.Text;
 using LanguageSchoolManagement.Data;
 using LanguageSchoolManagement.Domain.Entities;
 using LanguageSchoolManagement.Services;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -11,7 +12,7 @@ namespace LanguageSchoolManagement
 {
     public class Program
     {
-        public static void Main(string[] args)
+        public static async Task Main(string[] args)
         {
             var builder = WebApplication.CreateBuilder(args);
 
@@ -21,6 +22,7 @@ namespace LanguageSchoolManagement
             builder.Services.AddScoped<IPasswordHasher<User>, PasswordHasher<User>>();
             builder.Services.AddScoped<JwtService>();
             builder.Services.AddScoped<ICourseRequestService, CourseRequestService>();
+            builder.Services.AddScoped<IMessageService, MessageService>();
 
             var jwtKey = builder.Configuration["Jwt:Key"] ?? throw new InvalidOperationException("Jwt:Key is not set.");
             var jwtIssuer = builder.Configuration["Jwt:Issuer"] ?? "LanguageSchoolManagement";
@@ -81,6 +83,7 @@ namespace LanguageSchoolManagement
             {
                 var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
                 db.Database.Migrate();
+                await AdminSeeder.SeedAsync(scope.ServiceProvider);
             }
 
             app.Run();

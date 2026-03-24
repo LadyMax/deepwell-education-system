@@ -102,11 +102,70 @@ public class MessageServiceTests : IAsyncLifetime
             });
         await _db.SaveChangesAsync();
 
-        var inbox = await _sut.GetInboxAsync(receiverId);
+        var inbox = await _sut.GetInboxAsync(receiverId, page: 1, pageSize: 10);
 
-        Assert.Equal(2, inbox.Count);
-        Assert.Equal(newer, inbox[0].Id);
-        Assert.Equal(older, inbox[1].Id);
+        Assert.Equal(2, inbox.TotalCount);
+        Assert.Equal(2, inbox.Items.Count);
+        Assert.Equal(newer, inbox.Items[0].Id);
+        Assert.Equal(older, inbox.Items[1].Id);
+    }
+
+    [Fact]
+    public async Task MarkAsReadAsync_Receiver_SetsReadAt_Idempotent()
+    {
+        var adminId = Guid.NewGuid();
+        var senderId = Guid.NewGuid();
+        _db.Users.AddRange(
+            new User { Id = adminId, Email = "adm@test", PasswordHash = "x", FullName = "Adm", Role = UserRole.Admin, IsActive = true },
+            new User { Id = senderId, Email = "snd@test", PasswordHash = "x", FullName = "Snd", Role = UserRole.Student, IsActive = true });
+
+        var msgId = Guid.NewGuid();
+        _db.Messages.Add(new Message
+        {
+            Id = msgId,
+            SenderUserId = senderId,
+            ReceiverUserId = adminId,
+            Subject = "S",
+            Content = "C",
+            CreatedAt = DateTime.UtcNow
+        });
+        await _db.SaveChangesAsync();
+
+        var first = await _sut.MarkAsReadAsync(msgId, adminId);
+        Assert.Equal(MarkReadError.None, first.Error);
+        Assert.NotNull(first.Message?.ReadAt);
+
+        var t1 = first.Message!.ReadAt!.Value;
+        var second = await _sut.MarkAsReadAsync(msgId, adminId);
+        Assert.Equal(MarkReadError.None, second.Error);
+        Assert.Equal(t1, second.Message!.ReadAt);
+    }
+
+    [Fact]
+    public async Task MarkAsReadAsync_WrongReceiver_ReturnsNotReceiver()
+    {
+        var adminId = Guid.NewGuid();
+        var senderId = Guid.NewGuid();
+        var otherId = Guid.NewGuid();
+        _db.Users.AddRange(
+            new User { Id = adminId, Email = "a1@test", PasswordHash = "x", FullName = "A", Role = UserRole.Admin, IsActive = true },
+            new User { Id = senderId, Email = "s1@test", PasswordHash = "x", FullName = "S", Role = UserRole.Student, IsActive = true },
+            new User { Id = otherId, Email = "o@test", PasswordHash = "x", FullName = "O", Role = UserRole.Student, IsActive = true });
+
+        var msgId = Guid.NewGuid();
+        _db.Messages.Add(new Message
+        {
+            Id = msgId,
+            SenderUserId = senderId,
+            ReceiverUserId = adminId,
+            Subject = "X",
+            Content = "Y",
+            CreatedAt = DateTime.UtcNow
+        });
+        await _db.SaveChangesAsync();
+
+        var result = await _sut.MarkAsReadAsync(msgId, otherId);
+        Assert.Equal(MarkReadError.NotReceiver, result.Error);
     }
 
     [Fact]

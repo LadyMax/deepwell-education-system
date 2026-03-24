@@ -52,35 +52,84 @@ public class MessagesController : ControllerBase
         return Created($"{Request.Path}/{m.Id}", new SentMessageResponse(m.Id, m.ReceiverUserId, m.CreatedAt, m.Subject, m.Content));
     }
 
-    /// <summary>Your inbox (you are the receiver), newest first.</summary>
+    /// <summary>Your inbox (you are the receiver), newest first, paginated.</summary>
     [Authorize]
     [HttpGet("inbox")]
-    [ProducesResponseType(typeof(IEnumerable<MessageInboxItemDto>), StatusCodes.Status200OK)]
-    public async Task<ActionResult<IReadOnlyList<MessageInboxItemDto>>> Inbox(CancellationToken ct)
+    [ProducesResponseType(typeof(PagedResult<MessageInboxItemDto>), StatusCodes.Status200OK)]
+    public async Task<ActionResult<PagedResult<MessageInboxItemDto>>> Inbox(
+        [FromQuery] int page = 1,
+        [FromQuery] int pageSize = MessageService.DefaultPageSize,
+        CancellationToken ct = default)
     {
         var userId = GetCurrentUserId();
         if (userId == null)
             return Unauthorized();
 
-        var list = await _messageService.GetInboxAsync(userId.Value, ct);
-        return Ok(list);
+        var result = await _messageService.GetInboxAsync(userId.Value, page, pageSize, ct);
+        return Ok(result);
+    }
+
+    /// <summary>Messages you sent, newest first, paginated.</summary>
+    [Authorize]
+    [HttpGet("sent")]
+    [ProducesResponseType(typeof(PagedResult<MessageSentItemDto>), StatusCodes.Status200OK)]
+    public async Task<ActionResult<PagedResult<MessageSentItemDto>>> Sent(
+        [FromQuery] int page = 1,
+        [FromQuery] int pageSize = MessageService.DefaultPageSize,
+        CancellationToken ct = default)
+    {
+        var userId = GetCurrentUserId();
+        if (userId == null)
+            return Unauthorized();
+
+        var result = await _messageService.GetSentAsync(userId.Value, page, pageSize, ct);
+        return Ok(result);
+    }
+
+    /// <summary>Mark a message as read (you must be the receiver). Idempotent.</summary>
+    [Authorize]
+    [HttpPost("{id:guid}/read")]
+    [ProducesResponseType(typeof(MessageReadResponse), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<ActionResult<MessageReadResponse>> MarkRead(Guid id, CancellationToken ct)
+    {
+        var userId = GetCurrentUserId();
+        if (userId == null)
+            return Unauthorized();
+
+        var result = await _messageService.MarkAsReadAsync(id, userId.Value, ct);
+        if (result.Error != MarkReadError.None)
+        {
+            return result.Error switch
+            {
+                MarkReadError.NotFound => NotFound(),
+                MarkReadError.NotReceiver => Forbid(),
+                _ => BadRequest()
+            };
+        }
+
+        var m = result.Message!;
+        return Ok(new MessageReadResponse(m.Id, m.ReadAt!.Value));
     }
 
     /// <summary>Admin: list all messages. Use <paramref name="uncategorizedOnly"/> or <paramref name="finalCategory"/>, not both.</summary>
     [Authorize(Roles = "Admin")]
     [HttpGet("admin")]
-    [ProducesResponseType(typeof(IEnumerable<MessageAdminItemDto>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(PagedResult<MessageAdminItemDto>), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
-    public async Task<ActionResult<IReadOnlyList<MessageAdminItemDto>>> AdminList(
+    public async Task<ActionResult<PagedResult<MessageAdminItemDto>>> AdminList(
         [FromQuery] bool uncategorizedOnly = false,
         [FromQuery] MessageCategory? finalCategory = null,
+        [FromQuery] int page = 1,
+        [FromQuery] int pageSize = MessageService.DefaultPageSize,
         CancellationToken ct = default)
     {
         if (uncategorizedOnly && finalCategory.HasValue)
             return BadRequest("Use either uncategorizedOnly or finalCategory, not both.");
 
-        var list = await _messageService.GetAllForAdminAsync(uncategorizedOnly, finalCategory, ct);
-        return Ok(list);
+        var result = await _messageService.GetAllForAdminAsync(uncategorizedOnly, finalCategory, page, pageSize, ct);
+        return Ok(result);
     }
 
     /// <summary>Admin: set final category and review fields.</summary>
@@ -123,3 +172,5 @@ public class CategorizeMessageRequest
 public sealed record SentMessageResponse(Guid Id, Guid ReceiverUserId, DateTime CreatedAt, string Subject, string Content);
 
 public sealed record CategorizedMessageResponse(Guid Id, MessageCategory FinalCategory, Guid ReviewedBy, DateTime ReviewedAt);
+
+public sealed record MessageReadResponse(Guid Id, DateTime ReadAt);

@@ -26,5 +26,8 @@ public class Message
 
     public DateTime? ReviewedAt { get; set; }
 
+    /// <summary>When the receiver opened the message; null = unread.</summary>
+    public DateTime? ReadAt { get; set; }
+
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 }

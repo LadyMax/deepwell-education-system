@@ -7,11 +7,21 @@ namespace LanguageSchoolManagement.Services;
 
 public class MessageService : IMessageService
 {
+    public const int DefaultPageSize = 20;
+    public const int MaxPageSize = 100;
+
     private readonly AppDbContext _db;
 
     public MessageService(AppDbContext db)
     {
         _db = db;
+    }
+
+    private static (int page, int pageSize) NormalizePaging(int page, int pageSize)
+    {
+        var p = page < 1 ? 1 : page;
+        var s = pageSize < 1 ? DefaultPageSize : pageSize > MaxPageSize ? MaxPageSize : pageSize;
+        return (p, s);
     }
 
     public async Task<SendMessageResult> SendAsync(Guid senderUserId, string subject, string content, Guid? receiverUserId, CancellationToken ct = default)
@@ -56,6 +66,7 @@ public class MessageService : IMessageService
             FinalCategory = null,
             ReviewedBy = null,
             ReviewedAt = null,
+            ReadAt = null,
             CreatedAt = DateTime.UtcNow
         };
 
@@ -65,12 +76,14 @@ public class MessageService : IMessageService
         return SendMessageResult.Ok(message);
     }
 
-    public async Task<IReadOnlyList<MessageInboxItemDto>> GetInboxAsync(Guid receiverUserId, CancellationToken ct = default)
+    public async Task<PagedResult<MessageInboxItemDto>> GetInboxAsync(Guid receiverUserId, int page, int pageSize, CancellationToken ct = default)
     {
-        return await (
+        (page, pageSize) = NormalizePaging(page, pageSize);
+
+        var baseQ =
             from m in _db.Messages.AsNoTracking()
-            join s in _db.Users.AsNoTracking() on m.SenderUserId equals s.Id
             where m.ReceiverUserId == receiverUserId
+            join s in _db.Users.AsNoTracking() on m.SenderUserId equals s.Id
             orderby m.CreatedAt descending
             select new MessageInboxItemDto
             {
@@ -81,10 +94,74 @@ public class MessageService : IMessageService
                 Subject = m.Subject,
                 Content = m.Content,
                 CreatedAt = m.CreatedAt,
+                ReadAt = m.ReadAt,
                 FinalCategory = m.FinalCategory,
                 ReviewedBy = m.ReviewedBy,
                 ReviewedAt = m.ReviewedAt
-            }).ToListAsync(ct);
+            };
+
+        var total = await baseQ.CountAsync(ct);
+        var items = await baseQ.Skip((page - 1) * pageSize).Take(pageSize).ToListAsync(ct);
+
+        return new PagedResult<MessageInboxItemDto>
+        {
+            Items = items,
+            Page = page,
+            PageSize = pageSize,
+            TotalCount = total
+        };
+    }
+
+    public async Task<PagedResult<MessageSentItemDto>> GetSentAsync(Guid senderUserId, int page, int pageSize, CancellationToken ct = default)
+    {
+        (page, pageSize) = NormalizePaging(page, pageSize);
+
+        var baseQ =
+            from m in _db.Messages.AsNoTracking()
+            where m.SenderUserId == senderUserId
+            join r in _db.Users.AsNoTracking() on m.ReceiverUserId equals r.Id
+            orderby m.CreatedAt descending
+            select new MessageSentItemDto
+            {
+                Id = m.Id,
+                ReceiverUserId = m.ReceiverUserId,
+                ReceiverEmail = r.Email,
+                ReceiverFullName = r.FullName,
+                Subject = m.Subject,
+                Content = m.Content,
+                CreatedAt = m.CreatedAt,
+                ReadAt = m.ReadAt,
+                FinalCategory = m.FinalCategory
+            };
+
+        var total = await baseQ.CountAsync(ct);
+        var items = await baseQ.Skip((page - 1) * pageSize).Take(pageSize).ToListAsync(ct);
+
+        return new PagedResult<MessageSentItemDto>
+        {
+            Items = items,
+            Page = page,
+            PageSize = pageSize,
+            TotalCount = total
+        };
+    }
+
+    public async Task<MarkReadResult> MarkAsReadAsync(Guid messageId, Guid receiverUserId, CancellationToken ct = default)
+    {
+        var message = await _db.Messages.FirstOrDefaultAsync(m => m.Id == messageId, ct);
+        if (message == null)
+            return MarkReadResult.Fail(MarkReadError.NotFound);
+
+        if (message.ReceiverUserId != receiverUserId)
+            return MarkReadResult.Fail(MarkReadError.NotReceiver);
+
+        if (message.ReadAt == null)
+        {
+            message.ReadAt = DateTime.UtcNow;
+            await _db.SaveChangesAsync(ct);
+        }
+
+        return MarkReadResult.Ok(message);
     }
 
     public async Task<CategorizeResult> CategorizeAsync(Guid messageId, Guid adminUserId, MessageCategory finalCategory, CancellationToken ct = default)
@@ -102,8 +179,10 @@ public class MessageService : IMessageService
         return CategorizeResult.Ok(message);
     }
 
-    public async Task<IReadOnlyList<MessageAdminItemDto>> GetAllForAdminAsync(bool uncategorizedOnly, MessageCategory? category, CancellationToken ct = default)
+    public async Task<PagedResult<MessageAdminItemDto>> GetAllForAdminAsync(bool uncategorizedOnly, MessageCategory? category, int page, int pageSize, CancellationToken ct = default)
     {
+        (page, pageSize) = NormalizePaging(page, pageSize);
+
         var query =
             from m in _db.Messages.AsNoTracking()
             join s in _db.Users.AsNoTracking() on m.SenderUserId equals s.Id
@@ -115,9 +194,10 @@ public class MessageService : IMessageService
         else if (category.HasValue)
             query = query.Where(x => x.m.FinalCategory == category.Value);
 
-        return await query
-            .OrderByDescending(x => x.m.CreatedAt)
-            .Select(x => new MessageAdminItemDto
+        var projected =
+            from x in query
+            orderby x.m.CreatedAt descending
+            select new MessageAdminItemDto
             {
                 Id = x.m.Id,
                 SenderUserId = x.m.SenderUserId,
@@ -129,10 +209,21 @@ public class MessageService : IMessageService
                 Subject = x.m.Subject,
                 Content = x.m.Content,
                 CreatedAt = x.m.CreatedAt,
+                ReadAt = x.m.ReadAt,
                 FinalCategory = x.m.FinalCategory,
                 ReviewedBy = x.m.ReviewedBy,
                 ReviewedAt = x.m.ReviewedAt
-            })
-            .ToListAsync(ct);
+            };
+
+        var total = await projected.CountAsync(ct);
+        var items = await projected.Skip((page - 1) * pageSize).Take(pageSize).ToListAsync(ct);
+
+        return new PagedResult<MessageAdminItemDto>
+        {
+            Items = items,
+            Page = page,
+            PageSize = pageSize,
+            TotalCount = total
+        };
     }
 }

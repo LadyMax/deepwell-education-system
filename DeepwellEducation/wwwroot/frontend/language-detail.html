@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>Language Detail — Deepwell Education</title>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport">
+    <meta content="Language and country background" name="description">
+
+    <link href="images/favicon.ico" rel="icon">
+    <link rel="preconnect" href="https://fonts.gstatic.com">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.10.0/css/all.min.css" rel="stylesheet">
+    <link href="lib/owlcarousel/assets/owl.carousel.min.css" rel="stylesheet">
+    <link href="css/style.css" rel="stylesheet">
+    <link href="css/app.css?v=7" rel="stylesheet">
+    <script src="js/layout.js" defer></script>
+</head>
+<body>
+    <div id="site-header"></div>
+
+    <div class="container-fluid page-header app-mb-90">
+        <div class="container">
+            <div class="d-flex flex-column justify-content-center app-minh-300">
+                <h3 class="display-4 text-white text-uppercase" id="lang-title">Language</h3>
+                <div class="d-inline-flex text-white">
+                    <p class="m-0 text-uppercase"><a class="text-white" href="index.html">Home</a></p>
+                    <i class="fa fa-angle-double-right pt-1 px-3"></i>
+                    <p class="m-0 text-uppercase"><a class="text-white" href="course.html">Courses</a></p>
+                    <i class="fa fa-angle-double-right pt-1 px-3"></i>
+                    <p class="m-0 text-uppercase">Language</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="container-fluid py-5 site-banner-follow">
+        <div class="container py-5">
+            <p id="lang-status" class="text-center text-muted" aria-live="polite"></p>
+            <article id="lang-article">
+                <p class="mb-3"><a href="course.html" class="text-primary"><i class="fa fa-arrow-left mr-2"></i>Back to courses</a></p>
+                <div class="row">
+                    <div class="col-lg-5 mb-4">
+                        <img id="lang-country-image" class="img-fluid rounded shadow-sm" src="" alt="Country landmark">
+                    </div>
+                    <div class="col-lg-7 mb-4">
+                        <h2 id="lang-name" class="mb-3"></h2>
+                        <p class="text-muted mb-1"><strong>Primary country/region:</strong> <span id="lang-country"></span></p>
+                        <p class="text-muted mb-1"><strong>Language family:</strong> <span id="lang-family"></span></p>
+                        <p class="text-muted mb-3"><strong>Estimated speakers:</strong> <span id="lang-speakers"></span></p>
+                        <p class="text-muted mb-3"><strong>Available courses at Deepwell:</strong> <span id="lang-course-count">Loading...</span></p>
+                        <p id="lang-intro" class="mb-0 text-dark"></p>
+                    </div>
+                </div>
+
+                <div class="row mt-2">
+                    <div class="col-lg-6 mb-3">
+                        <div class="bg-light border rounded p-4 h-100">
+                            <h6 class="text-primary mb-3">Usage scope</h6>
+                            <ul class="mb-0" id="lang-usage"></ul>
+                        </div>
+                    </div>
+                    <div class="col-lg-6 mb-3">
+                        <div class="bg-light border rounded p-4 h-100">
+                            <h6 class="text-primary mb-3">About the country/region</h6>
+                            <ul class="mb-0" id="lang-country-facts"></ul>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mt-4">
+                    <a id="lang-courses-link" class="btn btn-primary mr-2 mb-2" href="course.html">View courses in this language</a>
+                    <a class="btn btn-outline-secondary mb-2" href="course.html">Browse all languages</a>
+                </div>
+            </article>
+        </div>
+    </div>
+
+    <div id="site-footer"></div>
+
+    <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.bundle.min.js"></script>
+    <script src="lib/easing/easing.min.js"></script>
+    <script src="lib/owlcarousel/owl.carousel.min.js"></script>
+    <script src="js/main.js"></script>
+    <script src="js/language-ui.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            var params = new URLSearchParams(window.location.search);
+            DeepwellLanguage.renderDetail(
+                document.getElementById('lang-status'),
+                document.getElementById('lang-article'),
+                params.get('lang')
+            );
+        });
+    </script>
+</body>
+</html>

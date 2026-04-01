@@ -55,8 +55,8 @@ public class CourseRequestServiceTests : IAsyncLifetime
             Id = courseId,
             Name = "Spanish 101",
             Description = "",
-            SubjectCode = "es",
-            SubjectName = "Spanish",
+            LanguageCode = "es",
+            LanguageName = "Spanish",
             Level = CourseLevel.Beginner,
             IsActive = true
         });
@@ -103,8 +103,8 @@ public class CourseRequestServiceTests : IAsyncLifetime
             Id = courseId,
             Name = "French 101",
             Description = "",
-            SubjectCode = "fr",
-            SubjectName = "French",
+            LanguageCode = "fr",
+            LanguageName = "French",
             Level = CourseLevel.Beginner,
             IsActive = true
         });
@@ -158,8 +158,8 @@ public class CourseRequestServiceTests : IAsyncLifetime
             Id = courseId,
             Name = "German 101",
             Description = "",
-            SubjectCode = "de",
-            SubjectName = "German",
+            LanguageCode = "de",
+            LanguageName = "German",
             Level = CourseLevel.Beginner,
             IsActive = true
         });

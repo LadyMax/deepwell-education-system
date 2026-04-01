@@ -15,6 +15,26 @@ namespace DeepwellEducation.Data;
 /// </summary>
 public static class AdminSeeder
 {
+    /// <summary>Eight school languages: ISO-style code, display name (<see cref="Course.LanguageName"/>), and English prefix for <see cref="Course.Name"/>.</summary>
+    private static readonly (string Code, string LanguageName, string NameEn)[] SchoolLanguages =
+    {
+        ("zh", "中文", "Chinese"),
+        ("en", "English", "English"),
+        ("fr", "Français", "French"),
+        ("sv", "Svenska", "Swedish"),
+        ("it", "Italiano", "Italian"),
+        ("ja", "日本語", "Japanese"),
+        ("es", "Español", "Spanish"),
+        ("de", "Deutsch", "German")
+    };
+
+    private static readonly CourseLevel[] Levels =
+    {
+        CourseLevel.Beginner,
+        CourseLevel.Intermediate,
+        CourseLevel.Advanced
+    };
+
     public static async Task SeedAsync(IServiceProvider services, CancellationToken cancellationToken = default)
     {
         var env = services.GetRequiredService<IHostEnvironment>();
@@ -75,118 +95,62 @@ public static class AdminSeeder
         logger.LogInformation("Seeded default admin user {Email} (Development only).", normalizedEmail);
     }
 
+    private static string LevelWord(CourseLevel level) => level switch
+    {
+        CourseLevel.Beginner => "Beginner",
+        CourseLevel.Intermediate => "Intermediate",
+        CourseLevel.Advanced => "Advanced",
+        _ => "Beginner"
+    };
+
+    private static string BuildDescription(string nameEn, CourseLevel level) => level switch
+    {
+        CourseLevel.Beginner =>
+            $"Foundational {nameEn}: everyday communication, essential patterns, and classroom confidence.",
+        CourseLevel.Intermediate =>
+            $"Intermediate {nameEn}: stronger fluency, longer conversations, and clearer accuracy.",
+        CourseLevel.Advanced =>
+            $"Advanced {nameEn}: nuanced expression, complex texts, and near-fluent real-world use.",
+        _ => ""
+    };
+
     private static async Task SeedCoursesAsync(AppDbContext db, ILogger logger, CancellationToken cancellationToken)
     {
-        var templates = new[]
-        {
-            new Course
-            {
-                Name = "Chinese Foundations",
-                Description = "Build practical Mandarin for greetings, daily routines, and classroom communication.",
-                SubjectCode = "zh",
-                SubjectName = "Chinese",
-                Level = CourseLevel.Beginner,
-                Category = CourseCategory.Language,
-                IsActive = true
-            },
-            new Course
-            {
-                Name = "English Communication Lab",
-                Description = "Strengthen spoken fluency, listening confidence, and real-world vocabulary for study and work.",
-                SubjectCode = "en",
-                SubjectName = "English",
-                Level = CourseLevel.Intermediate,
-                Category = CourseCategory.Language,
-                IsActive = true
-            },
-            new Course
-            {
-                Name = "French Advanced Writing",
-                Description = "Refine advanced grammar, essay structure, and argumentation in academic and professional contexts.",
-                SubjectCode = "fr",
-                SubjectName = "French",
-                Level = CourseLevel.Advanced,
-                Category = CourseCategory.Language,
-                IsActive = true
-            },
-            new Course
-            {
-                Name = "Swedish for Everyday Life",
-                Description = "Learn practical Swedish for conversations, services, and social situations in Sweden.",
-                SubjectCode = "sv",
-                SubjectName = "Swedish",
-                Level = CourseLevel.Beginner,
-                Category = CourseCategory.Language,
-                IsActive = true
-            },
-            new Course
-            {
-                Name = "Italian Conversation Essentials",
-                Description = "Develop practical Italian speaking and listening skills for travel, social life, and everyday communication.",
-                SubjectCode = "it",
-                SubjectName = "Italian",
-                Level = CourseLevel.Beginner,
-                Category = CourseCategory.Language,
-                IsActive = true
-            },
-            new Course
-            {
-                Name = "Japanese Communication Starter",
-                Description = "Start speaking and understanding Japanese through structured dialogues and real-life scenarios.",
-                SubjectCode = "ja",
-                SubjectName = "Japanese",
-                Level = CourseLevel.Beginner,
-                Category = CourseCategory.Language,
-                IsActive = true
-            },
-            new Course
-            {
-                Name = "Spanish for Global Communication",
-                Description = "Build confidence in Spanish for travel, study, and communication across Spanish-speaking regions.",
-                SubjectCode = "es",
-                SubjectName = "Spanish",
-                Level = CourseLevel.Intermediate,
-                Category = CourseCategory.Language,
-                IsActive = true
-            },
-            new Course
-            {
-                Name = "German Professional Foundations",
-                Description = "Learn core German language skills for academic pathways and professional communication in Europe.",
-                SubjectCode = "de",
-                SubjectName = "German",
-                Level = CourseLevel.Intermediate,
-                Category = CourseCategory.Language,
-                IsActive = true
-            }
-        };
-
-        var existingCodes = await db.Courses
-            .Select(c => c.SubjectCode.ToLower())
-            .Distinct()
+        var existingKeys = await db.Courses
+            .Select(c => c.LanguageCode.ToLower() + ":" + (int)c.Level)
             .ToListAsync(cancellationToken);
-        var existing = new HashSet<string>(existingCodes);
+        var have = existingKeys.ToHashSet();
 
-        var toAdd = templates
-            .Where(t => !existing.Contains(t.SubjectCode))
-            .Select(t => new Course
-            {
-                Id = Guid.NewGuid(),
-                Name = t.Name,
-                Description = t.Description,
-                SubjectCode = t.SubjectCode,
-                SubjectName = t.SubjectName,
-                Level = t.Level,
-                Category = t.Category,
-                IsActive = t.IsActive
-            })
-            .ToList();
-
-        if (!toAdd.Count.Equals(0))
+        var toAdd = new List<Course>();
+        foreach (var (code, languageName, nameEn) in SchoolLanguages)
         {
-            await db.Courses.AddRangeAsync(toAdd, cancellationToken);
-            await db.SaveChangesAsync(cancellationToken);
-            logger.LogInformation("Seeded {Count} missing default language courses (Development only).", toAdd.Count);
+            var codeNorm = code.ToLowerInvariant();
+            foreach (var level in Levels)
+            {
+                var key = codeNorm + ":" + (int)level;
+                if (have.Contains(key))
+                    continue;
+
+                toAdd.Add(new Course
+                {
+                    Id = Guid.NewGuid(),
+                    Name = $"{nameEn} {LevelWord(level)}",
+                    Description = BuildDescription(nameEn, level),
+                    LanguageCode = codeNorm,
+                    LanguageName = languageName,
+                    Level = level,
+                    Category = CourseCategory.Language,
+                    IsActive = true
+                });
+                have.Add(key);
+            }
         }
+
+        if (toAdd.Count == 0)
+            return;
+
+        await db.Courses.AddRangeAsync(toAdd, cancellationToken);
+        await db.SaveChangesAsync(cancellationToken);
+        logger.LogInformation("Seeded {Count} missing language × level courses (Development only).", toAdd.Count);
     }
 }

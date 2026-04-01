@@ -1,0 +1,35 @@
+/* Login/Register page styles (kept out of HTML) */
+
+.login-shell {
+  max-width: 760px;
+  margin: 0 auto;
+}
+
+.login-cta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 14px;
+  flex-wrap: wrap;
+}
+
+.login-cta small {
+  color: #6c757d;
+}
+
+.login-cta a {
+  color: #00ced1;
+  font-weight: 600;
+}
+
+.login-pane {
+  display: none;
+}
+
+.login-pane.active {
+  display: block;
+}
+
+/* (Shared utilities live in css/app.css) */
+

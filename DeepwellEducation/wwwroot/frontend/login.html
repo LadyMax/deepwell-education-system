@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>Login / Register - Deepwell Education</title>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport">
+    <meta content="Deepwell Education account access" name="description">
+
+    <link href="images/favicon.ico" rel="icon">
+    <link rel="preconnect" href="https://fonts.gstatic.com">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.10.0/css/all.min.css" rel="stylesheet">
+    <link href="lib/owlcarousel/assets/owl.carousel.min.css" rel="stylesheet">
+    <link href="css/style.css" rel="stylesheet">
+    <link href="css/app.css?v=7" rel="stylesheet">
+    <link href="css/login.css" rel="stylesheet">
+    <script src="js/layout.js" defer></script>
+</head>
+
+<body>
+    <div id="site-header"></div>
+
+    <div class="container-fluid page-header app-mb-90">
+        <div class="container">
+            <div class="d-flex flex-column justify-content-center app-minh-300">
+                <h3 class="display-4 text-white text-uppercase">Account</h3>
+                <div class="d-inline-flex text-white">
+                    <p class="m-0 text-uppercase"><a class="text-white" href="index.html">Home</a></p>
+                    <i class="fa fa-angle-double-right pt-1 px-3"></i>
+                    <p class="m-0 text-uppercase">Login / Register</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="container-fluid py-5 site-banner-follow">
+        <div class="container py-5">
+            <div class="login-shell bg-secondary rounded p-4 p-md-5">
+                <div class="text-center mb-4">
+                    <h5 class="text-primary text-uppercase mb-2 app-letter-spacing-5">Account Access</h5>
+                    <h1 class="mb-0">Login or Create an Account</h1>
+                </div>
+
+                <div id="login-pane-login" class="login-pane active">
+                    <form id="login-form" novalidate>
+                        <div class="form-group">
+                            <label for="login-email">Email</label>
+                            <input type="email" id="login-email" class="form-control border-0 p-4" required autocomplete="username" placeholder="name@example.com">
+                        </div>
+                        <div class="form-group">
+                            <label for="login-password">Password</label>
+                            <input type="password" id="login-password" class="form-control border-0 p-4" required autocomplete="current-password" placeholder="******">
+                        </div>
+                        <button type="submit" class="btn btn-primary py-3 px-5">Login</button>
+                        <div class="login-cta">
+                            <small>Don’t have an account?</small>
+                            <a href="#" id="login-show-register-link">Register</a>
+                        </div>
+                    </form>
+                </div>
+
+                <div id="login-pane-register" class="login-pane">
+                    <form id="register-form" novalidate>
+                        <div class="form-group">
+                            <label for="register-name">Full name</label>
+                            <input type="text" id="register-name" class="form-control border-0 p-4" required placeholder="Your name">
+                        </div>
+                        <div class="form-group">
+                            <label for="register-email">Email</label>
+                            <input type="email" id="register-email" class="form-control border-0 p-4" required placeholder="name@example.com">
+                        </div>
+                        <div class="form-group">
+                            <label for="register-password">Password</label>
+                            <input type="password" id="register-password" class="form-control border-0 p-4" required placeholder="******">
+                        </div>
+                        <div class="form-group">
+                            <label for="register-confirm">Confirm password</label>
+                            <input type="password" id="register-confirm" class="form-control border-0 p-4" required placeholder="******">
+                        </div>
+                        <button type="submit" class="btn btn-primary py-3 px-5">Create account</button>
+                        <div class="login-cta">
+                            <small>Already have an account?</small>
+                            <a href="#" id="login-show-login-link">Back to login</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="site-footer"></div>
+
+    <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.bundle.min.js"></script>
+    <script src="lib/easing/easing.min.js"></script>
+    <script src="lib/owlcarousel/owl.carousel.min.js"></script>
+    <script src="js/main.js"></script>
+    <script src="./js/api.js"></script>
+    <script src="./js/login.js"></script>
+</body>
+
+</html>

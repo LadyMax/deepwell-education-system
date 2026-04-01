@@ -83,6 +83,7 @@ namespace DeepwellEducation
             if (Directory.Exists(frontendRoot))
             {
                 var frontendFiles = new PhysicalFileProvider(frontendRoot);
+                var disableFrontendStaticCache = app.Environment.IsDevelopment();
                 app.UseDefaultFiles(new DefaultFilesOptions
                 {
                     FileProvider = frontendFiles,
@@ -91,7 +92,16 @@ namespace DeepwellEducation
                 app.UseStaticFiles(new StaticFileOptions
                 {
                     FileProvider = frontendFiles,
-                    RequestPath = "/frontend"
+                    RequestPath = "/frontend",
+                    OnPrepareResponse = ctx =>
+                    {
+                        if (!disableFrontendStaticCache)
+                            return;
+                        var name = ctx.File.Name;
+                        if (name.EndsWith(".css", StringComparison.OrdinalIgnoreCase) ||
+                            name.EndsWith(".js", StringComparison.OrdinalIgnoreCase))
+                            ctx.Context.Response.Headers["Cache-Control"] = "no-cache, no-store, must-revalidate";
+                    }
                 });
             }
 

@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <title>Course — Deepwell Education</title>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport">
+    <meta content="Deepwell Education course" name="description">
+
+    <link href="images/favicon.ico" rel="icon">
+    <link rel="preconnect" href="https://fonts.gstatic.com">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.10.0/css/all.min.css" rel="stylesheet">
+    <link href="lib/owlcarousel/assets/owl.carousel.min.css" rel="stylesheet">
+    <link href="css/style.css" rel="stylesheet">
+    <link href="css/app.css?v=7" rel="stylesheet">
+    <script src="js/layout.js" defer></script>
+</head>
+
+<body>
+    <div id="site-header"></div>
+
+    <div class="container-fluid page-header app-mb-90">
+        <div class="container">
+            <div class="d-flex flex-column justify-content-center app-minh-300">
+                <h3 class="display-4 text-white text-uppercase">Course</h3>
+                <div class="d-inline-flex text-white">
+                    <p class="m-0 text-uppercase"><a class="text-white" href="index.html">Home</a></p>
+                    <i class="fa fa-angle-double-right pt-1 px-3"></i>
+                    <p class="m-0 text-uppercase"><a class="text-white" href="course.html">Courses</a></p>
+                    <i class="fa fa-angle-double-right pt-1 px-3"></i>
+                    <p class="m-0 text-uppercase">Detail</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="container-fluid py-5 site-banner-follow">
+        <div class="container py-5">
+            <p id="course-detail-status" class="text-center text-muted" aria-live="polite"></p>
+            <article id="course-detail-article">
+                <p class="mb-3"><a href="course.html" class="text-primary"><i class="fa fa-arrow-left mr-2"></i>Back to courses</a></p>
+                <h1 class="mb-3" id="cd-title"></h1>
+                <p class="mb-2">
+                    <small class="text-muted d-block mb-1">Language</small>
+                    <span class="badge badge-primary" id="cd-category"></span>
+                    <span class="text-muted ml-2" id="cd-level"></span>
+                </p>
+                <p class="mb-4"><strong class="text-dark">Language:</strong> <i class="fa fa-book-open text-primary mr-2"></i><span id="cd-subject"></span></p>
+                <div class="bg-secondary p-4 rounded">
+                    <h5 class="text-primary mb-3">About this course</h5>
+                    <p class="mb-0 text-dark" id="cd-desc"></p>
+                </div>
+                <div class="row mt-4">
+                    <div class="col-lg-6 mb-3">
+                        <div class="bg-light border rounded p-4 h-100">
+                            <h6 class="text-primary mb-3">Who this course is for</h6>
+                            <ul class="mb-0" id="cd-for-list"></ul>
+                        </div>
+                    </div>
+                    <div class="col-lg-6 mb-3">
+                        <div class="bg-light border rounded p-4 h-100">
+                            <h6 class="text-primary mb-3">What you will achieve</h6>
+                            <ul class="mb-0" id="cd-outcome-list"></ul>
+                        </div>
+                    </div>
+                </div>
+                <div class="bg-light border rounded p-4 mt-2">
+                    <h6 class="text-primary mb-3">Course highlights</h6>
+                    <ul class="mb-0" id="cd-highlight-list"></ul>
+                </div>
+                <div class="bg-light border rounded p-4 mt-3">
+                    <h6 class="text-primary mb-3">Sample weekly modules</h6>
+                    <ol class="mb-0" id="cd-module-list"></ol>
+                </div>
+                <div class="mt-4">
+                    <button type="button" class="btn btn-primary mb-2" id="cd-apply-btn">Apply for this course</button>
+                    <div class="app-flash app-flash--info d-none mb-0 mt-2" id="cd-apply-status" aria-live="polite"></div>
+                </div>
+            </article>
+        </div>
+    </div>
+
+    <div id="site-footer"></div>
+
+    <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.bundle.min.js"></script>
+    <script src="lib/easing/easing.min.js"></script>
+    <script src="lib/owlcarousel/owl.carousel.min.js"></script>
+    <script src="js/main.js"></script>
+    <script src="js/api.js?v=20260327b"></script>
+    <script src="js/course-ui.js?v=20260327b"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            var params = new URLSearchParams(window.location.search);
+            var id = params.get('id');
+            DeepwellCourse.renderDetail(
+                document.getElementById('course-detail-status'),
+                document.getElementById('course-detail-article'),
+                id);
+        });
+    </script>
+</body>
+
+</html>
+
+
+

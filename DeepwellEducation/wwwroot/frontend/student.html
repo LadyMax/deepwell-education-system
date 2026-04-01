@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>My account - Deepwell Education</title>
+  <meta content="width=device-width, initial-scale=1.0" name="viewport">
+  <meta content="Deepwell Education — your account, courses, and messages" name="description">
+
+  <link href="images/favicon.ico" rel="icon">
+  <link rel="preconnect" href="https://fonts.gstatic.com">
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.10.0/css/all.min.css" rel="stylesheet">
+  <link href="lib/owlcarousel/assets/owl.carousel.min.css" rel="stylesheet">
+  <link href="css/style.css" rel="stylesheet">
+  <link href="css/app.css?v=7" rel="stylesheet">
+  <script src="js/layout.js" defer></script>
+</head>
+<body class="page-student">
+  <div id="site-header"></div>
+
+  <div class="container-fluid page-header app-mb-90">
+    <div class="container">
+      <div class="d-flex flex-column justify-content-center app-minh-300">
+        <h3 class="display-4 text-white text-uppercase">My account</h3>
+        <div class="d-inline-flex text-white">
+          <p class="m-0 text-uppercase"><a class="text-white" href="index.html">Home</a></p>
+          <i class="fa fa-angle-double-right pt-1 px-3"></i>
+          <p class="m-0 text-uppercase">My account</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="container-fluid student-account-wrap">
+    <div class="container student-account-inner">
+      <div class="student-flash-slot">
+        <div id="student-flash" class="app-flash d-none" role="status" aria-live="polite"></div>
+      </div>
+      <div class="panel student-dashboard-panel">
+        <h2 class="h4 mb-3 mb-lg-4">My account</h2>
+        <ul class="nav nav-tabs student-dashboard-nav flex-nowrap flex-md-wrap" id="student-dashboard-tabs" role="tablist">
+          <li class="nav-item">
+            <a class="nav-link active text-nowrap" id="sc-tab-account" data-toggle="tab" href="#sc-pane-account" role="tab" aria-controls="sc-pane-account" aria-selected="true">Account</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link text-nowrap" id="sc-tab-courses" data-toggle="tab" href="#sc-pane-courses" role="tab" aria-controls="sc-pane-courses" aria-selected="false">Courses</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link text-nowrap" id="sc-tab-messages" data-toggle="tab" href="#sc-pane-messages" role="tab" aria-controls="sc-pane-messages" aria-selected="false">Messages</a>
+          </li>
+        </ul>
+        <div class="tab-content student-dashboard-tab-content" id="student-dashboard-tab-content">
+          <div class="tab-pane fade show active" id="sc-pane-account" role="tabpanel" aria-labelledby="sc-tab-account">
+            <h3 class="h5 mb-3">My profile</h3>
+            <div id="profile-loading">Loading…</div>
+            <div id="profile-card" class="d-none">
+              <p class="mb-1"><strong>Name:</strong> <span id="profile-name"></span></p>
+              <p class="mb-1"><strong>Email:</strong> <span id="profile-email"></span></p>
+              <p class="mb-0"><strong>Role:</strong> <span id="profile-role"></span></p>
+            </div>
+          </div>
+
+          <div class="tab-pane fade" id="sc-pane-courses" role="tabpanel" aria-labelledby="sc-tab-courses">
+            <section class="mb-4 pb-4 border-bottom">
+              <h3 class="h5 mb-2">Enrollments</h3>
+              <p class="muted">Courses you are enrolled in after admin approval. To join a course, apply from the home page while signed in.</p>
+              <div id="enrollments-loading">Loading…</div>
+              <table class="enroll-table d-none" id="enrollments-table">
+                <thead>
+                  <tr><th>Course</th><th>Language</th><th>Level</th><th>Enrolled at</th></tr>
+                </thead>
+                <tbody id="enrollments-body"></tbody>
+              </table>
+              <p id="enrollments-empty" class="d-none">No active enrollments yet. Apply from the home page after login, then wait for admin approval.</p>
+            </section>
+            <section>
+              <h3 class="h5 mb-2">Leave a course</h3>
+              <p class="muted">Request to leave an enrolled course. Your request is reviewed by staff.</p>
+              <div class="form-row align-items-end">
+                <div class="form-group col-md-8 col-lg-7 mb-2 mb-md-0">
+                  <label for="leave-course" class="mb-1 d-block">My enrolled course</label>
+                  <select id="leave-course" class="custom-select">
+                    <option value="">Select a course</option>
+                  </select>
+                </div>
+                <div class="form-group col-md-4 col-lg-5 mb-0">
+                  <button type="button" class="btn btn-outline-danger btn-block" id="btn-leave">Submit leave request</button>
+                </div>
+              </div>
+              <div class="mt-2 d-flex flex-wrap align-items-center">
+                <button type="button" class="btn btn-outline-secondary btn-sm d-none mr-2 mb-1" id="btn-refresh-leave-request">Refresh status</button>
+                <span id="request-status" class="small text-muted"></span>
+              </div>
+              <div id="request-detail-card" class="d-none mt-3 p-3 rounded border request-detail-card">
+                <div class="small mb-2"><strong id="req-detail-heading">Request</strong></div>
+                <div class="d-flex flex-wrap align-items-center">
+                  <span class="text-muted small">Type</span>
+                  <span id="req-detail-type" class="badge badge-secondary ml-1"></span>
+                  <span class="text-muted small ml-2">Status</span>
+                  <span id="req-detail-status" class="badge ml-1"></span>
+                </div>
+              </div>
+            </section>
+          </div>
+
+          <div class="tab-pane fade" id="sc-pane-messages" role="tabpanel" aria-labelledby="sc-tab-messages">
+            <p class="muted mb-3">School mail: incoming, outgoing, and compose.</p>
+            <ul class="nav nav-pills flex-wrap mb-3 student-msg-subnav" id="student-msg-tabs" role="tablist">
+              <li class="nav-item mr-2 mb-2">
+                <a class="nav-link active" id="msg-tab-inbox" data-toggle="tab" href="#msg-pane-inbox" role="tab" aria-controls="msg-pane-inbox" aria-selected="true">Inbox</a>
+              </li>
+              <li class="nav-item mr-2 mb-2">
+                <a class="nav-link" id="msg-tab-sent" data-toggle="tab" href="#msg-pane-sent" role="tab" aria-controls="msg-pane-sent" aria-selected="false">Sent</a>
+              </li>
+              <li class="nav-item mr-2 mb-2">
+                <a class="nav-link" id="msg-tab-compose" data-toggle="tab" href="#msg-pane-compose" role="tab" aria-controls="msg-pane-compose" aria-selected="false">New message</a>
+              </li>
+            </ul>
+            <div class="tab-content" id="student-msg-tab-content">
+              <div class="tab-pane fade show active" id="msg-pane-inbox" role="tabpanel" aria-labelledby="msg-tab-inbox">
+                <p class="muted small mb-2">Received messages. Use Mark read when you have opened a message.</p>
+                <div id="inbox-loading">Loading…</div>
+                <table class="msg-table d-none" id="inbox-table">
+                  <thead>
+                    <tr><th>From</th><th>Subject</th><th>Date</th><th>Read</th><th>Action</th></tr>
+                  </thead>
+                  <tbody id="inbox-body"></tbody>
+                </table>
+                <p id="inbox-empty" class="d-none">No messages.</p>
+              </div>
+              <div class="tab-pane fade" id="msg-pane-sent" role="tabpanel" aria-labelledby="msg-tab-sent">
+                <p class="muted small mb-2">Copies of messages you sent to the school.</p>
+                <div id="sent-loading">Loading…</div>
+                <table class="msg-table d-none" id="sent-table">
+                  <thead>
+                    <tr><th>To</th><th>Subject</th><th>Date</th></tr>
+                  </thead>
+                  <tbody id="sent-body"></tbody>
+                </table>
+                <p id="sent-empty" class="d-none">No sent messages.</p>
+              </div>
+              <div class="tab-pane fade" id="msg-pane-compose" role="tabpanel" aria-labelledby="msg-tab-compose">
+                <div class="send-form">
+                  <p class="muted small mb-3">Your message is delivered to school staff (administrator).</p>
+                  <label>Subject <input type="text" id="msg-subject" class="msg-subject-input" /></label>
+                  <label class="block">Content</label>
+                  <textarea id="msg-content"></textarea>
+                  <div class="send-actions">
+                    <button type="button" class="btn-send-site" id="btn-send">Send</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="site-footer"></div>
+
+  <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
+  <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.bundle.min.js"></script>
+  <script src="lib/easing/easing.min.js"></script>
+  <script src="lib/owlcarousel/owl.carousel.min.js"></script>
+  <script src="js/main.js"></script>
+  <script src="./js/api.js"></script>
+  <script src="./js/student.js"></script>
+</body>
+</html>

@@ -1,0 +1,568 @@
+/* ==========================================================================
+   Theme Tokens
+   ========================================================================== */
+
+:root {
+  --app-primary: #00b5b8;
+  --app-primary-hover: #006a6c;
+  --app-primary-soft: rgba(0, 206, 209, 0.15);
+  /* Match My account: banner margin + wrap padding + .panel margin-top */
+  --site-banner-bottom-gap: 1.25rem;
+  --site-content-wrap-padding-top: 0.75rem;
+  --site-main-panel-margin-top: 1.25rem;
+}
+
+/* ==========================================================================
+   Global Theme Overrides (template alignment)
+   ========================================================================== */
+
+a:not(.btn) {
+  color: var(--app-primary) !important;
+}
+
+a:not(.btn):hover {
+  color: var(--app-primary-hover) !important;
+}
+
+.text-primary {
+  color: var(--app-primary) !important;
+}
+
+.bg-primary {
+  background-color: var(--app-primary) !important;
+}
+
+.border-primary {
+  border-color: var(--app-primary) !important;
+}
+
+.btn-primary {
+  background-color: var(--app-primary) !important;
+  border-color: var(--app-primary) !important;
+  color: #fff;
+}
+
+.btn-primary:hover,
+.btn-primary:focus,
+.btn-primary:active {
+  background-color: var(--app-primary-hover) !important;
+  border-color: var(--app-primary-hover) !important;
+  color: #fff;
+}
+
+.carousel-caption .btn-primary,
+.carousel-caption .btn-primary:visited {
+  color: #fff;
+  background-color: var(--app-primary);
+  border-color: var(--app-primary);
+}
+
+.carousel-caption .btn-primary:hover,
+.carousel-caption .btn-primary:focus,
+.carousel-caption .btn-primary:active {
+  color: #fff;
+  background-color: var(--app-primary-hover);
+  border-color: var(--app-primary-hover);
+}
+
+.btn-outline-primary {
+  color: var(--app-primary) !important;
+  border-color: var(--app-primary) !important;
+}
+
+.btn-outline-primary:hover,
+.btn-outline-primary:focus,
+.btn-outline-primary:active {
+  color: #fff !important;
+  background-color: var(--app-primary) !important;
+  border-color: var(--app-primary) !important;
+}
+
+.badge-primary {
+  background-color: var(--app-primary) !important;
+}
+
+.nav-pills .nav-link.active,
+.nav-pills .show > .nav-link {
+  background-color: var(--app-primary) !important;
+}
+
+.dropdown-item.active,
+.dropdown-item:active {
+  background-color: var(--app-primary) !important;
+}
+
+.form-control:focus,
+.custom-select:focus {
+  border-color: var(--app-primary) !important;
+  box-shadow: 0 0 0 0.2rem var(--app-primary-soft) !important;
+}
+
+/* ==========================================================================
+   Utility Classes
+   ========================================================================== */
+
+.app-mb-90 {
+  margin-bottom: 90px;
+}
+
+/*
+ * Inner pages: spacing under the breadcrumb banner (aligned with My account: wrap padding + .panel top margin).
+ * Markup: first main block uses class `site-banner-follow` on the same div as `container-fluid py-5`.
+ *
+ * Why this beats template Bootstrap (style.css): `.py-5` there is one class + !important (low specificity).
+ * These selectors add `body` + several classes + !important, and app.css is linked AFTER style.css, so the
+ * cascade is correct. If the layout still looks unchanged in the browser, the usual cause is a stale cached
+ * app.css (fix: query string on the link, hard refresh, or dev no-cache — see Program.cs) or opening an old
+ * copy of the HTML — not missing CSS specificity.
+ */
+body .page-header.app-mb-90 {
+  margin-bottom: var(--site-banner-bottom-gap) !important;
+}
+
+body .site-banner-follow.container-fluid.py-5 {
+  padding-top: calc(
+    var(--site-content-wrap-padding-top) + var(--site-main-panel-margin-top)
+  ) !important;
+  padding-bottom: 2.5rem !important;
+}
+
+body .site-banner-follow.container-fluid.py-5 > .container.py-5 {
+  padding-top: 0 !important;
+  padding-bottom: 1.5rem !important;
+}
+
+body .site-banner-follow.container-fluid.py-5 > .container.pt-5 {
+  padding-top: 0 !important;
+}
+
+.app-mt-90 {
+  margin-top: 90px;
+}
+
+.app-my-90 {
+  margin: 90px 0;
+}
+
+.app-minh-300 {
+  min-height: 300px;
+}
+
+.app-letter-spacing-5 {
+  letter-spacing: 5px;
+}
+
+.app-max-220 {
+  max-width: 220px;
+}
+
+.app-max-260 {
+  max-width: 260px;
+}
+
+.app-max-360 {
+  max-width: 360px;
+}
+
+/* ==========================================================================
+   Homepage / Shared Template Helpers
+   ========================================================================== */
+
+.app-vertical-toggle {
+  height: 67px;
+  padding: 0 30px;
+}
+
+.app-vertical-nav {
+  width: calc(100% - 30px);
+  z-index: 9;
+}
+
+.app-carousel-item {
+  min-height: 300px;
+}
+
+.app-carousel-img {
+  min-height: 300px;
+  object-fit: cover;
+}
+
+.app-carousel-caption-box {
+  width: 100%;
+  max-width: 900px;
+}
+
+/* Visitor homepage: clearer hero copy and formal content blocks */
+body.page-home .carousel-caption .home-hero-lead {
+  text-shadow: 0 1px 14px rgba(0, 0, 0, 0.5);
+  font-size: 1.1rem;
+  font-weight: 400;
+  max-width: 36rem;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+body.page-home .app-hero-kicker {
+  letter-spacing: 0.18em;
+  opacity: 0.95;
+}
+
+body.page-home .home-cta-card {
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+body.page-home .home-cta-list {
+  padding-left: 0;
+}
+
+body.page-home .home-value-card {
+  background: #fff;
+  border-radius: 12px;
+  border: 1px solid rgba(0, 0, 0, 0.06);
+  box-shadow: 0 4px 18px rgba(0, 0, 0, 0.05);
+}
+
+body.page-home .home-testimonial-quote {
+  font-size: 1.15rem;
+  line-height: 1.65;
+  color: #2f3d45;
+}
+
+.app-select-h-47 {
+  height: 47px;
+}
+
+.app-input-pad-30 {
+  padding: 30px;
+}
+
+.app-map-iframe {
+  min-height: 420px;
+  border: 0;
+}
+
+.app-footer-border {
+  border-color: rgba(255, 255, 255, 0.1) !important;
+}
+
+/* Shared footer (partials/footer.html) — overrides global a:not(.btn) in dark bar */
+.app-footer-social .btn-outline-light:hover,
+.app-footer-social .btn-outline-light:focus {
+  background-color: var(--app-primary) !important;
+  border-color: var(--app-primary) !important;
+  color: #fff !important;
+}
+
+.app-footer-social .btn-outline-light:hover i,
+.app-footer-social .btn-outline-light:focus i {
+  color: #fff !important;
+}
+
+.app-footer-lang a {
+  color: #fff !important;
+}
+
+.app-footer-lang a:hover,
+.app-footer-lang a:focus {
+  color: var(--app-primary) !important;
+}
+
+.app-footer-lang a:hover i,
+.app-footer-lang a:focus i {
+  color: var(--app-primary) !important;
+}
+
+.app-footer-copy a {
+  color: var(--app-primary) !important;
+}
+
+.app-footer-copy a:hover,
+.app-footer-copy a:focus {
+  color: #fff !important;
+}
+
+/* ==========================================================================
+   Student / Admin Dashboard Shell
+   ========================================================================== */
+
+/* Inner public pages (my account): template body; admin keeps dashboard tint */
+body.page-student {
+  min-height: 100vh;
+}
+
+/* My account: same tokens as inner pages (.panel supplies --site-main-panel-margin-top) */
+body.page-student .student-account-wrap {
+  padding-top: var(--site-content-wrap-padding-top);
+  padding-bottom: 2.5rem;
+}
+
+body.page-student .student-account-inner {
+  padding-top: 0;
+  padding-bottom: 1.5rem;
+}
+
+body.page-admin {
+  background: linear-gradient(180deg, #f5fbfb 0%, #eef8f8 40%, #e8f4f4 100%);
+  min-height: 100vh;
+}
+
+.panel {
+  margin: var(--site-main-panel-margin-top) auto;
+  padding: 1.35rem 1.5rem;
+  max-width: 1100px;
+  background: #fff;
+  border: 1px solid rgba(0, 206, 209, 0.15);
+  border-radius: 12px;
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.06);
+}
+
+body.page-student .panel {
+  max-width: 900px;
+}
+
+/* My account (student.html): tabbed layout */
+.student-dashboard-panel .student-dashboard-nav {
+  border-bottom: 1px solid rgba(0, 206, 209, 0.2);
+}
+
+.student-dashboard-panel .student-dashboard-nav .nav-link {
+  color: #5c6b6b;
+  border-color: transparent;
+}
+
+.student-dashboard-panel .student-dashboard-nav .nav-link:hover {
+  border-color: rgba(0, 206, 209, 0.35);
+  color: #1a2f3a;
+}
+
+.student-dashboard-panel .student-dashboard-nav .nav-link.active {
+  color: var(--app-primary);
+  font-weight: 600;
+  border-color: var(--app-primary) var(--app-primary) #fff;
+}
+
+.student-dashboard-tab-content {
+  padding: 1.25rem 0 0.25rem;
+}
+
+.student-msg-subnav .nav-link {
+  color: #5c6b6b;
+  border-radius: 8px;
+  padding: 0.4rem 0.9rem;
+}
+
+.student-msg-subnav .nav-link.active {
+  background-color: var(--app-primary) !important;
+  color: #fff !important;
+}
+
+.panel h2 {
+  margin-bottom: 0.35rem;
+  font-size: 1.35rem;
+  font-weight: 700;
+  color: #1a2f3a;
+}
+
+.admin-note {
+  margin: 0 0 1.25rem;
+  padding: 14px 16px;
+  border: 1px solid #c5d9f5;
+  border-radius: 8px;
+  background: linear-gradient(135deg, #e8f4ff 0%, #e7f1ff 100%);
+  color: #1a365d;
+  line-height: 1.5;
+}
+
+.admin-note code {
+  font-size: 0.85em;
+  word-break: break-all;
+}
+
+.muted {
+  margin-bottom: 0.5rem;
+  color: #5c6b6b;
+  font-size: 0.9em;
+  line-height: 1.4;
+}
+
+/* ==========================================================================
+   Dashboard Tables
+   ========================================================================== */
+
+table.msg-table,
+table.enroll-table {
+  width: 100%;
+  margin-top: 10px;
+  border-collapse: collapse;
+  font-size: 0.95rem;
+}
+
+table.msg-table th,
+table.msg-table td,
+table.enroll-table th,
+table.enroll-table td {
+  border: 1px solid #d8e8e8;
+  padding: 10px 12px;
+  text-align: left;
+}
+
+table.msg-table thead th,
+table.enroll-table thead th {
+  background: #bdeced;
+  color: #1a2f3a;
+  font-weight: 600;
+}
+
+table.msg-table tbody tr:nth-child(even),
+table.enroll-table tbody tr:nth-child(even) {
+  background: #fafcfc;
+}
+
+#course-table tbody tr.cursor-pointer {
+  cursor: pointer;
+}
+
+/* ==========================================================================
+   Forms and Messaging UI
+   ========================================================================== */
+
+.send-form label {
+  display: block;
+  margin-top: 0.75rem;
+  color: #1a2f3a;
+  font-weight: 600;
+}
+
+.send-form label.block {
+  margin-top: 0.5rem;
+}
+
+.send-form textarea {
+  width: 100%;
+  min-height: 100px;
+  margin-top: 6px;
+  padding: 10px 12px;
+  border: 1px solid #c5d9d9;
+  border-radius: 8px;
+  font-family: inherit;
+  line-height: 1.45;
+  resize: vertical;
+}
+
+.msg-subject-input {
+  width: 100%;
+  max-width: 480px;
+  margin-top: 6px;
+  padding: 8px 12px;
+  border: 1px solid #c5d9d9;
+  border-radius: 8px;
+}
+
+.send-actions {
+  margin-top: 1rem;
+}
+
+.send-actions .btn-send-site {
+  padding: 0.5rem 1.35rem;
+  border: none;
+  border-radius: 8px;
+  background: var(--app-primary);
+  color: #fff;
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.request-detail-card {
+  background: #f8fcfc;
+  border-color: #c5d9d9 !important;
+}
+
+.student-flash-slot {
+  max-width: 900px;
+  margin: 0 auto 0.75rem;
+  padding: 0;
+}
+
+/* ==========================================================================
+   Inline Flash Messages
+   ========================================================================== */
+
+.app-flash {
+  margin-bottom: 12px;
+  padding: 10px 14px;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  line-height: 1.45;
+}
+
+.app-flash--success {
+  background: #d1e7dd;
+  color: #0f5132;
+  border: 1px solid #badbcc;
+}
+
+.app-flash--danger {
+  background: #f8d7da;
+  color: #842029;
+  border: 1px solid #f5c2c7;
+}
+
+.app-flash--warning {
+  background: #fff3cd;
+  color: #664d03;
+  border: 1px solid #ffecb5;
+}
+
+.app-flash--info {
+  background: #cff4fc;
+  color: #055160;
+  border: 1px solid #b6effb;
+}
+
+/* ==========================================================================
+   Header Account Menu
+   ========================================================================== */
+
+#auth-nav-slot {
+  align-items: center;
+}
+
+.auth-menu {
+  position: relative;
+}
+
+.auth-menu-trigger {
+  cursor: pointer;
+}
+
+.auth-menu-list {
+  display: none;
+  position: absolute;
+  top: 100%;
+  right: 0;
+  min-width: 180px;
+  padding: 6px 0;
+  border: 1px solid #e7eeee;
+  border-radius: 8px;
+  background: #fff;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+  z-index: 30;
+}
+
+.auth-menu-item {
+  display: block;
+  padding: 8px 14px;
+  color: #1f2d3d !important;
+  font-size: 0.95rem;
+  text-decoration: none;
+}
+
+.auth-menu-item:hover {
+  background: #f1f8f8;
+}
+
+.auth-menu:hover .auth-menu-list,
+.auth-menu.open .auth-menu-list {
+  display: block;
+}

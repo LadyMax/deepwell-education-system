@@ -10,9 +10,9 @@ public class Course
 
     public string Description { get; set; } = string.Empty;
 
-    public string SubjectCode { get; set; } = string.Empty;
+    public string LanguageCode { get; set; } = string.Empty;
 
-    public string SubjectName { get; set; } = string.Empty;
+    public string LanguageName { get; set; } = string.Empty;
 
     public CourseLevel Level { get; set; }
 

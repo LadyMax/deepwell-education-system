@@ -44,8 +44,8 @@ public class EnrollmentsController : ControllerBase
                 EnrollmentId = e.Id,
                 CourseId = e.CourseId,
                 CourseName = e.Course.Name,
-                SubjectCode = e.Course.SubjectCode,
-                SubjectName = e.Course.SubjectName,
+                LanguageCode = e.Course.LanguageCode,
+                LanguageName = e.Course.LanguageName,
                 Level = e.Course.Level,
                 EnrolledAt = e.CreatedAt
             })
@@ -88,8 +88,8 @@ public class MyEnrollmentDto
     public Guid EnrollmentId { get; set; }
     public Guid CourseId { get; set; }
     public string CourseName { get; set; } = "";
-    public string SubjectCode { get; set; } = "";
-    public string SubjectName { get; set; } = "";
+    public string LanguageCode { get; set; } = "";
+    public string LanguageName { get; set; } = "";
     public CourseLevel Level { get; set; }
     public DateTime EnrolledAt { get; set; }
 }

@@ -422,6 +422,5 @@ FodyWeavers.xsd
 *.msm
 *.msp
 
-# --- DeepwellEducation: defer committing static frontend until ready to push ---
-# Remove the next line when you want wwwroot tracked, then: git add DeepwellEducation/wwwroot/
-DeepwellEducation/wwwroot/
+# Local-only dev config (may contain passwords). Copy from appsettings.Development.json.example.
+DeepwellEducation/appsettings.Development.json

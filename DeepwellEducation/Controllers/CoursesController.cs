@@ -26,7 +26,9 @@ public class CoursesController : ControllerBase
         var list = _db.Courses
             .AsNoTracking()
             .Where(c => c.IsActive)
-            .OrderBy(c => c.Name)
+            .OrderBy(c => c.LanguageCode)
+            .ThenBy(c => c.Level)
+            .ThenBy(c => c.Name)
             .Select(c => new CourseDto(c))
             .ToList();
         return Ok(list);
@@ -52,7 +54,12 @@ public class CoursesController : ControllerBase
         if (!includeInactive)
             q = q.Where(c => c.IsActive);
 
-        var list = await q.OrderBy(c => c.Name).Select(c => new CourseDto(c)).ToListAsync(ct);
+        var list = await q
+            .OrderBy(c => c.LanguageCode)
+            .ThenBy(c => c.Level)
+            .ThenBy(c => c.Name)
+            .Select(c => new CourseDto(c))
+            .ToListAsync(ct);
         return Ok(list);
     }
 
@@ -72,8 +79,8 @@ public class CoursesController : ControllerBase
             Id = Guid.NewGuid(),
             Name = request.Name.Trim(),
             Description = request.Description?.Trim() ?? "",
-            SubjectCode = request.SubjectCode?.Trim() ?? "",
-            SubjectName = request.SubjectName?.Trim() ?? "",
+            LanguageCode = request.LanguageCode?.Trim() ?? "",
+            LanguageName = request.LanguageName?.Trim() ?? "",
             Level = request.Level,
             Category = category,
             IsActive = true
@@ -100,8 +107,8 @@ public class CoursesController : ControllerBase
 
         course.Name = request.Name.Trim();
         course.Description = request.Description?.Trim() ?? "";
-        course.SubjectCode = request.SubjectCode?.Trim() ?? "";
-        course.SubjectName = request.SubjectName?.Trim() ?? "";
+        course.LanguageCode = request.LanguageCode?.Trim() ?? "";
+        course.LanguageName = request.LanguageName?.Trim() ?? "";
         course.Level = request.Level;
         course.Category = category;
 
@@ -143,8 +150,8 @@ public class CourseDto
     public Guid Id { get; set; }
     public string Name { get; set; } = "";
     public string Description { get; set; } = "";
-    public string SubjectCode { get; set; } = "";
-    public string SubjectName { get; set; } = "";
+    public string LanguageCode { get; set; } = "";
+    public string LanguageName { get; set; } = "";
     public CourseLevel Level { get; set; }
     public CourseCategory Category { get; set; }
     public bool IsActive { get; set; }
@@ -156,8 +163,8 @@ public class CourseDto
         Id = c.Id;
         Name = c.Name;
         Description = c.Description;
-        SubjectCode = c.SubjectCode;
-        SubjectName = c.SubjectName;
+        LanguageCode = c.LanguageCode;
+        LanguageName = c.LanguageName;
         Level = c.Level;
         Category = c.Category;
         IsActive = c.IsActive;
@@ -168,8 +175,8 @@ public class CreateCourseRequest
 {
     public string Name { get; set; } = "";
     public string? Description { get; set; }
-    public string? SubjectCode { get; set; }
-    public string? SubjectName { get; set; }
+    public string? LanguageCode { get; set; }
+    public string? LanguageName { get; set; }
     public CourseLevel Level { get; set; }
     /// <summary>Optional; defaults to <see cref="CourseCategory.Language"/>.</summary>
     public CourseCategory? Category { get; set; }
@@ -179,8 +186,8 @@ public class UpdateCourseRequest
 {
     public string Name { get; set; } = "";
     public string? Description { get; set; }
-    public string? SubjectCode { get; set; }
-    public string? SubjectName { get; set; }
+    public string? LanguageCode { get; set; }
+    public string? LanguageName { get; set; }
     public CourseLevel Level { get; set; }
     /// <summary>Optional; defaults to <see cref="CourseCategory.Language"/>.</summary>
     public CourseCategory? Category { get; set; }

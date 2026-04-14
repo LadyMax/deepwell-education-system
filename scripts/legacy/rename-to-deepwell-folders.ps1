@@ -1,7 +1,10 @@
 # Legacy helper: renames LanguageSchoolManagement* folders to DeepwellEducation* and fixes .sln paths.
 # If your repo already has DeepwellEducation\ and DeepwellEducation.Tests\, you do not need this script.
+# Historical migration utility; keep for reference only and avoid running in normal development.
 $ErrorActionPreference = "Stop"
-$root = $PSScriptRoot
+
+# Script moved under scripts/legacy, so resolve repo root explicitly.
+$root = (Resolve-Path (Join-Path $PSScriptRoot "..\..")).Path
 
 if (-not (Test-Path (Join-Path $root "LanguageSchoolManagement"))) {
     Write-Host "No LanguageSchoolManagement folder found; migration already applied or not needed."

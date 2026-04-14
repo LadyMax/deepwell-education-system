@@ -1,6 +1,6 @@
-@LanguageSchoolManagement_HostAddress = http://localhost:5190
+@DeepwellEducation_HostAddress = http://localhost:5190
 
-GET {{LanguageSchoolManagement_HostAddress}}/weatherforecast/
+GET {{DeepwellEducation_HostAddress}}/weatherforecast/
 Accept: application/json
 
 ###

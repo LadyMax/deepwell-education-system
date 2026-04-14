@@ -20,7 +20,15 @@ document.addEventListener("DOMContentLoaded", async function () {
         const key = (c.languageName || "").trim().toLowerCase();
         if (!map[key]) map[key] = c.id;
     }
+    const staffAdmin =
+        typeof isStaffAdminAccount === "function" && isStaffAdminAccount();
+
     document.querySelectorAll(".apply-course-btn").forEach(function (btn) {
+        if (staffAdmin) {
+            btn.disabled = true;
+            btn.title = "Staff accounts cannot apply for courses.";
+            return;
+        }
         const lang = (btn.getAttribute("data-language") || "").trim();
         const id = map[lang.toLowerCase()];
         if (!id) {

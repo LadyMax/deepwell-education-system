@@ -4,6 +4,12 @@
         return;
     }
 
+    // Learner account page: staff should use the staff dashboard only.
+    if (typeof isStaffAdminAccount === "function" && isStaffAdminAccount()) {
+        window.location.href = "./admin.html";
+        return;
+    }
+
     let enrollmentRows = [];
     const leaveRequestIdKey = "deepwell_last_leave_request_id";
 
@@ -23,6 +29,14 @@
     }
 
     let lastLeaveRequestId = readStoredLeaveRequestId();
+
+    function messageTopicHuman(v) {
+        if (v === 0 || v === "CourseInquiry") return "Course inquiry";
+        if (v === 1 || v === "Complaint") return "Complaint";
+        if (v === 2 || v === "Feedback") return "Feedback";
+        if (v === 3 || v === "Other") return "Other";
+        return "—";
+    }
 
     function typeLabel(t) {
         if (t === 0 || t === "Join") return "Join";
@@ -76,6 +90,55 @@
         return "Visitor";
     }
 
+    function toDateInputValue(v) {
+        if (!v) return "";
+        const s = String(v);
+        if (/^\d{4}-\d{2}-\d{2}$/.test(s)) return s;
+        const d = new Date(s);
+        if (isNaN(d.getTime())) return "";
+        return d.toISOString().slice(0, 10);
+    }
+
+    function setProfileDetailsUi(showEditor, noteText) {
+        const editor = document.getElementById("profile-details-editor");
+        const note = document.getElementById("profile-details-note");
+        if (editor) editor.classList.toggle("d-none", !showEditor);
+        if (note) {
+            note.textContent = noteText || "";
+            note.classList.toggle("d-none", !noteText);
+        }
+    }
+
+    function fillStudentProfileForm(p) {
+        document.getElementById("profile-first-name").value = pick(p, "firstName", "FirstName") || "";
+        document.getElementById("profile-last-name").value = pick(p, "lastName", "LastName") || "";
+        document.getElementById("profile-phone").value = pick(p, "phone", "Phone") || "";
+        document.getElementById("profile-dob").value = toDateInputValue(pick(p, "dateOfBirth", "DateOfBirth"));
+        document.getElementById("profile-address").value = pick(p, "address", "Address") || "";
+    }
+
+    async function loadStudentProfileDetails(roleRaw) {
+        const isStudent = roleRaw === 1 || roleRaw === "Student";
+        if (!isStudent) {
+            setProfileDetailsUi(false, "Detailed student profile becomes available after your first approved Join request.");
+            return;
+        }
+        if (typeof getMyStudentProfile !== "function") {
+            setProfileDetailsUi(false, "Student profile service is not available.");
+            return;
+        }
+        const r = await getMyStudentProfile();
+        if (!r.ok) {
+            const msg = r.notFound
+                ? "Student profile is not ready yet. Please contact staff if this persists."
+                : (r.message || "Could not load student profile.");
+            setProfileDetailsUi(false, msg);
+            return;
+        }
+        fillStudentProfileForm(r.data || {});
+        setProfileDetailsUi(true, "");
+    }
+
     function showMessagesTabAndSent() {
         if (!window.jQuery || typeof jQuery.fn.tab !== "function") return;
         jQuery("#sc-tab-messages").tab("show");
@@ -90,8 +153,18 @@
         if (!me) return;
         document.getElementById("profile-name").textContent = pick(me, "fullName", "FullName") || "—";
         document.getElementById("profile-email").textContent = pick(me, "email", "Email") || "—";
-        document.getElementById("profile-role").textContent = roleLabel(pick(me, "role", "Role"));
+        const sn = pick(me, "studentNumber", "StudentNumber");
+        const snRow = document.getElementById("profile-student-number-row");
+        const snEl = document.getElementById("profile-student-number");
+        if (snRow && snEl) {
+            const hasSn = sn != null && String(sn).trim() !== "";
+            snEl.textContent = hasSn ? String(sn).trim() : "";
+            snRow.classList.toggle("d-none", !hasSn);
+        }
+        const roleRaw = pick(me, "role", "Role");
+        document.getElementById("profile-role").textContent = roleLabel(roleRaw);
         document.getElementById("profile-card").classList.remove("d-none");
+        await loadStudentProfileDetails(roleRaw);
     }
 
     function fillLeaveCourseOptions(list) {
@@ -195,6 +268,7 @@
             const tr = document.createElement("tr");
             tr.innerHTML =
                 "<td>" + pick(m, "receiverEmail", "ReceiverEmail") + "</td>" +
+                "<td>" + messageTopicHuman(pick(m, "senderSuggestedCategory", "SenderSuggestedCategory")) + "</td>" +
                 "<td>" + pick(m, "subject", "Subject") + "</td>" +
                 "<td>" + new Date(pick(m, "createdAt", "CreatedAt")).toLocaleString() + "</td>";
             tbody.appendChild(tr);
@@ -263,21 +337,44 @@
     document.getElementById("btn-send").addEventListener("click", async function () {
         const subject = document.getElementById("msg-subject").value.trim();
         const content = document.getElementById("msg-content").value.trim();
+        const topicSel = document.getElementById("msg-topic");
+        const topic = topicSel ? topicSel.value : "";
         if (!subject || !content) {
             showAppFlash("student-flash", "Subject and message content are required.", "warning", 4500);
             return;
         }
         try {
-            await sendMessage(subject, content);
+            await sendMessage(subject, content, null, topic || undefined);
             showAppFlash("student-flash", "Message sent.", "success", 3500);
             document.getElementById("msg-subject").value = "";
             document.getElementById("msg-content").value = "";
+            if (topicSel) topicSel.value = "";
             await loadInbox();
             await loadSent();
             showMessagesTabAndSent();
         } catch (err) {
             showAppFlash("student-flash", err.message || "Failed to send message.", "danger", 6000);
         }
+    });
+
+    document.getElementById("btn-save-profile-details").addEventListener("click", async function () {
+        const btn = document.getElementById("btn-save-profile-details");
+        const payload = {
+            firstName: document.getElementById("profile-first-name").value.trim(),
+            lastName: document.getElementById("profile-last-name").value.trim(),
+            phone: document.getElementById("profile-phone").value.trim(),
+            dateOfBirth: document.getElementById("profile-dob").value || null,
+            address: document.getElementById("profile-address").value.trim()
+        };
+        btn.disabled = true;
+        const r = await updateMyStudentProfile(payload);
+        btn.disabled = false;
+        if (!r.ok) {
+            showAppFlash("student-flash", r.message || "Failed to save student profile.", "danger", 6000);
+            return;
+        }
+        fillStudentProfileForm(r.data || payload);
+        showAppFlash("student-flash", "Student profile saved.", "success", 3500);
     });
 
     if (lastLeaveRequestId) {

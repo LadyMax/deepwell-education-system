@@ -1,0 +1,34 @@
+/* Dashboard Tables */
+
+table.msg-table,
+table.enroll-table {
+  width: 100%;
+  margin-top: 10px;
+  border-collapse: collapse;
+  font-size: 0.95rem;
+}
+
+table.msg-table th,
+table.msg-table td,
+table.enroll-table th,
+table.enroll-table td {
+  border: 1px solid #d8e8e8;
+  padding: 10px 12px;
+  text-align: left;
+}
+
+table.msg-table thead th,
+table.enroll-table thead th {
+  background: #bdeced;
+  color: #1a2f3a;
+  font-weight: 600;
+}
+
+table.msg-table tbody tr:nth-child(even),
+table.enroll-table tbody tr:nth-child(even) {
+  background: #fafcfc;
+}
+
+#course-table tbody tr.cursor-pointer {
+  cursor: pointer;
+}

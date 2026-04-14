@@ -14,6 +14,30 @@ function authHeaders() {
     return h;
 }
 
+/** @returns {string|number|null} JWT role claim, or null */
+function getAuthRoleFromToken() {
+    const token = localStorage.getItem("token");
+    if (!token) return null;
+    try {
+        const parts = token.split(".");
+        if (parts.length < 2) return null;
+        const base64 = parts[1].replace(/-/g, "+").replace(/_/g, "/");
+        const padded = base64 + "===".slice((base64.length + 3) % 4);
+        const p = JSON.parse(atob(padded));
+        return p.role != null
+            ? p.role
+            : p["http://schemas.microsoft.com/ws/2008/06/identity/claims/role"] ?? null;
+    } catch {
+        return null;
+    }
+}
+
+/** Staff (admin) accounts use the dashboard; they do not submit learner course applications. */
+function isStaffAdminAccount() {
+    const r = getAuthRoleFromToken();
+    return r === "Admin" || r === 2;
+}
+
 async function readJsonOrText(response) {
     const text = await response.text();
     try {
@@ -64,6 +88,24 @@ async function getMe() {
     const response = await fetch(`${baseUrl}/Auth/me`, { headers: authHeaders() });
     if (!response.ok) return null;
     return response.json();
+}
+
+async function getMyStudentProfile() {
+    const response = await fetch(`${baseUrl}/StudentProfiles/me`, { headers: authHeaders() });
+    if (response.status === 404) return { ok: false, notFound: true, message: await response.text() };
+    if (!response.ok) return { ok: false, message: await response.text() };
+    return { ok: true, data: await response.json() };
+}
+
+async function updateMyStudentProfile(payload) {
+    const response = await fetch(`${baseUrl}/StudentProfiles/me`, {
+        method: "PUT",
+        headers: authHeaders(),
+        body: JSON.stringify(payload || {})
+    });
+    const body = await readJsonOrText(response);
+    if (!response.ok) return { ok: false, message: body.text || response.statusText };
+    return { ok: true, data: body.json || {} };
 }
 
 async function getCourses() {
@@ -166,9 +208,12 @@ async function markMessageRead(id) {
     return { ok: true, data: await response.json() };
 }
 
-async function sendMessage(subject, content, receiverUserId) {
+async function sendMessage(subject, content, receiverUserId, senderSuggestedCategory) {
     const body = { subject, content };
     if (receiverUserId) body.receiverUserId = receiverUserId;
+    if (senderSuggestedCategory != null && senderSuggestedCategory !== "") {
+        body.senderSuggestedCategory = Number(senderSuggestedCategory);
+    }
     const response = await fetch(`${baseUrl}/Messages`, {
         method: "POST",
         headers: authHeaders(),
@@ -198,6 +243,9 @@ async function submitCourseRequest(courseId, type) {
 }
 
 async function submitJoinRequest(courseId) {
+    if (isStaffAdminAccount()) {
+        return { ok: false, message: "Staff accounts cannot apply for courses." };
+    }
     return submitCourseRequest(courseId, 0);
 }
 
@@ -218,6 +266,7 @@ async function getAdminMessages(options = {}) {
     const pageSize = options.pageSize || 20;
     let url = `${baseUrl}/Messages/admin?page=${page}&pageSize=${pageSize}`;
     if (options.uncategorizedOnly) url += "&uncategorizedOnly=true";
+    if (options.unreadOnly) url += "&unreadOnly=true";
     if (options.finalCategory != null && options.finalCategory !== "") {
         url += `&finalCategory=${encodeURIComponent(options.finalCategory)}`;
     }
@@ -237,10 +286,25 @@ async function categorizeMessage(id, finalCategory) {
     return { ok: true, data: await response.json() };
 }
 
-/** status: e.g. "Pending" | "Approved" | "Rejected", or omit for all (Admin). */
-async function getCourseRequests(status) {
-    let url = `${baseUrl}/CourseRequests`;
-    if (status != null && status !== "") url += `?status=${encodeURIComponent(status)}`;
+/**
+ * Admin request list filters.
+ * Backward compatible: a string argument is treated as status.
+ */
+async function getCourseRequests(filtersOrStatus) {
+    const params = new URLSearchParams();
+    if (typeof filtersOrStatus === "string") {
+        if (filtersOrStatus) params.set("status", filtersOrStatus);
+    } else {
+        const filters = filtersOrStatus || {};
+        if (filters.status) params.set("status", filters.status);
+        if (filters.type) params.set("type", filters.type);
+        if (filters.courseId) params.set("courseId", filters.courseId);
+        if (filters.applicant) params.set("applicant", filters.applicant);
+        if (filters.created) params.set("created", filters.created);
+    }
+
+    const query = params.toString();
+    let url = `${baseUrl}/CourseRequests${query ? "?" + query : ""}`;
     const response = await fetch(url, { headers: authHeaders() });
     if (response.status === 403) return { forbidden: true, items: [] };
     if (!response.ok) return { error: await response.text(), items: [] };

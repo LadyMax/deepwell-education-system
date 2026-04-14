@@ -67,6 +67,7 @@ public class EnrollmentsController : ControllerBase
             .AsNoTracking()
             .Where(e => e.CourseId == courseId && e.IsActive)
             .Include(e => e.User)
+            .ThenInclude(u => u.StudentProfile)
             .OrderBy(e => e.User.Email)
             .Select(e => new CourseEnrollmentDto
             {
@@ -74,6 +75,7 @@ public class EnrollmentsController : ControllerBase
                 UserId = e.UserId,
                 Email = e.User.Email,
                 FullName = e.User.FullName,
+                StudentNumber = e.User.StudentProfile != null ? e.User.StudentProfile.StudentNumber : null,
                 Role = e.User.Role,
                 EnrolledAt = e.CreatedAt
             })
@@ -100,6 +102,7 @@ public class CourseEnrollmentDto
     public Guid UserId { get; set; }
     public string Email { get; set; } = "";
     public string FullName { get; set; } = "";
+    public string? StudentNumber { get; set; }
     public UserRole Role { get; set; }
     public DateTime EnrolledAt { get; set; }
 }

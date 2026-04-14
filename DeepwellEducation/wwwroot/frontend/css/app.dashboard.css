@@ -1,0 +1,390 @@
+/*  Student / Admin Dashboard Shell */
+
+/* Inner public pages (my account): template body; admin keeps dashboard tint */
+body.page-student {
+  min-height: 100vh;
+}
+
+/* My account: same tokens as inner pages (.panel supplies --site-main-panel-margin-top) */
+body.page-student .student-account-wrap {
+  padding-top: var(--site-content-wrap-padding-top);
+  padding-bottom: 2.5rem;
+}
+
+body.page-student .student-account-inner {
+  padding-top: 0;
+  padding-bottom: 1.5rem;
+}
+
+body.page-admin {
+  background: linear-gradient(180deg, #f5fbfb 0%, #eef8f8 40%, #e8f4f4 100%);
+  min-height: 100vh;
+}
+
+/* Staff dashboard can use a wider content area than learner pages. */
+body.page-admin .admin-dashboard-panel {
+  max-width: min(1520px, calc(100vw - 1.5rem));
+}
+
+/*
+ * Staff dashboard: use default Bootstrap .custom-select; only fix flex row stretching here.
+ */
+body.page-admin #msg-final-filter {
+  flex: 0 0 auto;
+  max-width: min(14rem, 100%);
+  border-radius: 0.2rem;
+  height: calc(1.5em + 0.5rem + 2px);
+  padding: 0.25rem 1.8rem 0.25rem 0.5rem;
+  font-size: 0.875rem;
+  line-height: 1.5;
+  border: 1px solid var(--bs-primary);
+  color: var(--bs-primary);
+  background-color: #fff;
+}
+
+body.page-admin #msg-final-filter:hover,
+body.page-admin #msg-final-filter:focus {
+  border-color: var(--bs-primary);
+  box-shadow: none;
+}
+
+body.page-admin .admin-dashboard-panel .table td:has(select.custom-select) {
+  vertical-align: middle;
+}
+
+/* Staff dashboard: select + Confirm button rows (toolbar and tables). */
+body.page-admin .admin-select-apply {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+body.page-admin .admin-select-apply .custom-select {
+  flex: 1 1 10rem;
+  min-width: 0;
+}
+
+body.page-admin .admin-select-apply .btn-admin-confirm {
+  flex-shrink: 0;
+  white-space: nowrap;
+}
+
+/* Courses panel: normalize field styling across input/select/textarea controls. */
+body.page-admin #course-name,
+body.page-admin #course-language-code,
+body.page-admin #course-language-name,
+body.page-admin #course-level,
+body.page-admin #course-active-select,
+body.page-admin #course-desc {
+  border: 1px solid #ced4da;
+  border-radius: 0.2rem;
+  color: #495057;
+  background-color: #fff;
+}
+
+body.page-admin #course-name,
+body.page-admin #course-language-code,
+body.page-admin #course-language-name,
+body.page-admin #course-level,
+body.page-admin #course-active-select {
+  height: calc(1.5em + 0.5rem + 2px);
+  padding-top: 0.25rem;
+  padding-bottom: 0.25rem;
+  font-size: 0.875rem;
+}
+
+body.page-admin #course-level,
+body.page-admin #course-active-select {
+  padding-right: 1.75rem;
+  appearance: none;
+}
+
+body.page-admin #course-desc {
+  min-height: 4.25rem;
+  resize: vertical;
+}
+
+/* Contact messages: table — Final category column; Confirm stays to the right of the select. */
+body.page-admin #msg-table .msg-cat-cell {
+  min-width: 13rem;
+  max-width: 18rem;
+  vertical-align: middle;
+}
+
+/* Keep key message columns readable; allow only content column to wrap. */
+body.page-admin #msg-table th,
+body.page-admin #msg-table td {
+  white-space: nowrap;
+  vertical-align: middle;
+}
+
+body.page-admin #msg-table th:nth-child(1),
+body.page-admin #msg-table td:nth-child(1),
+body.page-admin #msg-table th:nth-child(2),
+body.page-admin #msg-table td:nth-child(2) {
+  min-width: 12rem;
+}
+
+body.page-admin #msg-table th:nth-child(3),
+body.page-admin #msg-table td:nth-child(3) {
+  min-width: 14rem;
+}
+
+body.page-admin #msg-table th:nth-child(4),
+body.page-admin #msg-table td:nth-child(4) {
+  min-width: 16rem;
+  white-space: normal;
+}
+
+body.page-admin #msg-table .msg-cat-cell .admin-select-apply {
+  flex-wrap: nowrap;
+  align-items: center;
+}
+
+body.page-admin #msg-table .msg-cat-cell .msg-cat {
+  flex: 1 1 auto;
+  min-width: 0;
+  max-width: 11rem;
+}
+
+body.page-admin #msg-table .msg-cat-cell .msg-cat-confirm {
+  margin-left: 0.05rem;
+  color: #495057 !important;
+  border-color: #6c757d !important;
+  background-color: #fff !important;
+}
+
+body.page-admin #msg-table .msg-cat-cell .msg-cat-confirm:hover,
+body.page-admin #msg-table .msg-cat-cell .msg-cat-confirm:focus {
+  color: #fff !important;
+  background-color: #6c757d !important;
+  border-color: #6c757d !important;
+}
+
+/*
+ * Progressive enhancement: in supporting browsers, all project dropdowns share
+ * the same brand-highlight behavior and icon treatment.
+ */
+@supports (appearance: base-select) {
+  body select.custom-select,
+  body select.form-control,
+  body select.custom-select::picker(select),
+  body select.form-control::picker(select) {
+    appearance: base-select;
+  }
+
+  body select.custom-select::picker(select),
+  body select.form-control::picker(select) {
+    border: 1px solid #ced4da;
+    border-radius: 0.2rem;
+    background: #fff;
+  }
+
+  body select.custom-select::picker-icon,
+  body select.form-control::picker-icon {
+    display: none;
+  }
+
+  body select.custom-select option,
+  body select.form-control option {
+    background-color: #fff;
+    color: #495057;
+  }
+
+  body select.custom-select option:hover,
+  body select.custom-select option:focus-visible,
+  body select.form-control option:hover,
+  body select.form-control option:focus-visible {
+    background-color: var(--bs-primary);
+    color: #fff;
+  }
+
+  body select.custom-select option:checked,
+  body select.form-control option:checked {
+    background-color: rgba(var(--bs-primary-rgb), 0.16);
+    color: #495057;
+  }
+}
+
+.panel {
+  margin: var(--site-main-panel-margin-top) auto;
+  padding: 1.35rem 1.5rem;
+  max-width: var(--site-panel-max-width);
+  background: #fff;
+  border: 1px solid rgba(0, 206, 209, 0.15);
+  border-radius: 12px;
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.06);
+}
+
+/* My account (student.html): tabbed layout */
+.student-dashboard-panel .student-dashboard-nav {
+  border-bottom: 1px solid rgba(0, 206, 209, 0.2);
+}
+
+.student-dashboard-panel .student-dashboard-nav .nav-link {
+  color: #5c6b6b;
+  border-color: transparent;
+}
+
+.student-dashboard-panel .student-dashboard-nav .nav-link:hover {
+  border-color: rgba(0, 206, 209, 0.35);
+  color: #1a2f3a;
+}
+
+.student-dashboard-panel .student-dashboard-nav .nav-link.active {
+  color: var(--app-primary);
+  font-weight: 600;
+  border-color: var(--app-primary) var(--app-primary) #fff;
+}
+
+.student-dashboard-tab-content {
+  padding: 1.25rem 0 0.25rem;
+}
+
+.student-msg-subnav .nav-link {
+  color: #5c6b6b;
+  border-radius: 8px;
+  padding: 0.4rem 0.9rem;
+}
+
+.student-msg-subnav .nav-link.active {
+  background-color: var(--app-primary) !important;
+  color: #fff !important;
+}
+
+.panel h2 {
+  margin-bottom: 0.35rem;
+  font-size: 1.35rem;
+  font-weight: 700;
+  color: #1a2f3a;
+}
+
+.admin-note {
+  margin: 0 0 1.25rem;
+  padding: 14px 16px;
+  border: 1px solid #c5d9f5;
+  border-radius: 8px;
+  background: linear-gradient(135deg, #e8f4ff 0%, #e7f1ff 100%);
+  color: #1a365d;
+  line-height: 1.5;
+}
+
+.admin-note code {
+  font-size: 0.85em;
+  word-break: break-all;
+}
+
+.admin-dashboard-panel .admin-dashboard-title {
+  color: #1a2f3a;
+  font-weight: 700;
+}
+
+.admin-section {
+  padding-bottom: 0.15rem;
+}
+
+.admin-section-rule {
+  border-color: rgba(0, 206, 209, 0.22);
+  opacity: 1;
+}
+
+/* Staff dashboard pane tabs: keep active text readable after blur. */
+body.page-admin .admin-pane-nav .btn-outline-primary.active,
+body.page-admin .admin-pane-nav .btn-outline-primary.active:hover,
+body.page-admin .admin-pane-nav .btn-outline-primary.active:focus,
+body.page-admin .admin-pane-nav .btn-outline-primary.active:focus-visible {
+  color: #fff !important;
+  background-color: var(--bs-primary) !important;
+  border-color: var(--bs-primary) !important;
+}
+
+body.page-admin .admin-pane-nav .btn-outline-primary:not(.active) {
+  color: var(--bs-primary) !important;
+  background-color: #fff !important;
+  border-color: var(--bs-primary) !important;
+}
+
+/* Keep nav pill corners consistent with other admin action buttons. */
+body.page-admin .admin-pane-nav .btn {
+  border-radius: 0.2rem !important;
+}
+
+/* Enrollment Queue secondary actions: improve idle-state contrast. */
+body.page-admin #btn-load-all,
+body.page-admin #btn-cr-reset-filters {
+  color: #495057 !important;
+  border-color: #6c757d !important;
+  background-color: #fff !important;
+}
+
+body.page-admin #btn-load-all:hover,
+body.page-admin #btn-load-all:focus,
+body.page-admin #btn-cr-reset-filters:hover,
+body.page-admin #btn-cr-reset-filters:focus {
+  color: #fff !important;
+  background-color: #6c757d !important;
+  border-color: #6c757d !important;
+}
+
+.admin-advanced {
+  border: 1px dashed rgba(0, 181, 184, 0.4);
+  border-radius: 8px;
+  padding: 10px 14px;
+  background: rgba(255, 255, 255, 0.65);
+}
+
+.admin-advanced summary {
+  cursor: pointer;
+  color: #5c6b6b;
+  font-weight: 500;
+}
+
+.admin-advanced[open] summary {
+  margin-bottom: 0.35rem;
+}
+
+/* Enrollment queue: emphasize critical workflow states with semantic colors. */
+body.page-admin #cr-table .cr-type,
+body.page-admin #cr-table .cr-status {
+  font-weight: 600;
+}
+
+body.page-admin #cr-table .cr-type--leave {
+  color: #b54708;
+}
+
+body.page-admin #cr-table .cr-status--pending {
+  color: #8a6d3b;
+}
+
+body.page-admin #cr-table .cr-status--approved {
+  color: #0a7a3f;
+}
+
+body.page-admin #cr-table .cr-status--rejected {
+  color: #b42318;
+}
+
+.admin-msg-details summary {
+  cursor: pointer;
+  color: var(--app-primary, #00ced1);
+}
+
+.admin-msg-pre {
+  white-space: pre-wrap;
+  word-break: break-word;
+  max-height: 14rem;
+  overflow: auto;
+  background: #f8fafb;
+  border: 1px solid rgba(0, 0, 0, 0.06);
+  border-radius: 6px;
+  padding: 0.5rem 0.65rem;
+}
+
+.muted {
+  margin-bottom: 0.5rem;
+  color: #5c6b6b;
+  font-size: 0.9em;
+  line-height: 1.4;
+}

@@ -172,4 +172,72 @@ public class CourseRequestServiceTests : IAsyncLifetime
         Assert.Equal(SubmitError.DuplicatePending, second.Error);
         Assert.Null(second.Request);
     }
+
+    [Fact]
+    public async Task SubmitAsync_AdminJoin_ReturnsAdminJoinNotAllowed()
+    {
+        var adminId = Guid.NewGuid();
+        var courseId = Guid.NewGuid();
+
+        _db.Users.Add(new User
+        {
+            Id = adminId,
+            Email = "admin@test",
+            PasswordHash = "x",
+            FullName = "A",
+            Role = UserRole.Admin,
+            IsActive = true
+        });
+        _db.Courses.Add(new Course
+        {
+            Id = courseId,
+            Name = "Italian 101",
+            Description = "",
+            LanguageCode = "it",
+            LanguageName = "Italian",
+            Level = CourseLevel.Beginner,
+            IsActive = true
+        });
+        await _db.SaveChangesAsync();
+
+        var result = await _sut.SubmitAsync(adminId, courseId, RequestType.Join);
+
+        Assert.Equal(SubmitError.AdminJoinNotAllowed, result.Error);
+        Assert.Null(result.Request);
+        Assert.False(await _db.CourseRequests.AnyAsync());
+    }
+
+    [Fact]
+    public async Task SubmitAsync_AdminLeave_ReturnsAdminJoinNotAllowed()
+    {
+        var adminId = Guid.NewGuid();
+        var courseId = Guid.NewGuid();
+
+        _db.Users.Add(new User
+        {
+            Id = adminId,
+            Email = "admin-leave@test",
+            PasswordHash = "x",
+            FullName = "A2",
+            Role = UserRole.Admin,
+            IsActive = true
+        });
+        _db.Courses.Add(new Course
+        {
+            Id = courseId,
+            Name = "Italian 201",
+            Description = "",
+            LanguageCode = "it",
+            LanguageName = "Italian",
+            Level = CourseLevel.Intermediate,
+            IsActive = true
+        });
+        await _db.SaveChangesAsync();
+
+        var result = await _sut.SubmitAsync(adminId, courseId, RequestType.Leave);
+
+        Assert.Equal(SubmitError.AdminJoinNotAllowed, result.Error);
+        Assert.Null(result.Request);
+        Assert.False(await _db.CourseRequests.AnyAsync());
+    }
 }

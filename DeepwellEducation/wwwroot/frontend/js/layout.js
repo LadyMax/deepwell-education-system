@@ -118,15 +118,11 @@
         const isAdmin = role === 2 || role === 'Admin';
         const target = isAdmin ? 'admin.html' : 'student.html';
         const safeName = escapeHtml(readName(user));
-        const adminItem = isAdmin
-            ? '<a href="admin.html" class="auth-menu-item">Admin Console</a>'
-            : '';
         slot.innerHTML =
             '<div class="nav-item auth-menu" id="auth-menu">' +
             '<a href="' + target + '" class="nav-link auth-menu-trigger" id="auth-menu-trigger">Hi, ' + safeName + '</a>' +
             '<div class="auth-menu-list">' +
             '<a href="' + target + '" class="auth-menu-item">My account</a>' +
-            adminItem +
             '<a href="#" class="auth-menu-item" id="auth-logout-link">Logout</a>' +
             '</div>' +
             '</div>';

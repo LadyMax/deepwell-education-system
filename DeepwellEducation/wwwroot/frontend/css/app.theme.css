@@ -1,0 +1,190 @@
+/* Global Theme Overrides (template alignment) */
+
+a:not(.btn) {
+  color: var(--app-primary) !important;
+}
+
+a:not(.btn):hover {
+  color: var(--app-primary-hover) !important;
+}
+
+.text-primary {
+  color: var(--bs-primary) !important;
+}
+
+.bg-primary {
+  background-color: var(--bs-primary) !important;
+}
+
+.border-primary {
+  border-color: var(--bs-primary) !important;
+}
+
+.btn-primary {
+  background-color: var(--bs-primary) !important;
+  border-color: var(--bs-primary) !important;
+  color: #fff;
+}
+
+.btn-primary:hover,
+.btn-primary:focus,
+.btn-primary:active {
+  background-color: var(--app-primary-hover) !important;
+  border-color: var(--app-primary-hover) !important;
+  color: #fff;
+}
+
+.carousel-caption .btn-primary,
+.carousel-caption .btn-primary:visited {
+  color: #fff;
+  background-color: var(--bs-primary);
+  border-color: var(--bs-primary);
+}
+
+.carousel-caption .btn-primary:hover,
+.carousel-caption .btn-primary:focus,
+.carousel-caption .btn-primary:active {
+  color: #fff;
+  background-color: var(--app-primary-hover);
+  border-color: var(--app-primary-hover);
+}
+
+.btn-outline-primary {
+  color: var(--bs-primary) !important;
+  border-color: var(--bs-primary) !important;
+}
+
+.btn-outline-primary:hover,
+.btn-outline-primary:focus,
+.btn-outline-primary:active {
+  color: #fff !important;
+  background-color: var(--bs-primary) !important;
+  border-color: var(--bs-primary) !important;
+}
+
+.badge-primary {
+  background-color: var(--bs-primary) !important;
+}
+
+.nav-pills .nav-link.active,
+.nav-pills .show > .nav-link {
+  background-color: var(--bs-primary) !important;
+}
+
+.dropdown-item.active,
+.dropdown-item:active {
+  background-color: var(--bs-primary) !important;
+}
+
+.dropdown-item:hover:not(.active),
+.dropdown-item:focus:not(.active) {
+  background-color: var(--app-primary-soft);
+  color: #1a2f3a;
+}
+
+.form-control:focus,
+.custom-select:focus {
+  border-color: var(--bs-primary) !important;
+  box-shadow: 0 0 0 0.25rem rgba(var(--bs-primary-rgb), 0.25) !important;
+}
+
+.form-control:focus-visible,
+.custom-select:focus-visible,
+.custom-select:active {
+  border-color: var(--bs-primary) !important;
+  box-shadow: 0 0 0 0.25rem rgba(var(--bs-primary-rgb), 0.25) !important;
+  outline: 0 !important;
+}
+
+/* Supported engines: selected option uses brand color instead of system blue. */
+.custom-select option:checked {
+  background-color: var(--bs-primary);
+  color: #fff;
+}
+
+/* Date input: align native picker accent/icon with brand color. */
+input[type="date"].form-control,
+input[type="date"].form-control-sm,
+input[type="date"].custom-select {
+  accent-color: var(--bs-primary);
+}
+
+input[type="date"]::-webkit-calendar-picker-indicator {
+  filter: brightness(0) saturate(100%) invert(45%) sepia(89%) saturate(1347%)
+    hue-rotate(136deg) brightness(95%) contrast(101%);
+  opacity: 0.95;
+}
+
+/* Student My account: make DOB input clearly brand-styled (not browser-default). */
+body.page-student #profile-dob {
+  border-color: rgba(var(--bs-primary-rgb), 0.55);
+  background-color: rgba(var(--bs-primary-rgb), 0.06);
+  color: #1a2f3a;
+}
+
+body.page-student #profile-dob:hover {
+  border-color: var(--bs-primary);
+  background-color: rgba(var(--bs-primary-rgb), 0.1);
+}
+
+body.page-student #profile-dob::-webkit-calendar-picker-indicator {
+  filter: brightness(0) saturate(100%) invert(45%) sepia(89%) saturate(1347%)
+    hue-rotate(136deg) brightness(95%) contrast(101%) !important;
+  opacity: 1;
+  padding: 0.14rem;
+  border-radius: 0.3rem;
+  background-color: rgba(var(--bs-primary-rgb), 0.18);
+}
+
+body.page-student #profile-dob::-webkit-calendar-picker-indicator:hover {
+  background-color: rgba(var(--bs-primary-rgb), 0.3);
+}
+
+/* Restore template semantic palette after moving to stock Bootstrap base. */
+.bg-secondary {
+  background-color: var(--app-secondary) !important;
+}
+
+.bg-dark {
+  background-color: var(--app-dark) !important;
+}
+
+.text-dark {
+  color: var(--app-dark) !important;
+}
+
+.border-dark {
+  border-color: var(--app-dark) !important;
+}
+
+.border-secondary {
+  border-color: var(--app-secondary) !important;
+}
+
+.btn-dark {
+  background-color: var(--app-dark) !important;
+  border-color: var(--app-dark) !important;
+  color: #fff !important;
+}
+
+.btn-dark:hover,
+.btn-dark:focus,
+.btn-dark:active {
+  background-color: #2f2d3f !important;
+  border-color: #2f2d3f !important;
+  color: #fff !important;
+}
+
+.btn-secondary {
+  background-color: var(--app-secondary) !important;
+  border-color: var(--app-secondary) !important;
+  color: var(--app-dark) !important;
+}
+
+.btn-secondary:hover,
+.btn-secondary:focus,
+.btn-secondary:active {
+  background-color: #dedceb !important;
+  border-color: #dedceb !important;
+  color: var(--app-dark) !important;
+}

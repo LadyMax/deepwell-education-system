@@ -15,17 +15,20 @@ namespace DeepwellEducation.Data;
 /// </summary>
 public static class AdminSeeder
 {
-    /// <summary>Eight school languages: ISO-style code, display name (<see cref="Course.LanguageName"/>), and English prefix for <see cref="Course.Name"/>.</summary>
-    private static readonly (string Code, string LanguageName, string NameEn)[] SchoolLanguages =
+    /// <summary>
+    /// Eight school languages: <see cref="Course.LanguageCode"/> (lowercase) and English <see cref="Course.LanguageName"/>.
+    /// Matches the public catalog labels so admin “Language label” and API data stay aligned without extra UI mapping.
+    /// </summary>
+    private static readonly (string Code, string EnglishName)[] SchoolLanguages =
     {
-        ("zh", "中文", "Chinese"),
-        ("en", "English", "English"),
-        ("fr", "Français", "French"),
-        ("sv", "Svenska", "Swedish"),
-        ("it", "Italiano", "Italian"),
-        ("ja", "日本語", "Japanese"),
-        ("es", "Español", "Spanish"),
-        ("de", "Deutsch", "German")
+        ("zh", "Chinese"),
+        ("en", "English"),
+        ("fr", "French"),
+        ("sv", "Swedish"),
+        ("it", "Italian"),
+        ("ja", "Japanese"),
+        ("es", "Spanish"),
+        ("de", "German")
     };
 
     private static readonly CourseLevel[] Levels =
@@ -46,6 +49,7 @@ public static class AdminSeeder
 
         await SeedAdminAsync(services, db, logger, cancellationToken);
         await SeedCoursesAsync(db, logger, cancellationToken);
+        await NormalizeSchoolCourseLanguageLabelsAsync(db, logger, cancellationToken);
     }
 
     private static async Task SeedAdminAsync(
@@ -122,7 +126,7 @@ public static class AdminSeeder
         var have = existingKeys.ToHashSet();
 
         var toAdd = new List<Course>();
-        foreach (var (code, languageName, nameEn) in SchoolLanguages)
+        foreach (var (code, englishName) in SchoolLanguages)
         {
             var codeNorm = code.ToLowerInvariant();
             foreach (var level in Levels)
@@ -134,10 +138,10 @@ public static class AdminSeeder
                 toAdd.Add(new Course
                 {
                     Id = Guid.NewGuid(),
-                    Name = $"{nameEn} {LevelWord(level)}",
-                    Description = BuildDescription(nameEn, level),
+                    Name = $"{englishName} {LevelWord(level)}",
+                    Description = BuildDescription(englishName, level),
                     LanguageCode = codeNorm,
-                    LanguageName = languageName,
+                    LanguageName = englishName,
                     Level = level,
                     Category = CourseCategory.Language,
                     IsActive = true
@@ -152,5 +156,41 @@ public static class AdminSeeder
         await db.Courses.AddRangeAsync(toAdd, cancellationToken);
         await db.SaveChangesAsync(cancellationToken);
         logger.LogInformation("Seeded {Count} missing language × level courses (Development only).", toAdd.Count);
+    }
+
+    /// <summary>
+    /// Aligns <see cref="Course.LanguageName"/> with <see cref="Course.LanguageCode"/> for the eight school languages
+    /// (fixes older dev DB rows, e.g. endonyms left from earlier seeds).
+    /// </summary>
+    private static async Task NormalizeSchoolCourseLanguageLabelsAsync(
+        AppDbContext db,
+        ILogger logger,
+        CancellationToken cancellationToken)
+    {
+        var codeToName = SchoolLanguages.ToDictionary(
+            x => x.Code.ToLowerInvariant(),
+            x => x.EnglishName,
+            StringComparer.Ordinal);
+
+        var courses = await db.Courses.ToListAsync(cancellationToken);
+        var changed = 0;
+        foreach (var c in courses)
+        {
+            var key = c.LanguageCode?.ToLowerInvariant();
+            if (key == null || !codeToName.TryGetValue(key, out var expected))
+                continue;
+            if (string.Equals(c.LanguageName, expected, StringComparison.Ordinal))
+                continue;
+            c.LanguageName = expected;
+            changed++;
+        }
+
+        if (changed == 0)
+            return;
+
+        await db.SaveChangesAsync(cancellationToken);
+        logger.LogInformation(
+            "Normalized LanguageName for {Count} school course(s) to match languageCode (Development only).",
+            changed);
     }
 }

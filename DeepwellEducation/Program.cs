@@ -1,13 +1,16 @@
 using System.Text;
+using System.Threading.RateLimiting;
 using DeepwellEducation.Data;
 using DeepwellEducation.Domain.Entities;
+using DeepwellEducation.Security;
 using DeepwellEducation.Services;
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.IdentityModel.Tokens;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.FileProviders;
+using Microsoft.IdentityModel.Tokens;
 
 namespace DeepwellEducation
 {
@@ -16,6 +19,8 @@ namespace DeepwellEducation
         public static async Task Main(string[] args)
         {
             var builder = WebApplication.CreateBuilder(args);
+
+            builder.WebHost.ConfigureKestrel(options => options.AddServerHeader = false);
 
             builder.Services.AddDbContext<AppDbContext>(options =>
                 options.UseSqlite(builder.Configuration.GetConnectionString("DefaultConnection")));
@@ -26,6 +31,11 @@ namespace DeepwellEducation
             builder.Services.AddScoped<IMessageService, MessageService>();
 
             var jwtKey = builder.Configuration["Jwt:Key"] ?? throw new InvalidOperationException("Jwt:Key is not set.");
+            if (jwtKey.Length < 32)
+            {
+                throw new InvalidOperationException(
+                    "Jwt:Key must be at least 32 characters (signing key entropy; OWASP ASVS / NIST-aligned minimum for HMAC).");
+            }
             var jwtIssuer = builder.Configuration["Jwt:Issuer"] ?? "DeepwellEducation";
             var jwtAudience = builder.Configuration["Jwt:Audience"] ?? "DeepwellEducation";
             builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
@@ -42,6 +52,18 @@ namespace DeepwellEducation
                         IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtKey))
                     };
                 });
+
+            builder.Services.AddRateLimiter(options =>
+            {
+                options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
+                options.AddFixedWindowLimiter("auth", opt =>
+                {
+                    opt.Window = TimeSpan.FromMinutes(1);
+                    opt.PermitLimit = 20;
+                    opt.QueueProcessingOrder = QueueProcessingOrder.OldestFirst;
+                    opt.QueueLimit = 0;
+                });
+            });
 
             builder.Services.AddControllers();
             builder.Services.AddEndpointsApiExplorer();
@@ -71,12 +93,18 @@ namespace DeepwellEducation
                 app.UseSwagger();
                 app.UseSwaggerUI();
             }
+            else
+            {
+                app.UseHsts();
+            }
 
             // JWT is stored in localStorage (per browser origin). In Development, launchSettings often exposes
             // both http://localhost:5190 and https://localhost:7169; forcing HTTP→HTTPS splits localStorage
             // across two origins, so navigation looks like an immediate logout. Production still redirects.
             if (!app.Environment.IsDevelopment())
                 app.UseHttpsRedirection();
+
+            app.UseOwaspSecurityHeaders();
 
             var wwwrootPath = app.Environment.WebRootPath ?? Path.Combine(app.Environment.ContentRootPath, "wwwroot");
             var frontendRoot = Path.Combine(wwwrootPath, "frontend");
@@ -109,6 +137,8 @@ namespace DeepwellEducation
 
             app.UseAuthentication();
             app.UseAuthorization();
+
+            app.UseRateLimiter();
 
             app.MapGet("/", () => Results.Redirect("/frontend/"));
 

@@ -22,8 +22,7 @@
     }
 
     function languageLabelFromCourse(c) {
-        // Always prefer a stable label from languageCode so UI is consistent
-        // even if database LanguageName varies (e.g., "Spanish" vs "Español").
+        // Prefer languageCode → English catalog name; dev seed keeps LanguageName aligned with that.
         var code = courseLanguageCode(c);
         if (LANGUAGE_BY_CODE[code]) return LANGUAGE_BY_CODE[code];
         var named = c.languageName || c.subjectName;
@@ -51,6 +50,14 @@
 
     function levelLabel(v) {
         return LEVEL_LABELS[v] != null ? LEVEL_LABELS[v] : '—';
+    }
+
+    function levelBadgeClass(v) {
+        var n = Number(v);
+        if (n === 0) return 'app-level-pill--beginner';
+        if (n === 1) return 'app-level-pill--intermediate';
+        if (n === 2) return 'app-level-pill--advanced';
+        return 'app-level-pill--unknown';
     }
 
     function escapeHtml(s) {
@@ -150,26 +157,24 @@
             .map(function (p) { return '<li>' + escapeHtml(p) + '</li>'; })
             .join('');
         col.innerHTML =
-            '<div class="rounded overflow-hidden mb-2">' +
+            '<div class="rounded overflow-hidden mb-2 h-100 d-flex flex-column">' +
             '<img class="img-fluid" src="images/course-' + imgN + '.jpg" alt="">' +
-            '<div class="bg-secondary p-4">' +
+            '<div class="bg-secondary p-4 d-flex flex-column h-100">' +
             '<div class="d-flex justify-content-between align-items-center mb-2 flex-wrap">' +
             '<span class="badge badge-primary mb-1">' +
             escapeHtml(langBadge) +
             '</span>' +
-            '<small class="text-muted m-0">' + escapeHtml(levelLabel(c.level)) + '</small>' +
+            '<span class="badge app-level-pill ' + levelBadgeClass(c.level) + '">' +
+            escapeHtml(levelLabel(c.level)) +
+            '</span>' +
             '</div>' +
-            '<div class="mb-3">' +
-            '<small class="m-0 text-muted">' +
-            escapeHtml(formatLanguageLine(c)) +
-            '</small></div>' +
             '<a class="h5 d-block" href="course-detail.html?id=' +
             encodeURIComponent(c.id) +
             '">' +
             escapeHtml(c.name) +
             '</a>' +
             '<ul class="mt-2 mb-3 pl-3 small text-dark">' + quickPoints + '</ul>' +
-            '<div class="border-top mt-4 pt-4">' +
+            '<div class="border-top mt-4 pt-4 mt-auto">' +
             '<p class="text-muted small mb-2">' +
             escapeHtml(truncate(c.description, 140)) +
             '</p>' +
@@ -303,6 +308,16 @@
             applyStatus.classList.remove('d-none');
             if (html) applyStatus.innerHTML = message;
             else applyStatus.textContent = message;
+        }
+
+        if (typeof isStaffAdminAccount === 'function' && isStaffAdminAccount()) {
+            applyBtn.disabled = true;
+            applyBtn.setAttribute('aria-disabled', 'true');
+            setApplyStatus(
+                'Staff accounts cannot apply for courses. Use the staff dashboard to manage enrollments.',
+                'info'
+            );
+            return;
         }
 
         applyBtn.onclick = async function () {

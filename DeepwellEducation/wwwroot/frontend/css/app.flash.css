@@ -1,0 +1,41 @@
+/* Inline Flash Messages */
+
+.app-flash {
+  margin-bottom: 12px;
+  padding: 10px 14px;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  line-height: 1.45;
+}
+
+.app-flash--success {
+  background: #d1e7dd;
+  color: #0f5132;
+  border: 1px solid #badbcc;
+}
+
+.app-flash--danger {
+  /* Softer warning tone to better match the brand palette. */
+  background: #f7e7e9;
+  color: #7a3f49;
+  border: 1px solid #e8c9ce;
+}
+
+/* Keep Bootstrap danger containers aligned with the softer danger palette. */
+.alert-danger {
+  color: #7a3f49;
+  background-color: #f7e7e9;
+  border-color: #e8c9ce;
+}
+
+.app-flash--warning {
+  background: #fff3cd;
+  color: #664d03;
+  border: 1px solid #ffecb5;
+}
+
+.app-flash--info {
+  background: #cff4fc;
+  color: #055160;
+  border: 1px solid #b6effb;
+}

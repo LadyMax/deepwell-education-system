@@ -24,6 +24,9 @@ public class CourseRequestService : ICourseRequestService
         if (user == null || !user.IsActive)
             return SubmitResult.Fail(SubmitError.UserNotFound);
 
+        if (user.Role == UserRole.Admin)
+            return SubmitResult.Fail(SubmitError.AdminJoinNotAllowed);
+
         var isEnrolled = await _db.Enrollments.AnyAsync(e => e.UserId == userId && e.CourseId == courseId && e.IsActive, ct);
 
         if (type == RequestType.Join)

@@ -19,7 +19,9 @@ public enum SubmitError
     UserNotFound,
     AlreadyEnrolled,
     NotEnrolled,
-    DuplicatePending
+    DuplicatePending,
+    /// <summary>Administrators manage enrollments; they do not submit learner course requests.</summary>
+    AdminJoinNotAllowed
 }
 
 public enum ReviewError

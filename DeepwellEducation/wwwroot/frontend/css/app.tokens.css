@@ -1,0 +1,27 @@
+/* Theme Tokens */
+
+:root {
+  --app-primary: #00b5b8;
+  --app-primary-hover: #006a6c;
+  --app-primary-soft: rgba(0, 206, 209, 0.15);
+  --app-secondary: #f2f1f8;
+  --app-dark: #44425a;
+  /* Align Bootstrap theme with brand (single source; prefer these in new rules). */
+  --bs-primary: #00b5b8;
+  --bs-primary-rgb: 0, 181, 184;
+  --bs-secondary: #f2f1f8;
+  --bs-secondary-rgb: 242, 241, 248;
+  --bs-dark: #44425a;
+  --bs-dark-rgb: 68, 66, 90;
+  --bs-link-color: var(--app-primary);
+  --bs-link-hover-color: var(--app-primary-hover);
+  --bs-focus-ring-color: rgba(var(--bs-primary-rgb), 0.25);
+  --bs-form-control-focus-border-color: var(--bs-primary);
+  accent-color: var(--bs-primary);
+  /* Match My account: banner margin + wrap padding + .panel margin-top */
+  --site-banner-bottom-gap: 1.25rem;
+  --site-content-wrap-padding-top: 0.75rem;
+  --site-main-panel-margin-top: 1.25rem;
+  /* Single content column width for .panel and aligned blocks site-wide. */
+  --site-panel-max-width: 1100px;
+}

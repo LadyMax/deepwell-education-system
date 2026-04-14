@@ -1,0 +1,113 @@
+/* Utility Classes */
+
+.app-mb-90 {
+  margin-bottom: 90px;
+}
+
+/*
+ * Inner pages: spacing under the breadcrumb banner (aligned with My account: wrap padding + .panel top margin).
+ * Markup: first main block uses class `site-banner-follow` on the same div as `container-fluid py-5`.
+ *
+ * Why this beats baseline Bootstrap: `.py-5` there is one class + !important (low specificity).
+ * These selectors add `body` + several classes + !important, and they are defined in app.css after Bootstrap,
+ * so the cascade is correct. If the layout still looks unchanged in the browser, the usual cause is a stale cached
+ * app.css (fix: query string on the link, hard refresh, or dev no-cache — see Program.cs) or opening an old
+ * copy of the HTML — not missing CSS specificity.
+ */
+body .page-header.app-mb-90 {
+  margin-bottom: var(--site-banner-bottom-gap) !important;
+}
+
+body .site-banner-follow.container-fluid.py-5 {
+  padding-top: calc(
+    var(--site-content-wrap-padding-top) + var(--site-main-panel-margin-top)
+  ) !important;
+  padding-bottom: 2.5rem !important;
+}
+
+body .site-banner-follow.container-fluid.py-5 > .container.py-5 {
+  padding-top: 0 !important;
+  padding-bottom: 1.5rem !important;
+}
+
+body .site-banner-follow.container-fluid.py-5 > .container.pt-5 {
+  padding-top: 0 !important;
+}
+
+.app-mt-90 {
+  margin-top: 90px;
+}
+
+.app-my-90 {
+  margin: 90px 0;
+}
+
+.app-minh-300 {
+  min-height: 300px;
+}
+
+.app-letter-spacing-5 {
+  letter-spacing: 5px;
+}
+
+.app-max-220 {
+  max-width: 220px;
+}
+
+.app-max-260 {
+  max-width: 260px;
+}
+
+.app-max-360 {
+  max-width: 360px;
+}
+
+.app-max-380 {
+  max-width: 380px;
+}
+
+.app-max-420 {
+  max-width: 420px;
+}
+
+/* Legacy template utility classes kept for HTML compatibility. */
+h1,
+h2,
+.font-weight-bold {
+  font-weight: 700 !important;
+}
+
+h3,
+h4,
+.font-weight-semi-bold {
+  font-weight: 600 !important;
+}
+
+h5,
+h6,
+.font-weight-medium {
+  font-weight: 500 !important;
+}
+
+.btn-square {
+  width: 36px;
+  height: 36px;
+}
+
+.btn-sm-square {
+  width: 28px;
+  height: 28px;
+}
+
+.btn-lg-square {
+  width: 46px;
+  height: 46px;
+}
+
+.btn-square,
+.btn-sm-square,
+.btn-lg-square {
+  padding-left: 0;
+  padding-right: 0;
+  text-align: center;
+}

@@ -5,6 +5,10 @@ using Microsoft.EntityFrameworkCore;
 
 namespace DeepwellEducation.Services;
 
+/// <summary>
+/// Messaging: <see cref="Message.SenderSuggestedCategory"/> is set at send; <see cref="Message.AiSuggestedCategory"/> /
+/// <see cref="Message.AiConfidence"/> are reserved for a future background AI step; <see cref="Message.FinalCategory"/> is staff-confirmed.
+/// </summary>
 public class MessageService : IMessageService
 {
     public const int DefaultPageSize = 20;
@@ -24,7 +28,13 @@ public class MessageService : IMessageService
         return (p, s);
     }
 
-    public async Task<SendMessageResult> SendAsync(Guid senderUserId, string subject, string content, Guid? receiverUserId, CancellationToken ct = default)
+    public async Task<SendMessageResult> SendAsync(
+        Guid senderUserId,
+        string subject,
+        string content,
+        Guid? receiverUserId,
+        MessageCategory? senderSuggestedCategory,
+        CancellationToken ct = default)
     {
         subject = subject.Trim();
         content = content.Trim();
@@ -61,6 +71,7 @@ public class MessageService : IMessageService
             ReceiverUserId = resolvedReceiverId,
             Subject = subject,
             Content = content,
+            SenderSuggestedCategory = senderSuggestedCategory,
             AiSuggestedCategory = null,
             AiConfidence = null,
             FinalCategory = null,
@@ -95,6 +106,7 @@ public class MessageService : IMessageService
                 Content = m.Content,
                 CreatedAt = m.CreatedAt,
                 ReadAt = m.ReadAt,
+                SenderSuggestedCategory = m.SenderSuggestedCategory,
                 FinalCategory = m.FinalCategory,
                 ReviewedBy = m.ReviewedBy,
                 ReviewedAt = m.ReviewedAt
@@ -131,6 +143,7 @@ public class MessageService : IMessageService
                 Content = m.Content,
                 CreatedAt = m.CreatedAt,
                 ReadAt = m.ReadAt,
+                SenderSuggestedCategory = m.SenderSuggestedCategory,
                 FinalCategory = m.FinalCategory
             };
 
@@ -179,7 +192,13 @@ public class MessageService : IMessageService
         return CategorizeResult.Ok(message);
     }
 
-    public async Task<PagedResult<MessageAdminItemDto>> GetAllForAdminAsync(bool uncategorizedOnly, MessageCategory? category, int page, int pageSize, CancellationToken ct = default)
+    public async Task<PagedResult<MessageAdminItemDto>> GetAllForAdminAsync(
+        bool uncategorizedOnly,
+        bool unreadOnly,
+        MessageCategory? category,
+        int page,
+        int pageSize,
+        CancellationToken ct = default)
     {
         (page, pageSize) = NormalizePaging(page, pageSize);
 
@@ -193,6 +212,8 @@ public class MessageService : IMessageService
             query = query.Where(x => x.m.FinalCategory == null);
         else if (category.HasValue)
             query = query.Where(x => x.m.FinalCategory == category.Value);
+        if (unreadOnly)
+            query = query.Where(x => x.m.ReadAt == null);
 
         var projected =
             from x in query
@@ -210,6 +231,9 @@ public class MessageService : IMessageService
                 Content = x.m.Content,
                 CreatedAt = x.m.CreatedAt,
                 ReadAt = x.m.ReadAt,
+                SenderSuggestedCategory = x.m.SenderSuggestedCategory,
+                AiSuggestedCategory = x.m.AiSuggestedCategory,
+                AiConfidence = x.m.AiConfidence,
                 FinalCategory = x.m.FinalCategory,
                 ReviewedBy = x.m.ReviewedBy,
                 ReviewedAt = x.m.ReviewedAt

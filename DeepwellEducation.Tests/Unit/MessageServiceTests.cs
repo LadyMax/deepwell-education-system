@@ -61,11 +61,12 @@ public class MessageServiceTests : IAsyncLifetime
             });
         await _db.SaveChangesAsync();
 
-        var result = await _sut.SendAsync(senderId, "Hi", "Body", receiverUserId: null);
+        var result = await _sut.SendAsync(senderId, "Hi", "Body", receiverUserId: null, senderSuggestedCategory: MessageCategory.Feedback);
 
         Assert.Equal(SendMessageError.None, result.Error);
         Assert.NotNull(result.Message);
         Assert.Equal(adminId, result.Message!.ReceiverUserId);
+        Assert.Equal(MessageCategory.Feedback, result.Message.SenderSuggestedCategory);
         Assert.Null(result.Message.FinalCategory);
         Assert.Null(result.Message.ReviewedBy);
     }

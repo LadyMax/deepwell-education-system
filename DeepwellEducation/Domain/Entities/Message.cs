@@ -14,12 +14,16 @@ public class Message
 
     public string Content { get; set; } = string.Empty;
 
-    /// <summary>AI raw suggestion; keep as string for flexibility.</summary>
+    /// <summary>Sender-selected topic at compose time. Immutable after send; helps staff triage before AI is enabled.</summary>
+    public MessageCategory? SenderSuggestedCategory { get; set; }
+
+    /// <summary>Future AI pipeline: raw label or enum name from the model (separate from sender and final admin choice).</summary>
     public string? AiSuggestedCategory { get; set; }
 
+    /// <summary>Future AI pipeline: model confidence 0–1.</summary>
     public double? AiConfidence { get; set; }
 
-    /// <summary>Admin-confirmed category from fixed set.</summary>
+    /// <summary>Admin-confirmed category from fixed set (authoritative for reporting).</summary>
     public MessageCategory? FinalCategory { get; set; }
 
     public Guid? ReviewedBy { get; set; }

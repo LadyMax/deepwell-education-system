@@ -28,19 +28,9 @@
         }
     });
     $('.back-to-top').click(function () {
-        $('html, body').animate({scrollTop: 0}, 1500, 'easeInOutExpo');
+        var easingName = ($.easing && $.easing.easeInOutExpo) ? 'easeInOutExpo' : 'swing';
+        $('html, body').animate({scrollTop: 0}, 1500, easingName);
         return false;
     });
-
-
-    // Testimonials carousel
-    $(".testimonial-carousel").owlCarousel({
-        autoplay: true,
-        smartSpeed: 1500,
-        dots: true,
-        loop: true,
-        items: 1
-    });
-    
 })(jQuery);
 

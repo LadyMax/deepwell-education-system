@@ -18,12 +18,8 @@
     <!-- Font Awesome -->
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.10.0/css/all.min.css" rel="stylesheet">
 
-    <!-- Libraries Stylesheet -->
-    <link href="lib/owlcarousel/assets/owl.carousel.min.css" rel="stylesheet">
-
     <!-- Customized Bootstrap Stylesheet -->
-    <link href="css/style.css" rel="stylesheet">
-    <link href="css/app.css?v=7" rel="stylesheet">
+    <link href="css/app.css?v=20260414f" rel="stylesheet">
     <script src="js/layout.js" defer></script>
 </head>
 
@@ -48,12 +44,11 @@
 
 
     <!-- Category Start -->
-    <div class="container-fluid py-5 site-banner-follow">
+    <div id="course-language-cards" class="container-fluid py-5 site-banner-follow">
         <div class="container pt-5 pb-3">
             <div class="text-center mb-5">
                 <h5 class="text-primary text-uppercase mb-3 app-letter-spacing-5">Languages</h5>
                 <h1>Choose a language</h1>
-                <p class="text-muted col-lg-8 mx-auto mb-0">We offer eight languages, each with Beginner, Intermediate, and Advanced.</p>
             </div>
             <div class="row">
                 <div class="col-lg-3 col-md-6 mb-4">
@@ -155,16 +150,9 @@
     <!-- JavaScript Libraries -->
     <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.bundle.min.js"></script>
-    <script src="lib/easing/easing.min.js"></script>
-    <script src="lib/owlcarousel/owl.carousel.min.js"></script>
-
-    <!-- Contact Javascript File -->
-    <script src="mail/jqBootstrapValidation.min.js"></script>
-    <script src="mail/contact.js"></script>
-
     <!-- Template Javascript -->
     <script src="js/main.js"></script>
-    <script src="js/course-ui.js?v=20260330"></script>
+    <script src="js/course-ui.js?v=20260414b"></script>
     <script>
         document.addEventListener('DOMContentLoaded', function () {
             var params = new URLSearchParams(window.location.search);
@@ -172,7 +160,13 @@
             var row = document.getElementById('course-catalog-row');
             var status = document.getElementById('course-catalog-status');
             var banner = document.getElementById('course-filter-banner');
+            var cards = document.getElementById('course-language-cards');
             var levelSel = document.getElementById('course-level-filter');
+
+            // When arriving from language detail with ?lang=xx, show only the filtered course list.
+            if (cards) {
+                cards.classList.toggle('d-none', !!q);
+            }
 
             function syncUrl() {
                 var p = new URLSearchParams();

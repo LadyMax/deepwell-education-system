@@ -166,6 +166,9 @@ namespace DeepwellEducation.Migrations
                     b.Property<Guid?>("ReviewedBy")
                         .HasColumnType("TEXT");
 
+                    b.Property<int?>("SenderSuggestedCategory")
+                        .HasColumnType("INTEGER");
+
                     b.Property<Guid>("SenderUserId")
                         .HasColumnType("TEXT");
 
@@ -189,11 +192,33 @@ namespace DeepwellEducation.Migrations
                     b.Property<Guid>("UserId")
                         .HasColumnType("TEXT");
 
+                    b.Property<string>("Address")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
                     b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime?>("DateOfBirth")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("FirstName")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("LastName")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Phone")
+                        .IsRequired()
                         .HasColumnType("TEXT");
 
                     b.Property<string>("StudentNumber")
                         .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime?>("UpdatedAt")
                         .HasColumnType("TEXT");
 
                     b.HasKey("UserId");

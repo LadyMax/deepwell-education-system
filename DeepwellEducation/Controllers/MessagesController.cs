@@ -35,7 +35,13 @@ public class MessagesController : ControllerBase
         if (userId == null)
             return Unauthorized();
 
-        var result = await _messageService.SendAsync(userId.Value, body.Subject, body.Content, body.ReceiverUserId, ct);
+        var result = await _messageService.SendAsync(
+            userId.Value,
+            body.Subject,
+            body.Content,
+            body.ReceiverUserId,
+            body.SenderSuggestedCategory,
+            ct);
         if (result.Error != SendMessageError.None)
         {
             return result.Error switch
@@ -120,6 +126,7 @@ public class MessagesController : ControllerBase
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<ActionResult<PagedResult<MessageAdminItemDto>>> AdminList(
         [FromQuery] bool uncategorizedOnly = false,
+        [FromQuery] bool unreadOnly = false,
         [FromQuery] MessageCategory? finalCategory = null,
         [FromQuery] int page = 1,
         [FromQuery] int pageSize = MessageService.DefaultPageSize,
@@ -128,7 +135,7 @@ public class MessagesController : ControllerBase
         if (uncategorizedOnly && finalCategory.HasValue)
             return BadRequest("Use either uncategorizedOnly or finalCategory, not both.");
 
-        var result = await _messageService.GetAllForAdminAsync(uncategorizedOnly, finalCategory, page, pageSize, ct);
+        var result = await _messageService.GetAllForAdminAsync(uncategorizedOnly, unreadOnly, finalCategory, page, pageSize, ct);
         return Ok(result);
     }
 
@@ -162,6 +169,8 @@ public class SendMessageRequest
     public string Content { get; set; } = "";
     /// <summary>If omitted, the first active Admin (by creation time) receives the message.</summary>
     public Guid? ReceiverUserId { get; set; }
+    /// <summary>Optional sender-chosen topic; admin final category from categorize endpoint remains authoritative.</summary>
+    public MessageCategory? SenderSuggestedCategory { get; set; }
 }
 
 public class CategorizeMessageRequest

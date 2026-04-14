@@ -6,7 +6,13 @@ namespace DeepwellEducation.Services;
 public interface IMessageService
 {
     /// <summary>Sender sends a message; receiver defaults to first active Admin if omitted.</summary>
-    Task<SendMessageResult> SendAsync(Guid senderUserId, string subject, string content, Guid? receiverUserId, CancellationToken ct = default);
+    Task<SendMessageResult> SendAsync(
+        Guid senderUserId,
+        string subject,
+        string content,
+        Guid? receiverUserId,
+        MessageCategory? senderSuggestedCategory,
+        CancellationToken ct = default);
 
     /// <summary>Inbox for the current user as receiver, newest first, paginated.</summary>
     Task<PagedResult<MessageInboxItemDto>> GetInboxAsync(Guid receiverUserId, int page, int pageSize, CancellationToken ct = default);
@@ -21,7 +27,13 @@ public interface IMessageService
     Task<CategorizeResult> CategorizeAsync(Guid messageId, Guid adminUserId, MessageCategory finalCategory, CancellationToken ct = default);
 
     /// <summary>All messages for admin console with optional filters (mutually exclusive), paginated.</summary>
-    Task<PagedResult<MessageAdminItemDto>> GetAllForAdminAsync(bool uncategorizedOnly, MessageCategory? category, int page, int pageSize, CancellationToken ct = default);
+    Task<PagedResult<MessageAdminItemDto>> GetAllForAdminAsync(
+        bool uncategorizedOnly,
+        bool unreadOnly,
+        MessageCategory? category,
+        int page,
+        int pageSize,
+        CancellationToken ct = default);
 }
 
 public enum SendMessageError
@@ -83,6 +95,7 @@ public sealed class MessageInboxItemDto
     public string Content { get; init; } = "";
     public DateTime CreatedAt { get; init; }
     public DateTime? ReadAt { get; init; }
+    public MessageCategory? SenderSuggestedCategory { get; init; }
     public MessageCategory? FinalCategory { get; init; }
     public Guid? ReviewedBy { get; init; }
     public DateTime? ReviewedAt { get; init; }
@@ -98,6 +111,7 @@ public sealed class MessageSentItemDto
     public string Content { get; init; } = "";
     public DateTime CreatedAt { get; init; }
     public DateTime? ReadAt { get; init; }
+    public MessageCategory? SenderSuggestedCategory { get; init; }
     public MessageCategory? FinalCategory { get; init; }
 }
 
@@ -114,6 +128,9 @@ public sealed class MessageAdminItemDto
     public string Content { get; init; } = "";
     public DateTime CreatedAt { get; init; }
     public DateTime? ReadAt { get; init; }
+    public MessageCategory? SenderSuggestedCategory { get; init; }
+    public string? AiSuggestedCategory { get; init; }
+    public double? AiConfidence { get; init; }
     public MessageCategory? FinalCategory { get; init; }
     public Guid? ReviewedBy { get; init; }
     public DateTime? ReviewedAt { get; init; }

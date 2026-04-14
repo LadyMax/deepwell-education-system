@@ -10,9 +10,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com">
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.10.0/css/all.min.css" rel="stylesheet">
-  <link href="lib/owlcarousel/assets/owl.carousel.min.css" rel="stylesheet">
-  <link href="css/style.css" rel="stylesheet">
-  <link href="css/app.css?v=7" rel="stylesheet">
+  <link href="css/app.css?v=20260414f" rel="stylesheet">
   <script src="js/layout.js" defer></script>
 </head>
 <body class="page-student">
@@ -56,14 +54,44 @@
             <div id="profile-card" class="d-none">
               <p class="mb-1"><strong>Name:</strong> <span id="profile-name"></span></p>
               <p class="mb-1"><strong>Email:</strong> <span id="profile-email"></span></p>
+              <p id="profile-student-number-row" class="mb-1 d-none"><strong>Student number:</strong> <span id="profile-student-number"></span></p>
               <p class="mb-0"><strong>Role:</strong> <span id="profile-role"></span></p>
+              <p id="profile-details-note" class="small text-muted mt-2 mb-0 d-none"></p>
+
+              <div id="profile-details-editor" class="mt-3 d-none">
+                <h4 class="h6 mb-2">Student profile details</h4>
+                <div class="form-row">
+                  <div class="form-group col-md-6">
+                    <label for="profile-first-name" class="mb-1">First name</label>
+                    <input type="text" id="profile-first-name" class="form-control form-control-sm" maxlength="100">
+                  </div>
+                  <div class="form-group col-md-6">
+                    <label for="profile-last-name" class="mb-1">Last name</label>
+                    <input type="text" id="profile-last-name" class="form-control form-control-sm" maxlength="100">
+                  </div>
+                  <div class="form-group col-md-6">
+                    <label for="profile-phone" class="mb-1">Phone</label>
+                    <input type="text" id="profile-phone" class="form-control form-control-sm" maxlength="32" placeholder="e.g. +1 555 123 4567">
+                  </div>
+                  <div class="form-group col-md-6">
+                    <label for="profile-dob" class="mb-1">Date of birth</label>
+                    <input type="date" id="profile-dob" class="form-control form-control-sm">
+                  </div>
+                  <div class="form-group col-12 mb-0">
+                    <label for="profile-address" class="mb-1">Address</label>
+                    <input type="text" id="profile-address" class="form-control form-control-sm" maxlength="200">
+                  </div>
+                </div>
+                <div class="mt-2">
+                  <button type="button" class="btn btn-outline-primary btn-sm" id="btn-save-profile-details">Save profile</button>
+                </div>
+              </div>
             </div>
           </div>
 
           <div class="tab-pane fade" id="sc-pane-courses" role="tabpanel" aria-labelledby="sc-tab-courses">
             <section class="mb-4 pb-4 border-bottom">
               <h3 class="h5 mb-2">Enrollments</h3>
-              <p class="muted">Courses you are enrolled in after admin approval. To join a course, apply from the home page while signed in.</p>
               <div id="enrollments-loading">Loading…</div>
               <table class="enroll-table d-none" id="enrollments-table">
                 <thead>
@@ -75,7 +103,6 @@
             </section>
             <section>
               <h3 class="h5 mb-2">Leave a course</h3>
-              <p class="muted">Request to leave an enrolled course. Your request is reviewed by staff.</p>
               <div class="form-row align-items-end">
                 <div class="form-group col-md-8 col-lg-7 mb-2 mb-md-0">
                   <label for="leave-course" class="mb-1 d-block">My enrolled course</label>
@@ -104,7 +131,6 @@
           </div>
 
           <div class="tab-pane fade" id="sc-pane-messages" role="tabpanel" aria-labelledby="sc-tab-messages">
-            <p class="muted mb-3">School mail: incoming, outgoing, and compose.</p>
             <ul class="nav nav-pills flex-wrap mb-3 student-msg-subnav" id="student-msg-tabs" role="tablist">
               <li class="nav-item mr-2 mb-2">
                 <a class="nav-link active" id="msg-tab-inbox" data-toggle="tab" href="#msg-pane-inbox" role="tab" aria-controls="msg-pane-inbox" aria-selected="true">Inbox</a>
@@ -118,7 +144,6 @@
             </ul>
             <div class="tab-content" id="student-msg-tab-content">
               <div class="tab-pane fade show active" id="msg-pane-inbox" role="tabpanel" aria-labelledby="msg-tab-inbox">
-                <p class="muted small mb-2">Received messages. Use Mark read when you have opened a message.</p>
                 <div id="inbox-loading">Loading…</div>
                 <table class="msg-table d-none" id="inbox-table">
                   <thead>
@@ -129,11 +154,10 @@
                 <p id="inbox-empty" class="d-none">No messages.</p>
               </div>
               <div class="tab-pane fade" id="msg-pane-sent" role="tabpanel" aria-labelledby="msg-tab-sent">
-                <p class="muted small mb-2">Copies of messages you sent to the school.</p>
                 <div id="sent-loading">Loading…</div>
                 <table class="msg-table d-none" id="sent-table">
                   <thead>
-                    <tr><th>To</th><th>Subject</th><th>Date</th></tr>
+                    <tr><th>To</th><th>Topic</th><th>Subject</th><th>Date</th></tr>
                   </thead>
                   <tbody id="sent-body"></tbody>
                 </table>
@@ -141,7 +165,13 @@
               </div>
               <div class="tab-pane fade" id="msg-pane-compose" role="tabpanel" aria-labelledby="msg-tab-compose">
                 <div class="send-form">
-                  <p class="muted small mb-3">Your message is delivered to school staff (administrator).</p>
+                  <label class="d-block mb-2">Topic <select id="msg-topic" class="form-control form-control-sm" style="max-width:22rem" aria-label="Message topic">
+                    <option value="">Choose a topic (optional)</option>
+                    <option value="0">Course inquiry</option>
+                    <option value="1">Complaint</option>
+                    <option value="2">Feedback</option>
+                    <option value="3">Other</option>
+                  </select></label>
                   <label>Subject <input type="text" id="msg-subject" class="msg-subject-input" /></label>
                   <label class="block">Content</label>
                   <textarea id="msg-content"></textarea>
@@ -161,10 +191,8 @@
 
   <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
   <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.bundle.min.js"></script>
-  <script src="lib/easing/easing.min.js"></script>
-  <script src="lib/owlcarousel/owl.carousel.min.js"></script>
   <script src="js/main.js"></script>
   <script src="./js/api.js"></script>
-  <script src="./js/student.js"></script>
+  <script src="./js/student.js?v=20260410"></script>
 </body>
 </html>

@@ -31,25 +31,51 @@ public class CourseRequestsController : ControllerBase
     /// <summary>List course requests (Admin). Optional filter, e.g. <c>?status=Pending</c>.</summary>
     [Authorize(Roles = "Admin")]
     [HttpGet]
-    public async Task<ActionResult<IEnumerable<CourseRequestListItemDto>>> List([FromQuery] RequestStatus? status, CancellationToken ct)
+    public async Task<ActionResult<IEnumerable<CourseRequestListItemDto>>> List(
+        [FromQuery] RequestStatus? status,
+        [FromQuery] RequestType? type,
+        [FromQuery] Guid? courseId,
+        [FromQuery] string? applicant,
+        [FromQuery] string? created = "desc",
+        CancellationToken ct = default)
     {
         var q =
             from r in _db.CourseRequests.AsNoTracking()
             join u in _db.Users.AsNoTracking() on r.UserId equals u.Id
             join c in _db.Courses.AsNoTracking() on r.CourseId equals c.Id
-            select new { r, u, c };
+            join sp in _db.StudentProfiles.AsNoTracking() on r.UserId equals sp.UserId into spg
+            from sp in spg.DefaultIfEmpty()
+            select new { r, u, c, sp };
 
         if (status.HasValue)
             q = q.Where(x => x.r.Status == status.Value);
+        if (type.HasValue)
+            q = q.Where(x => x.r.Type == type.Value);
+        if (courseId.HasValue)
+            q = q.Where(x => x.r.CourseId == courseId.Value);
+        if (!string.IsNullOrWhiteSpace(applicant))
+        {
+            var term = $"%{applicant.Trim()}%";
+            q = q.Where(x =>
+                EF.Functions.Like(x.u.Email, term) ||
+                EF.Functions.Like(x.u.FullName, term) ||
+                (x.sp != null && EF.Functions.Like(x.sp.StudentNumber, term)));
+        }
 
-        var list = await q
-            .OrderByDescending(x => x.r.CreatedAt)
+        var createdAsc = string.Equals(created, "asc", StringComparison.OrdinalIgnoreCase);
+
+        var ordered = createdAsc
+            ? q.OrderBy(x => x.r.CreatedAt)
+            : q.OrderByDescending(x => x.r.CreatedAt);
+
+        var list = await ordered
             .Select(x => new CourseRequestListItemDto
             {
                 Id = x.r.Id,
                 UserId = x.r.UserId,
                 UserEmail = x.u.Email,
                 UserFullName = x.u.FullName,
+                StudentNumber = x.sp != null ? x.sp.StudentNumber : null,
                 CourseId = x.r.CourseId,
                 CourseName = x.c.Name,
                 Type = x.r.Type,
@@ -80,6 +106,7 @@ public class CourseRequestsController : ControllerBase
                 SubmitError.AlreadyEnrolled => BadRequest("Already enrolled in this course."),
                 SubmitError.NotEnrolled => BadRequest("Not enrolled in this course."),
                 SubmitError.DuplicatePending => BadRequest("You already have a pending request for this course."),
+                SubmitError.AdminJoinNotAllowed => StatusCode(403, "Staff accounts cannot apply for courses."),
                 _ => BadRequest()
             };
         }
@@ -124,6 +151,7 @@ public class CourseRequestListItemDto
     public Guid UserId { get; set; }
     public string UserEmail { get; set; } = "";
     public string UserFullName { get; set; } = "";
+    public string? StudentNumber { get; set; }
     public Guid CourseId { get; set; }
     public string CourseName { get; set; } = "";
     public RequestType Type { get; set; }

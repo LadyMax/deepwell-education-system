@@ -1,0 +1,44 @@
+/*  Header Account Menu */
+
+#auth-nav-slot {
+  align-items: center;
+}
+
+.auth-menu {
+  position: relative;
+}
+
+.auth-menu-trigger {
+  cursor: pointer;
+}
+
+.auth-menu-list {
+  display: none;
+  position: absolute;
+  top: 100%;
+  right: 0;
+  min-width: 180px;
+  padding: 6px 0;
+  border: 1px solid #e7eeee;
+  border-radius: 8px;
+  background: #fff;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+  z-index: 30;
+}
+
+.auth-menu-item {
+  display: block;
+  padding: 8px 14px;
+  color: #1f2d3d !important;
+  font-size: 0.95rem;
+  text-decoration: none;
+}
+
+.auth-menu-item:hover {
+  background: #f1f8f8;
+}
+
+.auth-menu:hover .auth-menu-list,
+.auth-menu.open .auth-menu-list {
+  display: block;
+}

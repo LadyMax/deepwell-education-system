@@ -5,6 +5,7 @@ using DeepwellEducation.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.EntityFrameworkCore;
 
 namespace DeepwellEducation.Controllers;
@@ -26,6 +27,7 @@ public class AuthController : ControllerBase
 
     /// <summary>Register a new user as Visitor. Becomes Student only after first Join is approved by Admin.</summary>
     [HttpPost("register")]
+    [EnableRateLimiting("auth")]
     public async Task<ActionResult<AuthResponse>> Register([FromBody] RegisterRequest request, CancellationToken ct)
     {
         if (string.IsNullOrWhiteSpace(request.Email) || string.IsNullOrWhiteSpace(request.Password))
@@ -56,6 +58,7 @@ public class AuthController : ControllerBase
 
     /// <summary>Login with email and password. Returns JWT and user info.</summary>
     [HttpPost("login")]
+    [EnableRateLimiting("auth")]
     public async Task<ActionResult<AuthResponse>> Login([FromBody] LoginRequest request, CancellationToken ct)
     {
         if (string.IsNullOrWhiteSpace(request.Email) || string.IsNullOrWhiteSpace(request.Password))
@@ -86,7 +89,10 @@ public class AuthController : ControllerBase
         if (string.IsNullOrEmpty(userIdClaim) || !Guid.TryParse(userIdClaim, out var userId))
             return Unauthorized();
 
-        var user = await _db.Users.FindAsync(new object[] { userId }, ct);
+        var user = await _db.Users
+            .AsNoTracking()
+            .Include(u => u.StudentProfile)
+            .FirstOrDefaultAsync(u => u.Id == userId, ct);
         if (user == null || !user.IsActive)
             return NotFound("User not found or inactive.");
         return Ok(new UserDto(user));
@@ -119,6 +125,7 @@ public class UserDto
     public string FullName { get; set; } = "";
     public UserRole Role { get; set; }
     public bool IsActive { get; set; }
+    public string? StudentNumber { get; set; }
 
     public UserDto() { }
 
@@ -129,5 +136,6 @@ public class UserDto
         FullName = u.FullName;
         Role = u.Role;
         IsActive = u.IsActive;
+        StudentNumber = u.StudentProfile?.StudentNumber;
     }
 }

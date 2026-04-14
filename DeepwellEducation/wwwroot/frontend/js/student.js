@@ -99,10 +99,131 @@
         return d.toISOString().slice(0, 10);
     }
 
-    function setProfileDetailsUi(showEditor, noteText) {
-        const editor = document.getElementById("profile-details-editor");
+    const usernamePattern = /^[A-Za-z0-9._-]+$/;
+
+    function validateUsernameForChange(raw) {
+        const s = (raw || "").trim();
+        if (!s) return "Username is required.";
+        if (s.length < 3 || s.length > 32) return "Username must be 3–32 characters.";
+        if (!usernamePattern.test(s)) return "Username may only contain letters, digits, and . _ -";
+        return "";
+    }
+
+    function showUsernameFlash(message, variant) {
+        const el = document.getElementById("profile-username-flash");
+        if (!el) return;
+        if (!message) {
+            el.classList.add("d-none");
+            el.textContent = "";
+            return;
+        }
+        const v = variant || "danger";
+        el.textContent = message;
+        el.className = "app-flash app-flash--" + v + " mb-2";
+        el.classList.remove("d-none");
+    }
+
+    function setUsernameEditorVisible(show) {
+        const editor = document.getElementById("profile-username-editor");
+        const input = document.getElementById("profile-username-input");
+        if (!editor) return;
+        editor.classList.toggle("d-none", !show);
+        if (!show) {
+            showUsernameFlash("", "info");
+            if (input) input.value = "";
+        }
+    }
+
+    function applyUsernameToUi(name) {
+        const disp = document.getElementById("profile-username-display");
+        if (disp) disp.textContent = name && String(name).trim() ? String(name).trim() : "—";
+    }
+
+    function bindPasswordToggles(root) {
+        const scope = root || document;
+        scope.querySelectorAll("[data-password-toggle]").forEach(function (btn) {
+            if (btn.dataset.boundPwd === "1") return;
+            btn.dataset.boundPwd = "1";
+            btn.addEventListener("click", function () {
+                const id = btn.getAttribute("data-password-toggle");
+                const input = document.getElementById(id);
+                if (!input) return;
+                const show = input.type === "password";
+                input.type = show ? "text" : "password";
+                btn.setAttribute("aria-pressed", show ? "true" : "false");
+                const icon = btn.querySelector("i");
+                if (icon) icon.className = show ? "fa fa-eye-slash" : "fa fa-eye";
+            });
+        });
+    }
+
+    function updateStudentPasswordChecklist() {
+        if (typeof evaluatePasswordRules !== "function") return;
+        const p = document.getElementById("student-new-password");
+        const pwd = p ? p.value : "";
+        const r = evaluatePasswordRules(pwd);
+        function setOk(id, ok) {
+            const el = document.getElementById(id);
+            if (!el) return;
+            el.className = ok ? "ok" : "bad";
+        }
+        setOk("student-pw-rule-len", r.minLen);
+        setOk("student-pw-rule-upper", r.upper);
+        setOk("student-pw-rule-lower", r.lower);
+        setOk("student-pw-rule-digit", r.digit);
+        setOk("student-pw-rule-special", r.special);
+    }
+
+    function showPasswordChangeFlash(message, variant) {
+        const el = document.getElementById("password-change-flash");
+        if (!el) return;
+        if (!message) {
+            el.classList.add("d-none");
+            el.textContent = "";
+            return;
+        }
+        const v = variant || "danger";
+        el.textContent = message;
+        el.className = "app-flash app-flash--" + v + " mb-3";
+        el.classList.remove("d-none");
+    }
+
+    function initStudentPasswordCollapse() {
+        if (!window.jQuery) return;
+        jQuery("#collapse-password-settings").on(
+            "show.bs.collapse shown.bs.collapse hide.bs.collapse hidden.bs.collapse",
+            function (e) {
+                const chev = document.getElementById("student-password-chevron");
+                if (!chev) return;
+                if (e.type === "show" || e.type === "shown") {
+                    chev.className = "fa fa-chevron-up small text-muted";
+                } else if (e.type === "hide" || e.type === "hidden") {
+                    chev.className = "fa fa-chevron-down small text-muted";
+                }
+            }
+        );
+    }
+
+    function initStudentProfileDetailsCollapse() {
+        if (!window.jQuery) return;
+        jQuery("#collapse-profile-details").on(
+            "show.bs.collapse shown.bs.collapse hide.bs.collapse hidden.bs.collapse",
+            function (e) {
+                const chev = document.getElementById("student-profile-details-chevron");
+                if (!chev) return;
+                if (e.type === "show" || e.type === "shown") {
+                    chev.className = "fa fa-chevron-up small text-muted";
+                } else if (e.type === "hide" || e.type === "hidden") {
+                    chev.className = "fa fa-chevron-down small text-muted";
+                }
+            }
+        );
+    }
+
+    function setProfileDetailsSectionVisible(showSection, noteText) {
+        const section = document.getElementById("profile-details-section");
         const note = document.getElementById("profile-details-note");
-        if (editor) editor.classList.toggle("d-none", !showEditor);
+        if (section) section.classList.toggle("d-none", !showSection);
         if (note) {
             note.textContent = noteText || "";
             note.classList.toggle("d-none", !noteText);
@@ -120,11 +241,11 @@
     async function loadStudentProfileDetails(roleRaw) {
         const isStudent = roleRaw === 1 || roleRaw === "Student";
         if (!isStudent) {
-            setProfileDetailsUi(false, "Detailed student profile becomes available after your first approved Join request.");
+            setProfileDetailsSectionVisible(false, "");
             return;
         }
         if (typeof getMyStudentProfile !== "function") {
-            setProfileDetailsUi(false, "Student profile service is not available.");
+            setProfileDetailsSectionVisible(false, "Student profile service is not available.");
             return;
         }
         const r = await getMyStudentProfile();
@@ -132,11 +253,11 @@
             const msg = r.notFound
                 ? "Student profile is not ready yet. Please contact staff if this persists."
                 : (r.message || "Could not load student profile.");
-            setProfileDetailsUi(false, msg);
+            setProfileDetailsSectionVisible(false, msg);
             return;
         }
         fillStudentProfileForm(r.data || {});
-        setProfileDetailsUi(true, "");
+        setProfileDetailsSectionVisible(true, "");
     }
 
     function showMessagesTabAndSent() {
@@ -151,7 +272,7 @@
         const me = await getMe();
         document.getElementById("profile-loading").classList.add("d-none");
         if (!me) return;
-        document.getElementById("profile-name").textContent = pick(me, "fullName", "FullName") || "—";
+        applyUsernameToUi(pick(me, "fullName", "FullName"));
         document.getElementById("profile-email").textContent = pick(me, "email", "Email") || "—";
         const sn = pick(me, "studentNumber", "StudentNumber");
         const snRow = document.getElementById("profile-student-number-row");
@@ -357,6 +478,61 @@
         }
     });
 
+    document.getElementById("btn-toggle-username-inline").addEventListener("click", function () {
+        const editor = document.getElementById("profile-username-editor");
+        const open = editor && !editor.classList.contains("d-none");
+        if (open) {
+            setUsernameEditorVisible(false);
+            return;
+        }
+        setUsernameEditorVisible(true);
+        const input = document.getElementById("profile-username-input");
+        const current = document.getElementById("profile-username-display");
+        if (input && current && current.textContent && current.textContent !== "—") {
+            input.value = current.textContent.trim();
+        }
+        if (input) input.focus();
+    });
+
+    document.getElementById("btn-cancel-username").addEventListener("click", function () {
+        setUsernameEditorVisible(false);
+    });
+
+    document.getElementById("btn-save-username").addEventListener("click", async function () {
+        const btn = document.getElementById("btn-save-username");
+        const input = document.getElementById("profile-username-input");
+        const next = input ? input.value : "";
+        const err = validateUsernameForChange(next);
+        if (err) {
+            showUsernameFlash(err, "danger");
+            return;
+        }
+        const currentEl = document.getElementById("profile-username-display");
+        const current = currentEl && currentEl.textContent !== "—" ? currentEl.textContent.trim() : "";
+        if (current && current.toLowerCase() === next.trim().toLowerCase()) {
+            showUsernameFlash("That is already your username.", "info");
+            return;
+        }
+        if (typeof changeMyUsername !== "function") {
+            showUsernameFlash("Username update is not available.", "danger");
+            return;
+        }
+        btn.disabled = true;
+        const r = await changeMyUsername(next);
+        btn.disabled = false;
+        if (!r.ok) {
+            showUsernameFlash(r.message || "Could not update username.", "danger");
+            return;
+        }
+        const updated = pick(r.data, "fullName", "FullName");
+        applyUsernameToUi(updated);
+        setUsernameEditorVisible(false);
+        showAppFlash("student-flash", "Username updated.", "success", 3500);
+        if (typeof window.deepwellRefreshAuthNav === "function") {
+            window.deepwellRefreshAuthNav();
+        }
+    });
+
     document.getElementById("btn-save-profile-details").addEventListener("click", async function () {
         const btn = document.getElementById("btn-save-profile-details");
         const payload = {
@@ -375,6 +551,84 @@
         }
         fillStudentProfileForm(r.data || payload);
         showAppFlash("student-flash", "Student profile saved.", "success", 3500);
+    });
+
+    bindPasswordToggles(document);
+    initStudentPasswordCollapse();
+    initStudentProfileDetailsCollapse();
+    const studentNewPw = document.getElementById("student-new-password");
+    if (studentNewPw) {
+        studentNewPw.addEventListener("input", updateStudentPasswordChecklist);
+        studentNewPw.addEventListener("change", updateStudentPasswordChecklist);
+    }
+
+    document.getElementById("btn-student-change-password").addEventListener("click", async function () {
+        const cur = document.getElementById("student-current-password").value.trim();
+        const next = document.getElementById("student-new-password").value.trim();
+        const conf = document.getElementById("student-confirm-password").value.trim();
+        showPasswordChangeFlash("", "info");
+        if (!cur) {
+            showPasswordChangeFlash("Enter your current password.", "warning");
+            return;
+        }
+        if (!next || !conf) {
+            if (typeof verifyCurrentPassword !== "function") {
+                showPasswordChangeFlash("Enter your new password.", "warning");
+                return;
+            }
+            const btnVerify = document.getElementById("btn-student-change-password");
+            btnVerify.disabled = true;
+            const vr = await verifyCurrentPassword(cur);
+            btnVerify.disabled = false;
+            if (!vr.ok) {
+                showPasswordChangeFlash(vr.message || "Current password is incorrect.", "danger");
+                return;
+            }
+            if (!next) {
+                showPasswordChangeFlash("Enter your new password.", "warning");
+                return;
+            }
+            const perrPartial =
+                typeof validatePasswordPolicy === "function" ? validatePasswordPolicy(next) : "";
+            if (perrPartial) {
+                showPasswordChangeFlash(perrPartial, "warning");
+                return;
+            }
+            if (!conf) {
+                showPasswordChangeFlash("Enter your new password again to confirm.", "warning");
+                return;
+            }
+        }
+        if (next !== conf) {
+            showPasswordChangeFlash("New password and confirmation do not match.", "warning");
+            return;
+        }
+        const perr = typeof validatePasswordPolicy === "function" ? validatePasswordPolicy(next) : "";
+        if (perr) {
+            showPasswordChangeFlash(perr, "warning");
+            return;
+        }
+        if (typeof changeMyPassword !== "function") {
+            showPasswordChangeFlash("Password update is not available.", "danger");
+            return;
+        }
+        const btn = document.getElementById("btn-student-change-password");
+        btn.disabled = true;
+        const r = await changeMyPassword(cur, next);
+        btn.disabled = false;
+        if (!r.ok) {
+            showPasswordChangeFlash(r.message || "Could not change password.", "danger");
+            return;
+        }
+        document.getElementById("student-current-password").value = "";
+        document.getElementById("student-new-password").value = "";
+        document.getElementById("student-confirm-password").value = "";
+        updateStudentPasswordChecklist();
+        showPasswordChangeFlash("Your password has been updated.", "success");
+        showAppFlash("student-flash", "Your password has been updated.", "success", 5000);
+        if (typeof window.deepwellRefreshAuthNav === "function") {
+            window.deepwellRefreshAuthNav();
+        }
     });
 
     if (lastLeaveRequestId) {

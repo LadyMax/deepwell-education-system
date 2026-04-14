@@ -90,6 +90,63 @@ async function getMe() {
     return response.json();
 }
 
+function evaluatePasswordRules(password) {
+    const p = password || "";
+    return {
+        minLen: p.length >= 8,
+        upper: /[A-Z]/.test(p),
+        lower: /[a-z]/.test(p),
+        digit: /\d/.test(p),
+        special: /[^A-Za-z0-9]/.test(p)
+    };
+}
+
+/** Client-side mirror of server password policy. Returns empty string if valid. */
+function validatePasswordPolicy(password) {
+    const r = evaluatePasswordRules(password);
+    if (!r.minLen) return "Password must be at least 8 characters.";
+    if (!r.upper) return "Password must contain at least one uppercase letter.";
+    if (!r.lower) return "Password must contain at least one lowercase letter.";
+    if (!r.digit) return "Password must contain at least one digit.";
+    if (!r.special) return "Password must contain at least one special character.";
+    return "";
+}
+
+async function verifyCurrentPassword(password) {
+    const response = await fetch(`${baseUrl}/Auth/verify-current-password`, {
+        method: "POST",
+        headers: authHeaders(),
+        body: JSON.stringify({ password: (password || "").trim() })
+    });
+    const body = await readJsonOrText(response);
+    if (!response.ok) return { ok: false, message: body.text || response.statusText };
+    return { ok: true };
+}
+
+async function changeMyPassword(currentPassword, newPassword) {
+    const response = await fetch(`${baseUrl}/Auth/change-password`, {
+        method: "POST",
+        headers: authHeaders(),
+        body: JSON.stringify({ currentPassword, newPassword })
+    });
+    const body = await readJsonOrText(response);
+    if (!response.ok) return { ok: false, message: body.text || response.statusText };
+    const json = body.json;
+    if (json && json.token) localStorage.setItem("token", json.token);
+    return { ok: true, data: json };
+}
+
+async function changeMyUsername(username) {
+    const response = await fetch(`${baseUrl}/Auth/change-username`, {
+        method: "POST",
+        headers: authHeaders(),
+        body: JSON.stringify({ username: (username || "").trim() })
+    });
+    const body = await readJsonOrText(response);
+    if (!response.ok) return { ok: false, message: body.text || response.statusText };
+    return { ok: true, data: body.json || {} };
+}
+
 async function getMyStudentProfile() {
     const response = await fetch(`${baseUrl}/StudentProfiles/me`, { headers: authHeaders() });
     if (response.status === 404) return { ok: false, notFound: true, message: await response.text() };

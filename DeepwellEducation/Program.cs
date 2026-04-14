@@ -1,3 +1,4 @@
+using System.Security.Claims;
 using System.Text;
 using System.Threading.RateLimiting;
 using DeepwellEducation.Data;
@@ -50,6 +51,36 @@ namespace DeepwellEducation
                         ValidIssuer = jwtIssuer,
                         ValidAudience = jwtAudience,
                         IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtKey))
+                    };
+                    options.Events = new JwtBearerEvents
+                    {
+                        OnTokenValidated = async context =>
+                        {
+                            var pwv = context.Principal?.FindFirstValue(JwtService.PasswordStampClaimType);
+                            if (string.IsNullOrEmpty(pwv))
+                                return;
+
+                            var userIdStr = context.Principal?.FindFirstValue(ClaimTypes.NameIdentifier);
+                            if (string.IsNullOrEmpty(userIdStr) || !Guid.TryParse(userIdStr, out var userId))
+                                return;
+
+                            await using var scope = context.HttpContext.RequestServices.CreateAsyncScope();
+                            var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+                            var row = await db.Users.AsNoTracking()
+                                .Where(u => u.Id == userId)
+                                .Select(u => new { u.PasswordChangedAt, u.CreatedAt })
+                                .FirstOrDefaultAsync(context.HttpContext.RequestAborted);
+
+                            if (row == null)
+                            {
+                                context.Fail("User not found.");
+                                return;
+                            }
+
+                            var expected = (row.PasswordChangedAt ?? row.CreatedAt).Ticks.ToString();
+                            if (pwv != expected)
+                                context.Fail("Session expired. Please sign in again.");
+                        }
                     };
                 });
 

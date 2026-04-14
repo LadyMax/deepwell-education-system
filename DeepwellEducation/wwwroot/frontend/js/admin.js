@@ -75,6 +75,54 @@
         return "You need staff access. Sign in with a staff account.";
     }
 
+    function bindAdminPasswordToggles() {
+        document.querySelectorAll("[data-password-toggle]").forEach(function (btn) {
+            if (btn.dataset.boundPwd === "1") return;
+            btn.dataset.boundPwd = "1";
+            btn.addEventListener("click", function () {
+                var id = btn.getAttribute("data-password-toggle");
+                var input = document.getElementById(id);
+                if (!input) return;
+                var show = input.type === "password";
+                input.type = show ? "text" : "password";
+                btn.setAttribute("aria-pressed", show ? "true" : "false");
+                var icon = btn.querySelector("i");
+                if (icon) icon.className = show ? "fa fa-eye-slash" : "fa fa-eye";
+            });
+        });
+    }
+
+    function updateAdminPasswordChecklist() {
+        if (typeof evaluatePasswordRules !== "function") return;
+        var p = document.getElementById("admin-new-password");
+        var pwd = p ? p.value : "";
+        var r = evaluatePasswordRules(pwd);
+        function setOk(id, ok) {
+            var el = document.getElementById(id);
+            if (!el) return;
+            el.className = ok ? "ok" : "bad";
+        }
+        setOk("admin-pw-rule-len", r.minLen);
+        setOk("admin-pw-rule-upper", r.upper);
+        setOk("admin-pw-rule-lower", r.lower);
+        setOk("admin-pw-rule-digit", r.digit);
+        setOk("admin-pw-rule-special", r.special);
+    }
+
+    function showAdminPasswordFlash(message, variant) {
+        var el = document.getElementById("admin-password-flash");
+        if (!el) return;
+        if (!message) {
+            el.classList.add("d-none");
+            el.textContent = "";
+            return;
+        }
+        var v = variant || "danger";
+        el.textContent = message;
+        el.className = "app-flash app-flash--" + v + " mb-3";
+        el.classList.remove("d-none");
+    }
+
     function showAdminPane(paneId) {
         document.querySelectorAll("[data-admin-pane-id]").forEach(function (section) {
             var id = section.getAttribute("data-admin-pane-id");
@@ -691,6 +739,80 @@
         btn.addEventListener("click", function () {
             showAdminPane(btn.getAttribute("data-admin-pane-btn") || "requests");
         });
+    });
+
+    bindAdminPasswordToggles();
+    var adminNewPw = document.getElementById("admin-new-password");
+    if (adminNewPw) {
+        adminNewPw.addEventListener("input", updateAdminPasswordChecklist);
+        adminNewPw.addEventListener("change", updateAdminPasswordChecklist);
+    }
+    document.getElementById("btn-admin-change-password").addEventListener("click", async function () {
+        var cur = document.getElementById("admin-current-password").value.trim();
+        var next = document.getElementById("admin-new-password").value.trim();
+        var conf = document.getElementById("admin-confirm-password").value.trim();
+        showAdminPasswordFlash("", "info");
+        if (!cur) {
+            showAdminPasswordFlash("Enter your current password.", "warning");
+            return;
+        }
+        if (!next || !conf) {
+            if (typeof verifyCurrentPassword !== "function") {
+                showAdminPasswordFlash("Enter your new password.", "warning");
+                return;
+            }
+            var btnVerify = document.getElementById("btn-admin-change-password");
+            btnVerify.disabled = true;
+            var vr = await verifyCurrentPassword(cur);
+            btnVerify.disabled = false;
+            if (!vr.ok) {
+                showAdminPasswordFlash(vr.message || "Current password is incorrect.", "danger");
+                return;
+            }
+            if (!next) {
+                showAdminPasswordFlash("Enter your new password.", "warning");
+                return;
+            }
+            var perrPartial = typeof validatePasswordPolicy === "function" ? validatePasswordPolicy(next) : "";
+            if (perrPartial) {
+                showAdminPasswordFlash(perrPartial, "warning");
+                return;
+            }
+            if (!conf) {
+                showAdminPasswordFlash("Enter your new password again to confirm.", "warning");
+                return;
+            }
+        }
+        if (next !== conf) {
+            showAdminPasswordFlash("New password and confirmation do not match.", "warning");
+            return;
+        }
+        var perr = typeof validatePasswordPolicy === "function" ? validatePasswordPolicy(next) : "";
+        if (perr) {
+            showAdminPasswordFlash(perr, "warning");
+            return;
+        }
+        if (typeof changeMyPassword !== "function") {
+            showAdminPasswordFlash("Password update is not available.", "danger");
+            return;
+        }
+        var btn = document.getElementById("btn-admin-change-password");
+        btn.disabled = true;
+        var r = await changeMyPassword(cur, next);
+        btn.disabled = false;
+        if (!r.ok) {
+            showAdminPasswordFlash(r.message || "Could not change password.", "danger");
+            return;
+        }
+        document.getElementById("admin-current-password").value = "";
+        document.getElementById("admin-new-password").value = "";
+        document.getElementById("admin-confirm-password").value = "";
+        updateAdminPasswordChecklist();
+        showAdminPasswordFlash("Password updated.", "success");
+        showAppFlash("admin-flash", "Password updated successfully.", "success", 5000);
+        if (typeof window.deepwellRefreshAuthNav === "function") {
+            window.deepwellRefreshAuthNav();
+        }
     });
 
     resetCourseRequestFilters();

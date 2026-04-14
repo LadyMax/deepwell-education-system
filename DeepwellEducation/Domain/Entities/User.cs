@@ -22,6 +22,9 @@ public class User
 
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
+    /// <summary>UTC time of last password change. Used with JWT <c>pwv</c> claim to invalidate old tokens.</summary>
+    public DateTime? PasswordChangedAt { get; set; }
+
     public StudentProfile? StudentProfile { get; set; }
 
     public ICollection<Enrollment> Enrollments { get; set; } = new List<Enrollment>();

@@ -81,7 +81,7 @@ public class EnrollmentsControllerIntegrationTests
         var adminPassword = "AdminPassword!123";
         await factory.SeedUserAsync(adminEmail, adminPassword, UserRole.Admin);
 
-        var student = await factory.SeedUserAsync($"{Guid.NewGuid():N}@example.com", "StudentPassword!123", UserRole.Student, "Student One");
+        var student = await factory.SeedUserAsync($"{Guid.NewGuid():N}@example.com", "StudentPassword!123", UserRole.Student, "student_one");
         await factory.SeedStudentProfileAsync(student.Id, "S-112233");
         var course = await factory.SeedCourseAsync(name: "Admin Course");
         await factory.SeedEnrollmentAsync(student.Id, course.Id, isActive: true);

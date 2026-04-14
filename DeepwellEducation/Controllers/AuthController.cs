@@ -1,3 +1,5 @@
+using System.Security.Claims;
+using System.Text.RegularExpressions;
 using DeepwellEducation.Data;
 using DeepwellEducation.Domain.Entities;
 using DeepwellEducation.Domain.Enums;
@@ -37,11 +39,20 @@ public class AuthController : ControllerBase
         if (await _db.Users.AnyAsync(u => u.Email == normalizedEmail, ct))
             return BadRequest("Email already registered.");
 
+        if (!TryValidatePassword(request.Password, out var passwordError))
+            return BadRequest(passwordError);
+
+        var normalizedUsername = NormalizeUsername(request.FullName);
+        if (!TryValidateUsername(normalizedUsername, out var usernameError))
+            return BadRequest(usernameError);
+        if (await _db.Users.AnyAsync(u => u.FullName.ToLower() == normalizedUsername.ToLower(), ct))
+            return BadRequest("Username is already taken.");
+
         var user = new User
         {
             Id = Guid.NewGuid(),
             Email = normalizedEmail,
-            FullName = request.FullName?.Trim() ?? "",
+            FullName = normalizedUsername,
             Role = UserRole.Visitor,
             IsActive = true,
             CreatedAt = DateTime.UtcNow
@@ -85,7 +96,7 @@ public class AuthController : ControllerBase
     [HttpGet("me")]
     public async Task<ActionResult<UserDto>> Me(CancellationToken ct)
     {
-        var userIdClaim = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+        var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
         if (string.IsNullOrEmpty(userIdClaim) || !Guid.TryParse(userIdClaim, out var userId))
             return Unauthorized();
 
@@ -96,6 +107,166 @@ public class AuthController : ControllerBase
         if (user == null || !user.IsActive)
             return NotFound("User not found or inactive.");
         return Ok(new UserDto(user));
+    }
+
+    /// <summary>Change the public username (stored in <see cref="User.FullName"/>). Must be globally unique.</summary>
+    [Authorize]
+    [HttpPost("change-username")]
+    public async Task<ActionResult<UserDto>> ChangeUsername([FromBody] ChangeUsernameRequest request, CancellationToken ct)
+    {
+        var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        if (string.IsNullOrEmpty(userIdClaim) || !Guid.TryParse(userIdClaim, out var userId))
+            return Unauthorized();
+
+        var normalized = NormalizeUsername(request.Username);
+        if (!TryValidateUsername(normalized, out var usernameError))
+            return BadRequest(usernameError);
+
+        var user = await _db.Users
+            .Include(u => u.StudentProfile)
+            .FirstOrDefaultAsync(u => u.Id == userId, ct);
+        if (user == null || !user.IsActive)
+            return NotFound("User not found or inactive.");
+
+        if (string.Equals(user.FullName, normalized, StringComparison.OrdinalIgnoreCase))
+            return Ok(new UserDto(user));
+
+        if (await _db.Users.AnyAsync(u => u.Id != userId && u.FullName.ToLower() == normalized.ToLower(), ct))
+            return BadRequest("Username is already taken.");
+
+        user.FullName = normalized;
+        await _db.SaveChangesAsync(ct);
+        return Ok(new UserDto(user));
+    }
+
+    /// <summary>Change password. Issues a new JWT; older tokens are rejected via the password stamp claim.</summary>
+    [Authorize]
+    [HttpPost("change-password")]
+    [EnableRateLimiting("auth")]
+    public async Task<ActionResult<AuthResponse>> ChangePassword([FromBody] ChangePasswordRequest request, CancellationToken ct)
+    {
+        var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        if (string.IsNullOrEmpty(userIdClaim) || !Guid.TryParse(userIdClaim, out var userId))
+            return Unauthorized();
+
+        if (string.IsNullOrWhiteSpace(request.CurrentPassword))
+            return BadRequest("Current password is required.");
+        if (!TryValidatePassword(request.NewPassword, out var pwError))
+            return BadRequest(pwError);
+        if (request.CurrentPassword == request.NewPassword)
+            return BadRequest("New password must be different from your current password.");
+
+        var user = await _db.Users.FirstOrDefaultAsync(u => u.Id == userId, ct);
+        if (user == null || !user.IsActive)
+            return NotFound("User not found or inactive.");
+
+        if (_passwordHasher.VerifyHashedPassword(user, user.PasswordHash, request.CurrentPassword) ==
+            PasswordVerificationResult.Failed)
+            return BadRequest("Current password is incorrect.");
+
+        user.PasswordHash = _passwordHasher.HashPassword(user, request.NewPassword);
+        user.PasswordChangedAt = DateTime.UtcNow;
+        await _db.SaveChangesAsync(ct);
+
+        await _db.Entry(user).Reference(u => u.StudentProfile).LoadAsync(ct);
+        var token = _jwt.GenerateToken(user);
+        return Ok(new AuthResponse { Token = token, User = new UserDto(user) });
+    }
+
+    /// <summary>Verify the password for the signed-in user (e.g. before the client asks for new password fields).</summary>
+    [Authorize]
+    [HttpPost("verify-current-password")]
+    [EnableRateLimiting("auth")]
+    public async Task<IActionResult> VerifyCurrentPassword([FromBody] VerifyCurrentPasswordRequest request, CancellationToken ct)
+    {
+        var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        if (string.IsNullOrEmpty(userIdClaim) || !Guid.TryParse(userIdClaim, out var userId))
+            return Unauthorized();
+
+        if (string.IsNullOrWhiteSpace(request.Password))
+            return BadRequest("Current password is required.");
+
+        var user = await _db.Users.AsNoTracking()
+            .FirstOrDefaultAsync(u => u.Id == userId, ct);
+        if (user == null || !user.IsActive)
+            return NotFound("User not found or inactive.");
+
+        if (_passwordHasher.VerifyHashedPassword(user, user.PasswordHash, request.Password.Trim()) ==
+            PasswordVerificationResult.Failed)
+            return BadRequest("Current password is incorrect.");
+
+        return Ok();
+    }
+
+    /// <summary>Minimum 8 characters; upper, lower, digit, and special character.</summary>
+    private static bool TryValidatePassword(string? password, out string? error)
+    {
+        error = null;
+        if (string.IsNullOrEmpty(password))
+        {
+            error = "Password is required.";
+            return false;
+        }
+
+        if (password.Length < 8)
+        {
+            error = "Password must be at least 8 characters.";
+            return false;
+        }
+
+        if (!password.Any(char.IsUpper))
+        {
+            error = "Password must contain at least one uppercase letter.";
+            return false;
+        }
+
+        if (!password.Any(char.IsLower))
+        {
+            error = "Password must contain at least one lowercase letter.";
+            return false;
+        }
+
+        if (!password.Any(char.IsDigit))
+        {
+            error = "Password must contain at least one digit.";
+            return false;
+        }
+
+        if (!password.Any(ch => !char.IsLetterOrDigit(ch)))
+        {
+            error = "Password must contain at least one special character.";
+            return false;
+        }
+
+        return true;
+    }
+
+    private static string NormalizeUsername(string? raw) =>
+        string.IsNullOrWhiteSpace(raw) ? "" : raw.Trim();
+
+    /// <summary>3–32 chars; letters, digits, period, underscore, hyphen.</summary>
+    private static bool TryValidateUsername(string normalized, out string? error)
+    {
+        error = null;
+        if (string.IsNullOrEmpty(normalized))
+        {
+            error = "Username is required.";
+            return false;
+        }
+
+        if (normalized.Length is < 3 or > 32)
+        {
+            error = "Username must be 3–32 characters.";
+            return false;
+        }
+
+        if (!Regex.IsMatch(normalized, @"^[A-Za-z0-9._-]+$"))
+        {
+            error = "Username may only contain letters, digits, and . _ -";
+            return false;
+        }
+
+        return true;
     }
 }
 
@@ -109,6 +280,23 @@ public class RegisterRequest
 public class LoginRequest
 {
     public string Email { get; set; } = "";
+    public string Password { get; set; } = "";
+}
+
+public class ChangeUsernameRequest
+{
+    /// <summary>Unique username (maps to <see cref="User.FullName"/>).</summary>
+    public string Username { get; set; } = "";
+}
+
+public class ChangePasswordRequest
+{
+    public string CurrentPassword { get; set; } = "";
+    public string NewPassword { get; set; } = "";
+}
+
+public class VerifyCurrentPasswordRequest
+{
     public string Password { get; set; } = "";
 }
 

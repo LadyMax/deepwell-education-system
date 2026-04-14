@@ -9,6 +9,9 @@ namespace DeepwellEducation.Services;
 
 public class JwtService
 {
+    /// <summary>Password version stamp (ticks) — must match <see cref="User.PasswordChangedAt"/> or <see cref="User.CreatedAt"/>.</summary>
+    public const string PasswordStampClaimType = "pwv";
+
     private readonly string _key;
     private readonly string _issuer;
     private readonly string _audience;
@@ -24,11 +27,13 @@ public class JwtService
     {
         var securityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_key));
         var credentials = new SigningCredentials(securityKey, SecurityAlgorithms.HmacSha256);
+        var passwordStamp = user.PasswordChangedAt ?? user.CreatedAt;
         var claims = new[]
         {
             new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
             new Claim(ClaimTypes.Email, user.Email),
-            new Claim(ClaimTypes.Role, user.Role.ToString())
+            new Claim(ClaimTypes.Role, user.Role.ToString()),
+            new Claim(PasswordStampClaimType, passwordStamp.Ticks.ToString())
         };
         var token = new JwtSecurityToken(
             _issuer,

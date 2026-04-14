@@ -10,7 +10,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.10.0/css/all.min.css" rel="stylesheet">
-    <link href="css/app.css?v=20260414f" rel="stylesheet">
+    <link href="css/app.css?v=20260414l" rel="stylesheet">
     <link href="css/login.css" rel="stylesheet">
     <script src="js/layout.js" defer></script>
 </head>
@@ -39,6 +39,8 @@
                     <h1 class="mb-0">Login or Create an Account</h1>
                 </div>
 
+                <div id="login-flash" class="app-flash d-none mb-3" role="status" aria-live="polite"></div>
+
                 <div id="login-pane-login" class="login-pane active">
                     <form id="login-form" novalidate>
                         <div class="form-group">
@@ -47,7 +49,10 @@
                         </div>
                         <div class="form-group">
                             <label for="login-password">Password</label>
-                            <input type="password" id="login-password" class="form-control border-0 p-4" required autocomplete="current-password" placeholder="******">
+                            <div class="app-password-input-wrap">
+                                <input type="password" id="login-password" class="form-control border-0 p-4 app-password-input" required autocomplete="current-password" placeholder="******">
+                                <button type="button" class="app-password-toggle" data-password-toggle="login-password" aria-label="Show password" aria-pressed="false"><i class="fa fa-eye"></i></button>
+                            </div>
                         </div>
                         <button type="submit" class="btn btn-primary py-3 px-5">Login</button>
                         <div class="login-cta">
@@ -60,8 +65,9 @@
                 <div id="login-pane-register" class="login-pane">
                     <form id="register-form" novalidate>
                         <div class="form-group">
-                            <label for="register-name">Full name</label>
-                            <input type="text" id="register-name" class="form-control border-0 p-4" required placeholder="Your name">
+                            <label for="register-username">Username</label>
+                            <input type="text" id="register-username" class="form-control border-0 p-4" required maxlength="32" autocomplete="username" placeholder="e.g. anna_lee" aria-describedby="register-username-hint">
+                            <small id="register-username-hint" class="form-text text-muted">3–32 characters, unique across all users: letters, digits, and . _ -</small>
                         </div>
                         <div class="form-group">
                             <label for="register-email">Email</label>
@@ -69,11 +75,25 @@
                         </div>
                         <div class="form-group">
                             <label for="register-password">Password</label>
-                            <input type="password" id="register-password" class="form-control border-0 p-4" required placeholder="******">
+                            <div class="app-password-input-wrap">
+                                <input type="password" id="register-password" class="form-control border-0 p-4 app-password-input" required autocomplete="new-password" placeholder="******" aria-describedby="register-pw-rules">
+                                <button type="button" class="app-password-toggle" data-password-toggle="register-password" aria-label="Show password" aria-pressed="false"><i class="fa fa-eye"></i></button>
+                            </div>
+                            <small class="form-text text-muted d-block mt-1">At least 8 characters with upper &amp; lower case, a number, and a symbol.</small>
+                            <ul id="register-pw-rules" class="app-password-rules mt-2 mb-0" aria-live="polite">
+                                <li id="register-pw-rule-len" class="bad">8+ characters</li>
+                                <li id="register-pw-rule-upper" class="bad">One uppercase letter</li>
+                                <li id="register-pw-rule-lower" class="bad">One lowercase letter</li>
+                                <li id="register-pw-rule-digit" class="bad">One digit</li>
+                                <li id="register-pw-rule-special" class="bad">One special character</li>
+                            </ul>
                         </div>
                         <div class="form-group">
                             <label for="register-confirm">Confirm password</label>
-                            <input type="password" id="register-confirm" class="form-control border-0 p-4" required placeholder="******">
+                            <div class="app-password-input-wrap">
+                                <input type="password" id="register-confirm" class="form-control border-0 p-4 app-password-input" required autocomplete="new-password" placeholder="******">
+                                <button type="button" class="app-password-toggle" data-password-toggle="register-confirm" aria-label="Show password" aria-pressed="false"><i class="fa fa-eye"></i></button>
+                            </div>
                         </div>
                         <button type="submit" class="btn btn-primary py-3 px-5">Create account</button>
                         <div class="login-cta">
@@ -91,8 +111,8 @@
     <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.bundle.min.js"></script>
     <script src="js/main.js"></script>
-    <script src="./js/api.js"></script>
-    <script src="./js/login.js"></script>
+    <script src="./js/api.js?v=20260414l"></script>
+    <script src="./js/login.js?v=20260414l"></script>
 </body>
 
 </html>

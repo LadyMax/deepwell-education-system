@@ -8,7 +8,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com">
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.10.0/css/all.min.css" rel="stylesheet">
-  <link rel="stylesheet" href="./css/app.css?v=20260414f">
+  <link rel="stylesheet" href="./css/app.css?v=20260414l">
   <script src="./js/layout.js" defer></script>
 </head>
 <body class="page-admin">
@@ -25,6 +25,7 @@
           <button type="button" class="btn btn-outline-primary" data-admin-pane-btn="messages">Messages</button>
           <button type="button" class="btn btn-outline-primary" data-admin-pane-btn="courses">Courses</button>
           <button type="button" class="btn btn-outline-primary" data-admin-pane-btn="enrollments">Active Enrollments</button>
+          <button type="button" class="btn btn-outline-primary" data-admin-pane-btn="account">Account security</button>
         </nav>
 
         <section class="admin-section" data-admin-pane-id="requests" aria-labelledby="admin-cr-heading">
@@ -194,6 +195,45 @@
           </table>
         </div>
         </section>
+
+        <section class="admin-section d-none" data-admin-pane-id="account" aria-labelledby="admin-account-heading">
+        <h2 class="h5 mb-3" id="admin-account-heading">Account security</h2>
+        <p class="small text-muted">Change your sign-in password. Other sessions will be signed out until you sign in again with the new password.</p>
+        <div id="admin-password-flash" class="app-flash d-none mb-3" role="status" aria-live="polite"></div>
+        <div class="form-row">
+          <div class="form-group col-md-6 col-lg-5">
+            <label for="admin-current-password" class="mb-1">Current password</label>
+            <div class="app-password-input-wrap">
+              <input type="password" id="admin-current-password" class="form-control form-control-sm app-password-input" autocomplete="current-password">
+              <button type="button" class="app-password-toggle" data-password-toggle="admin-current-password" aria-label="Show password" aria-pressed="false"><i class="fa fa-eye"></i></button>
+            </div>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group col-md-6 col-lg-5">
+            <label for="admin-new-password" class="mb-1">New password</label>
+            <div class="app-password-input-wrap">
+              <input type="password" id="admin-new-password" class="form-control form-control-sm app-password-input" autocomplete="new-password" aria-describedby="admin-pw-rules">
+              <button type="button" class="app-password-toggle" data-password-toggle="admin-new-password" aria-label="Show password" aria-pressed="false"><i class="fa fa-eye"></i></button>
+            </div>
+          </div>
+          <div class="form-group col-md-6 col-lg-5">
+            <label for="admin-confirm-password" class="mb-1">Confirm new password</label>
+            <div class="app-password-input-wrap">
+              <input type="password" id="admin-confirm-password" class="form-control form-control-sm app-password-input" autocomplete="new-password">
+              <button type="button" class="app-password-toggle" data-password-toggle="admin-confirm-password" aria-label="Show password" aria-pressed="false"><i class="fa fa-eye"></i></button>
+            </div>
+          </div>
+        </div>
+        <ul id="admin-pw-rules" class="app-password-rules mb-3" aria-live="polite">
+          <li id="admin-pw-rule-len" class="bad">8+ characters</li>
+          <li id="admin-pw-rule-upper" class="bad">One uppercase letter</li>
+          <li id="admin-pw-rule-lower" class="bad">One lowercase letter</li>
+          <li id="admin-pw-rule-digit" class="bad">One digit</li>
+          <li id="admin-pw-rule-special" class="bad">One special character</li>
+        </ul>
+        <button type="button" class="btn btn-primary btn-sm" id="btn-admin-change-password">Update password</button>
+        </section>
       </div>
     </div>
   </div>
@@ -201,7 +241,7 @@
   <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
   <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.bundle.min.js"></script>
   <script src="./js/main.js"></script>
-  <script src="./js/api.js?v=20260413"></script>
-  <script src="./js/admin.js?v=20260414b"></script>
+  <script src="./js/api.js?v=20260414o"></script>
+  <script src="./js/admin.js?v=20260414o"></script>
 </body>
 </html>

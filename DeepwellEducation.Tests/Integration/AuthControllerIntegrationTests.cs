@@ -19,7 +19,7 @@ public class AuthControllerIntegrationTests
         {
             Email = $"  {email.ToUpperInvariant()}  ",
             Password = "TestPassword!123",
-            FullName = "  New User  "
+            FullName = "  new_register_user  "
         });
 
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
@@ -29,7 +29,7 @@ public class AuthControllerIntegrationTests
         Assert.False(string.IsNullOrWhiteSpace(body!.Token));
         Assert.Equal(email, body.User.Email);
         Assert.Equal(UserRole.Visitor, body.User.Role);
-        Assert.Equal("New User", body.User.FullName);
+        Assert.Equal("new_register_user", body.User.FullName);
     }
 
     [Fact]
@@ -45,7 +45,123 @@ public class AuthControllerIntegrationTests
         {
             Email = email,
             Password = "AnotherPassword!123",
-            FullName = "Duplicate User"
+            FullName = "duplicate_try_user"
+        });
+
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+    }
+
+    [Fact]
+    public async Task Register_WeakPassword_ReturnsBadRequest()
+    {
+        await using var factory = new TestWebApplicationFactory();
+        using var client = factory.CreateClient();
+
+        var response = await client.PostAsJsonAsync("/api/auth/register", new RegisterRequest
+        {
+            Email = $"{Guid.NewGuid():N}@example.com",
+            Password = "noupper1!",
+            FullName = "weak_pw_user"
+        });
+
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+    }
+
+    [Fact]
+    public async Task Register_PasswordTooShort_ReturnsBadRequest()
+    {
+        await using var factory = new TestWebApplicationFactory();
+        using var client = factory.CreateClient();
+
+        var response = await client.PostAsJsonAsync("/api/auth/register", new RegisterRequest
+        {
+            Email = $"{Guid.NewGuid():N}@example.com",
+            Password = "Abcd1!x",
+            FullName = "short_pw_user"
+        });
+
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+    }
+
+    [Fact]
+    public async Task VerifyCurrentPassword_WrongPassword_ReturnsBadRequest()
+    {
+        await using var factory = new TestWebApplicationFactory();
+        using var client = factory.CreateClient();
+
+        var email = $"{Guid.NewGuid():N}@example.com";
+        const string pw = "GoodPassword!123";
+        await factory.SeedUserAsync(email, pw, fullName: "verify_pw_user");
+        var token = await TestAuthHelper.LoginAndGetTokenAsync(client, email, pw);
+        client.SetBearerToken(token);
+
+        var response = await client.PostAsJsonAsync("/api/auth/verify-current-password", new VerifyCurrentPasswordRequest
+        {
+            Password = "WrongPassword!999"
+        });
+
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+    }
+
+    [Fact]
+    public async Task VerifyCurrentPassword_CorrectPassword_ReturnsOk()
+    {
+        await using var factory = new TestWebApplicationFactory();
+        using var client = factory.CreateClient();
+
+        var email = $"{Guid.NewGuid():N}@example.com";
+        const string pw = "GoodPassword!123";
+        await factory.SeedUserAsync(email, pw, fullName: "verify_pw_ok_user");
+        var token = await TestAuthHelper.LoginAndGetTokenAsync(client, email, pw);
+        client.SetBearerToken(token);
+
+        var response = await client.PostAsJsonAsync("/api/auth/verify-current-password", new VerifyCurrentPasswordRequest
+        {
+            Password = pw
+        });
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+    }
+
+    [Fact]
+    public async Task ChangePassword_WithValidCurrent_ReturnsNewToken()
+    {
+        await using var factory = new TestWebApplicationFactory();
+        using var client = factory.CreateClient();
+
+        var email = $"{Guid.NewGuid():N}@example.com";
+        const string oldPw = "OldPassword!123";
+        await factory.SeedUserAsync(email, oldPw, fullName: "pwd_change_user");
+        var token = await TestAuthHelper.LoginAndGetTokenAsync(client, email, oldPw);
+        client.SetBearerToken(token);
+
+        var response = await client.PostAsJsonAsync("/api/auth/change-password", new ChangePasswordRequest
+        {
+            CurrentPassword = oldPw,
+            NewPassword = "NewPassword!456"
+        });
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        var body = await response.Content.ReadFromJsonAsync<AuthResponse>();
+        Assert.NotNull(body);
+        Assert.False(string.IsNullOrWhiteSpace(body!.Token));
+        Assert.NotEqual(token, body.Token);
+    }
+
+    [Fact]
+    public async Task Register_DuplicateUsername_ReturnsBadRequest()
+    {
+        await using var factory = new TestWebApplicationFactory();
+        using var client = factory.CreateClient();
+
+        var taken = "taken_username_abc";
+        await factory.SeedUserAsync($"{Guid.NewGuid():N}@example.com", "ExistingPassword!123", fullName: taken);
+
+        var response = await client.PostAsJsonAsync("/api/auth/register", new RegisterRequest
+        {
+            Email = $"{Guid.NewGuid():N}@example.com",
+            Password = "AnotherPassword!123",
+            FullName = taken
         });
 
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
@@ -106,7 +222,7 @@ public class AuthControllerIntegrationTests
 
         var email = $"{Guid.NewGuid():N}@example.com";
         var password = "ValidPassword!123";
-        var user = await factory.SeedUserAsync(email, password, UserRole.Student, fullName: "Student A");
+        var user = await factory.SeedUserAsync(email, password, UserRole.Student, fullName: "student_me_test");
         var token = await TestAuthHelper.LoginAndGetTokenAsync(client, email, password);
         client.SetBearerToken(token);
 

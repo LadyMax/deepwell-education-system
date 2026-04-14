@@ -123,7 +123,7 @@ public class CourseRequestsControllerIntegrationTests
 
         var adminEmail = $"{Guid.NewGuid():N}@example.com";
         var adminPassword = "AdminPassword!123";
-        var user = await factory.SeedUserAsync($"{Guid.NewGuid():N}@example.com", "UserPassword!123", UserRole.Student, "Student User");
+        var user = await factory.SeedUserAsync($"{Guid.NewGuid():N}@example.com", "UserPassword!123", UserRole.Student, "student_user");
         var admin = await factory.SeedUserAsync(adminEmail, adminPassword, UserRole.Admin);
         var course = await factory.SeedCourseAsync(name: "Italian Advanced");
         await factory.SeedCourseRequestAsync(user.Id, course.Id, RequestType.Join, RequestStatus.Pending);
@@ -222,8 +222,8 @@ public class CourseRequestsControllerIntegrationTests
         var adminPassword = "AdminPassword!123";
         await factory.SeedUserAsync(adminEmail, adminPassword, UserRole.Admin);
 
-        var alice = await factory.SeedUserAsync($"{Guid.NewGuid():N}@example.com", "StudentPassword!123", UserRole.Student, fullName: "Alice Walker");
-        var bob = await factory.SeedUserAsync($"{Guid.NewGuid():N}@example.com", "StudentPassword!123", UserRole.Student, fullName: "Bob Smith");
+        var alice = await factory.SeedUserAsync($"{Guid.NewGuid():N}@example.com", "StudentPassword!123", UserRole.Student, fullName: "alice_walker");
+        var bob = await factory.SeedUserAsync($"{Guid.NewGuid():N}@example.com", "StudentPassword!123", UserRole.Student, fullName: "bob_smith");
 
         var spanish = await factory.SeedCourseAsync(name: "Spanish Beginner");
         var german = await factory.SeedCourseAsync(name: "German Beginner");
@@ -257,7 +257,7 @@ public class CourseRequestsControllerIntegrationTests
 
         var adminEmail = $"{Guid.NewGuid():N}@example.com";
         var adminPassword = "AdminPassword!123";
-        var learner = await factory.SeedUserAsync($"{Guid.NewGuid():N}@example.com", "StudentPassword!123", UserRole.Student, fullName: "Sort User");
+        var learner = await factory.SeedUserAsync($"{Guid.NewGuid():N}@example.com", "StudentPassword!123", UserRole.Student, fullName: "sort_user");
         await factory.SeedUserAsync(adminEmail, adminPassword, UserRole.Admin);
         var courseA = await factory.SeedCourseAsync(name: "Sort A");
         var courseB = await factory.SeedCourseAsync(name: "Sort B");

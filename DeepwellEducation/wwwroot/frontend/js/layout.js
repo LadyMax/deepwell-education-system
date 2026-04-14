@@ -178,6 +178,28 @@
         bindAccountMenu(authSlot);
     }
 
+    /** After changing username on account pages, refresh the header “Hi, …” label. */
+    window.deepwellRefreshAuthNav = async function () {
+        const authSlot = document.getElementById('auth-nav-slot');
+        const token = getToken();
+        if (!authSlot) return;
+        if (!token) {
+            renderAuthNav(authSlot, null);
+            bindLogout(authSlot);
+            bindAccountMenu(authSlot);
+            return;
+        }
+        const meRes = await fetchMe(token);
+        if (meRes.ok && meRes.data) {
+            renderAuthNav(authSlot, meRes.data);
+        } else if (meRes.status === 401) {
+            localStorage.removeItem('token');
+            renderAuthNav(authSlot, null);
+        }
+        bindLogout(authSlot);
+        bindAccountMenu(authSlot);
+    };
+
     init();
 })();
 

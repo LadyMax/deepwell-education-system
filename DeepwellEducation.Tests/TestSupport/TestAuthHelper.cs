@@ -19,18 +19,22 @@ internal static class TestAuthHelper
         string email,
         string password,
         UserRole role = UserRole.Visitor,
-        string fullName = "Test User",
+        string? fullName = null,
         bool isActive = true)
     {
         using var scope = factory.Services.CreateScope();
         var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
         var hasher = scope.ServiceProvider.GetRequiredService<IPasswordHasher<User>>();
 
+        var resolvedFullName = string.IsNullOrWhiteSpace(fullName)
+            ? Guid.NewGuid().ToString("N")[..32]
+            : fullName.Trim();
+
         var user = new User
         {
             Id = Guid.NewGuid(),
             Email = email.Trim().ToLowerInvariant(),
-            FullName = fullName,
+            FullName = resolvedFullName,
             Role = role,
             IsActive = isActive,
             CreatedAt = DateTime.UtcNow

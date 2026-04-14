@@ -62,3 +62,113 @@
   padding: 0;
   list-style-type: none;
 }
+
+/* Account: unique username row + inline editor (student / account pages) */
+.profile-username-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem 0.75rem;
+  margin-bottom: 0.35rem;
+}
+
+.profile-username-meta {
+  line-height: 1.4;
+}
+
+.profile-username-meta strong {
+  margin-right: 0.35rem;
+}
+
+.profile-username-toggle {
+  flex-shrink: 0;
+}
+
+.profile-username-editor {
+  margin-top: 0.75rem;
+  padding: 1rem 1.1rem;
+  border: 1px solid #c5d9d9;
+  border-radius: 8px;
+  background: #f8fcfc;
+  max-width: 28rem;
+}
+
+/* Password fields with in-field visibility toggle */
+.app-password-input-wrap {
+  position: relative;
+  display: block;
+}
+
+.app-password-input-wrap .app-password-input {
+  padding-right: 2.75rem;
+}
+
+.app-password-toggle {
+  position: absolute;
+  right: 0.35rem;
+  top: 50%;
+  transform: translateY(-50%);
+  border: none;
+  background: transparent;
+  color: #4a6f7a;
+  padding: 0.35rem 0.5rem;
+  line-height: 1;
+  cursor: pointer;
+  border-radius: 6px;
+}
+
+.app-password-toggle:hover,
+.app-password-toggle:focus {
+  color: var(--app-primary, #1a7a8c);
+  outline: none;
+  background: rgba(26, 122, 140, 0.08);
+}
+
+.app-password-rules {
+  list-style: none;
+  margin: 0.5rem 0 0;
+  padding: 0;
+  font-size: 0.875rem;
+  color: #4a5f6a;
+}
+
+.app-password-rules li {
+  margin-bottom: 0.2rem;
+}
+
+.app-password-rules li.ok {
+  color: #1e6b3a;
+}
+
+.app-password-rules li.bad {
+  color: #8a4a4a;
+}
+
+.app-accordion-card {
+  border: 1px solid #c5d9d9;
+  border-radius: 8px;
+  overflow: hidden;
+  background: #fff;
+}
+
+.app-accordion-card .card-header {
+  background: #f8fcfc;
+  border-bottom: 1px solid #c5d9d9;
+}
+
+.app-accordion-card .app-accordion-toggle {
+  color: #1a2f3a;
+  font-weight: 600;
+  text-decoration: none;
+  box-shadow: none;
+}
+
+.app-accordion-card .app-accordion-toggle:hover,
+.app-accordion-card .app-accordion-toggle:focus {
+  text-decoration: none;
+  color: var(--app-primary, #1a7a8c);
+}
+
+.app-accordion-card .card-body {
+  background: #f8fcfc;
+}

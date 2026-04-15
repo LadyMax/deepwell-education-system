@@ -7,11 +7,11 @@
     <meta content="width=device-width, initial-scale=1.0" name="viewport">
     <meta content="Deepwell Education course" name="description">
 
-    <link href="images/favicon.ico" rel="icon">
+    <link href="images/Deepwell.png" rel="icon" type="image/png">
     <link rel="preconnect" href="https://fonts.gstatic.com">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.10.0/css/all.min.css" rel="stylesheet">
-    <link href="css/app.css?v=20260414f" rel="stylesheet">
+    <link href="css/app.css?v=20260415c" rel="stylesheet">
     <script src="js/layout.js" defer></script>
 </head>
 
@@ -84,18 +84,9 @@
     <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.bundle.min.js"></script>
     <script src="js/main.js"></script>
-    <script src="js/api.js?v=20260327b"></script>
-    <script src="js/course-ui.js?v=20260414b"></script>
-    <script>
-        document.addEventListener('DOMContentLoaded', function () {
-            var params = new URLSearchParams(window.location.search);
-            var id = params.get('id');
-            DeepwellCourse.renderDetail(
-                document.getElementById('course-detail-status'),
-                document.getElementById('course-detail-article'),
-                id);
-        });
-    </script>
+    <script src="js/api.js?v=20260415c"></script>
+    <script src="js/course-ui.js?v=20260415c"></script>
+    <script src="js/course-detail-page.js?v=20260415c"></script>
 </body>
 
 </html>

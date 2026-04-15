@@ -148,6 +148,15 @@
             );
         }
 
+        const languageCategoryHost = document.getElementById('language-category-inner');
+        if (languageCategoryHost) {
+            tasks.push(
+                fetchText('partials/language-category.html').then(html => {
+                    languageCategoryHost.innerHTML = html;
+                })
+            );
+        }
+
         try {
             await Promise.all(tasks);
         } catch (e) {

@@ -35,12 +35,6 @@ body.page-home .home-value-card {
   box-shadow: 0 4px 18px rgba(0, 0, 0, 0.05);
 }
 
-body.page-home .home-testimonial-quote {
-  font-size: 1.15rem;
-  line-height: 1.65;
-  color: #2f3d45;
-}
-
 .carousel-caption {
   top: 0;
   left: 0;

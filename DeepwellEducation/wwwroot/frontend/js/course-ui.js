@@ -210,9 +210,12 @@
         var quickPoints = firstN(detail.highlights, 2)
             .map(function (p) { return '<li>' + escapeHtml(p) + '</li>'; })
             .join('');
+        var detailHref = 'course-detail.html?id=' + encodeURIComponent(c.id);
         col.innerHTML =
             '<div class="rounded overflow-hidden mb-2 h-100 d-flex flex-column">' +
+            '<a href="' + detailHref + '">' +
             '<img class="img-fluid" src="' + escapeHtml(courseHeroImageSrc(c)) + '" alt="">' +
+            '</a>' +
             '<div class="bg-secondary p-4 d-flex flex-column h-100">' +
             '<div class="d-flex justify-content-between align-items-center mb-2 flex-wrap">' +
             languageBadgeHtml(c) +
@@ -220,9 +223,7 @@
             escapeHtml(levelLabel(c.level)) +
             '</span>' +
             '</div>' +
-            '<a class="h5 d-block" href="course-detail.html?id=' +
-            encodeURIComponent(c.id) +
-            '">' +
+            '<a class="h5 d-block" href="' + detailHref + '">' +
             escapeHtml(c.name) +
             '</a>' +
             '<ul class="mt-2 mb-3 pl-3 small text-dark">' + quickPoints + '</ul>' +
@@ -230,7 +231,7 @@
             '<p class="text-muted small mb-2">' +
             escapeHtml(truncate(c.description, 140)) +
             '</p>' +
-            '<a class="btn btn-outline-primary btn-sm" href="course-detail.html?id=' + encodeURIComponent(c.id) + '">View full details</a>' +
+            '<a class="btn btn-outline-primary btn-sm" href="' + detailHref + '">View full details</a>' +
             '</div></div></div>';
         rowEl.appendChild(col);
     }

@@ -53,18 +53,6 @@
   flex-shrink: 0;
 }
 
-.app-lang-flag--overlay {
-  width: 22px;
-  height: 14px;
-}
-
-.app-lang-card-title {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.45rem;
-  margin-bottom: 0.35rem;
-}
-
 .app-lang-flag--nav {
   width: 16px;
   height: 11px;
@@ -77,6 +65,9 @@
 }
 
 .cat-item img {
+  display: block;
+  width: 100%;
+  height: auto;
   transition: .5s;
 }
 

@@ -1,5 +1,5 @@
 (function (global) {
-    /** Canonical languageCode values for the eight school languages (ISO-style, lowercase). */
+    /* API languageCode → display name (lowercase codes: zh, en, …). */
     var LANGUAGE_BY_CODE = {
         zh: 'Chinese',
         en: 'English',
@@ -9,6 +9,29 @@
         ja: 'Japanese',
         es: 'Spanish',
         de: 'German'
+    };
+
+    /* Thumbnail files: images/course/course-{slug}-1|2|3.jpg */
+    var LANGUAGE_IMAGE_SLUG = {
+        zh: 'chinese',
+        en: 'english',
+        fr: 'french',
+        sv: 'swedish',
+        it: 'italian',
+        ja: 'japanese',
+        es: 'spanish',
+        de: 'german'
+    };
+
+    var LANGUAGE_FLAG_FILE = {
+        zh: 'China.png',
+        en: 'UK.png',
+        fr: 'France.png',
+        sv: 'Sweden.png',
+        it: 'Italy.png',
+        ja: 'Japan.png',
+        es: 'Spain.png',
+        de: 'Germany.png'
     };
 
     var LEVEL_LABELS = { 0: 'Beginner', 1: 'Intermediate', 2: 'Advanced' };
@@ -90,6 +113,43 @@
         return 0;
     }
 
+    function courseFlagImageSrc(c) {
+        var code = courseLanguageCode(c);
+        var file = LANGUAGE_FLAG_FILE[code];
+        return file ? ('images/flag/' + file) : '';
+    }
+
+    function languageBadgeHtml(c, extraClass) {
+        var label = languageLabelFromCourse(c);
+        var flagSrc = courseFlagImageSrc(c);
+        var className = extraClass ? (' ' + extraClass) : '';
+        var flagHtml = flagSrc
+            ? '<img class="app-lang-flag" src="' + escapeHtml(flagSrc) + '" alt="" aria-hidden="true">'
+            : '';
+        return '<span class="badge badge-primary mb-1 app-lang-badge' + className + '">' +
+            flagHtml +
+            '<span>' + escapeHtml(label) + '</span>' +
+            '</span>';
+    }
+
+    function fillLanguageBadge(el, c, extraClass) {
+        if (!el) return;
+        var flagSrc = courseFlagImageSrc(c);
+        var label = languageLabelFromCourse(c);
+        el.className = 'badge badge-primary app-lang-badge' + (extraClass ? (' ' + extraClass) : '');
+        el.innerHTML = (flagSrc
+            ? '<img class="app-lang-flag" src="' + escapeHtml(flagSrc) + '" alt="" aria-hidden="true">'
+            : '') + '<span>' + escapeHtml(label) + '</span>';
+    }
+
+    /* Pick -1/-2/-3 from level (beginner/intermediate/advanced). */
+    function courseHeroImageSrc(c) {
+        var code = courseLanguageCode(c);
+        var slug = LANGUAGE_IMAGE_SLUG[code] || 'english';
+        var variant = levelNumber(c.level) + 1;
+        return 'images/course/course-' + slug + '-' + variant + '.jpg';
+    }
+
     function buildDetailContent(c) {
         var language = languageLabelFromCourse(c);
         var lvl = levelNumber(c.level);
@@ -98,26 +158,26 @@
         var intensity = lvl === 0 ? 'light to moderate' : (lvl === 1 ? 'moderate' : 'moderate to intensive');
         return {
             audience: [
-                'Learners interested in practical ' + language + ' communication.',
-                'Current level: ' + levelText + '.',
-                'Recommended weekly commitment: ' + intensity + ' study pace.'
+                'This course is for students who want to use ' + language + ' in everyday life, study, or work.',
+                'The class is offered at ' + levelText.toLowerCase() + ' level, so students are working at a similar pace.',
+                'Plan for a ' + intensity + ' workload during the full ' + duration + ' course.'
             ],
             outcomes: [
-                'Use ' + language + ' confidently in daily life and classroom scenarios.',
-                'Improve listening, speaking, reading, and writing with guided feedback.',
-                'Build vocabulary and grammar patterns for real situations.'
+                'Take part in everyday conversations in ' + language + ' with more ease.',
+                'Build stronger listening, speaking, reading, and writing habits through regular practice.',
+                'Learn useful words and sentence patterns you can keep using after class.'
             ],
             highlights: [
-                'Small-group activities with speaking-focused sessions.',
-                'Structured homework and progress checkpoints.',
-                'Teacher feedback on pronunciation and fluency.',
-                'Practical culture and communication context.'
+                'Speaking activities are built into every week, not saved only for the end of class.',
+                'Short homework tasks help you keep up between lessons.',
+                'Teachers give direct feedback on pronunciation, fluency, and grammar.',
+                'Class topics include both language use and everyday cultural context.'
             ],
             modules: [
-                'Week 1-2: Foundations and essential expressions.',
-                'Week 3-4: Grammar patterns and guided dialogues.',
-                'Week 5-6: Reading/listening comprehension and vocabulary expansion.',
-                'Week 7+: Applied communication project and review (' + duration + ' plan).'
+                'Weeks 1-2: key phrases, core vocabulary, and listening practice.',
+                'Weeks 3-4: sentence patterns, guided dialogues, and short speaking tasks.',
+                'Weeks 5-6: longer reading and listening work with vocabulary review.',
+                'Later weeks: practical tasks, revision, and a final activity within the ' + duration + ' course.'
             ]
         };
     }
@@ -129,11 +189,7 @@
         items.forEach(function (t) {
             html += '<li>' + escapeHtml(t) + '</li>';
         });
-        // keep parent type but fully refresh content
         el.innerHTML = html;
-        if (el.tagName.toLowerCase() !== tag) {
-            // no-op: markup already defines element types; this is a safety note.
-        }
     }
 
     function firstN(items, n) {
@@ -147,23 +203,19 @@
         });
     }
 
-    function appendCatalogCourseCard(rowEl, c, i) {
-        var imgN = (i % 6) + 1;
+    function appendCatalogCourseCard(rowEl, c) {
         var col = document.createElement('div');
         col.className = 'col-lg-4 col-md-6 mb-4';
-        var langBadge = languageLabelFromCourse(c);
         var detail = buildDetailContent(c);
         var quickPoints = firstN(detail.highlights, 2)
             .map(function (p) { return '<li>' + escapeHtml(p) + '</li>'; })
             .join('');
         col.innerHTML =
             '<div class="rounded overflow-hidden mb-2 h-100 d-flex flex-column">' +
-            '<img class="img-fluid" src="images/course-' + imgN + '.jpg" alt="">' +
+            '<img class="img-fluid" src="' + escapeHtml(courseHeroImageSrc(c)) + '" alt="">' +
             '<div class="bg-secondary p-4 d-flex flex-column h-100">' +
             '<div class="d-flex justify-content-between align-items-center mb-2 flex-wrap">' +
-            '<span class="badge badge-primary mb-1">' +
-            escapeHtml(langBadge) +
-            '</span>' +
+            languageBadgeHtml(c) +
             '<span class="badge app-level-pill ' + levelBadgeClass(c.level) + '">' +
             escapeHtml(levelLabel(c.level)) +
             '</span>' +
@@ -233,8 +285,8 @@
                     }
                     return;
                 }
-                courses.forEach(function (c, i) {
-                    appendCatalogCourseCard(rowEl, c, i);
+                courses.forEach(function (c) {
+                    appendCatalogCourseCard(rowEl, c);
                 });
             })
             .catch(function () {
@@ -288,8 +340,8 @@
                     if (statusEl) statusEl.textContent = 'No courses available yet.';
                     return;
                 }
-                list.forEach(function (c, i) {
-                    appendCatalogCourseCard(rowEl, c, i);
+                list.forEach(function (c) {
+                    appendCatalogCourseCard(rowEl, c);
                 });
             })
             .catch(function () {
@@ -366,7 +418,7 @@
                 if (statusEl) statusEl.textContent = '';
                 var detail = buildDetailContent(c);
                 document.getElementById('cd-title').textContent = c.name || '';
-                document.getElementById('cd-category').textContent = languageLabelFromCourse(c);
+                fillLanguageBadge(document.getElementById('cd-category'), c, 'app-lang-badge--detail');
                 document.getElementById('cd-level').textContent = levelLabel(c.level);
                 document.getElementById('cd-subject').textContent = formatLanguageLine(c);
                 document.getElementById('cd-desc').textContent = c.description || '—';

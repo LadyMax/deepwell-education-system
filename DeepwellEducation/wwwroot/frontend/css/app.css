@@ -7,6 +7,8 @@
 @import url("./app.theme.css");
 @import url("./app.utilities.css");
 @import url("./app.shared.css");
+@import url("./app.home.css");
+@import url("./app.course.css");
 @import url("./app.dashboard.css");
 @import url("./app.tables.css");
 @import url("./app.forms.css");

@@ -1,0 +1,99 @@
+/* Home page UI */
+
+.app-carousel-item {
+  min-height: 300px;
+}
+
+.app-carousel-img {
+  min-height: 300px;
+  object-fit: cover;
+}
+
+.app-carousel-caption-box {
+  width: 100%;
+  max-width: 900px;
+}
+
+body.page-home .carousel-caption .home-hero-lead {
+  text-shadow: 0 1px 14px rgba(0, 0, 0, 0.5);
+  font-size: 1.1rem;
+  font-weight: 400;
+  max-width: 36rem;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+body.page-home .app-hero-kicker {
+  letter-spacing: 0.18em;
+  opacity: 0.95;
+}
+
+body.page-home .home-value-card {
+  background: #fff;
+  border-radius: 12px;
+  border: 1px solid rgba(0, 0, 0, 0.06);
+  box-shadow: 0 4px 18px rgba(0, 0, 0, 0.05);
+}
+
+body.page-home .home-testimonial-quote {
+  font-size: 1.15rem;
+  line-height: 1.65;
+  color: #2f3d45;
+}
+
+.carousel-caption {
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  text-align: left;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 1;
+}
+
+.carousel-indicators {
+  width: 60px;
+  top: 0;
+  right: calc(100% - 60px);
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.carousel-indicators li {
+  width: 25px;
+  height: 25px;
+  margin: 5px 0;
+  background: #44425A;
+  border: 5px solid #FFFFFF;
+  border-radius: 25px;
+}
+
+.carousel-indicators .active {
+  background: #00b5b8;
+}
+
+@media (max-width: 991.98px) {
+  .carousel-indicators {
+    width: 45px;
+    right: calc(100% - 45px);
+  }
+
+  .carousel-indicators li {
+    width: 15px;
+    height: 15px;
+  }
+}
+
+@media (max-width: 575.98px) {
+  .carousel-caption h5 {
+    font-size: 16px;
+  }
+
+  .carousel-caption h1 {
+    font-size: 30px;
+    font-weight: 700 !important;
+  }
+}

@@ -52,16 +52,64 @@
         return d.innerHTML;
     }
 
+    /** Maps classifier output (often snake_case) to short, staff-facing labels. */
+    function aiCategoryHumanLabel(raw) {
+        if (raw == null || String(raw).trim() === "") return "—";
+        var k = String(raw)
+            .trim()
+            .toLowerCase()
+            .replace(/\s+/g, "_");
+        var map = {
+            general_question: "General question",
+            course_inquiry: "Course inquiry",
+            technical_support: "Account or tech help",
+            complaint: "Complaint",
+            feedback: "Feedback",
+            other: "Other"
+        };
+        if (map[k]) return map[k];
+        return String(raw)
+            .trim()
+            .split(/[_\s]+/)
+            .filter(Boolean)
+            .map(function (w) {
+                return w.charAt(0).toUpperCase() + w.slice(1).toLowerCase();
+            })
+            .join(" ");
+    }
+
+    /** Short plain sentence (second line) — avoids cryptic fragments like “topic · uncertain”. */
+    function aiConfidencePlainLine(conf) {
+        var n = Number(conf);
+        if (isNaN(n)) return "";
+        if (n >= 0.85) return "Likely a solid label.";
+        if (n >= 0.65) return "Probably fine — skim the message to confirm.";
+        if (n >= 0.45) return "Only a weak hint — please double-check.";
+        return "Not reliable here — trust your own reading of the message.";
+    }
+
     /** Populated when a background AI job sets AiSuggestedCategory / AiConfidence on the message. */
     function formatAiSuggestionCell(aiCat, conf) {
         var hasCat = aiCat != null && String(aiCat).trim() !== "";
         var hasConf = conf != null && conf !== "" && !isNaN(Number(conf));
         if (!hasCat && !hasConf) return "—";
-        var t = hasCat ? escapeHtmlAdmin(String(aiCat).trim()) : "—";
-        if (hasConf) {
-            t += ' <span class="text-muted small">(' + Math.round(Number(conf) * 100) + "%)</span>";
+        var topic = hasCat ? escapeHtmlAdmin(aiCategoryHumanLabel(String(aiCat).trim())) : "";
+        var note = hasConf ? escapeHtmlAdmin(aiConfidencePlainLine(Number(conf))) : "";
+        if (hasCat && hasConf) {
+            return (
+                '<div class="admin-ai-suggestion">' +
+                '<div class="admin-ai-suggestion-topic">' +
+                topic +
+                "</div>" +
+                '<div class="text-muted small admin-ai-suggestion-note">' +
+                note +
+                "</div></div>"
+            );
         }
-        return t;
+        if (hasCat) {
+            return '<div class="admin-ai-suggestion"><div class="admin-ai-suggestion-topic">' + topic + "</div></div>";
+        }
+        return '<div class="admin-ai-suggestion"><div class="text-muted small">' + note + "</div></div>";
     }
 
     function roleHuman(r) {
@@ -71,8 +119,157 @@
         return String(r);
     }
 
+    function formatAdminDateTime(iso) {
+        if (!iso) return "—";
+        try {
+            var d = new Date(iso);
+            if (isNaN(d.getTime())) return String(iso);
+            return d.toLocaleString();
+        } catch {
+            return String(iso);
+        }
+    }
+
+    function formatAdminDateOnly(iso) {
+        if (!iso) return "—";
+        try {
+            var d = new Date(iso);
+            if (isNaN(d.getTime())) return String(iso);
+            return d.toLocaleDateString();
+        } catch {
+            return String(iso);
+        }
+    }
+
+    function renderAdminUserDetailHtml(d) {
+        var email = pick(d, "email", "Email") || "—";
+        var userName = pick(d, "userName", "UserName") || "—";
+        var role = roleHuman(pick(d, "role", "Role"));
+        var active = pick(d, "isActive", "IsActive");
+        var created = formatAdminDateTime(pick(d, "createdAt", "CreatedAt"));
+        var sp = d.studentProfile != null ? d.studentProfile : d.StudentProfile;
+        var profileHtml = "";
+        if (sp) {
+            var fn = pick(sp, "firstName", "FirstName") || "";
+            var ln = pick(sp, "lastName", "LastName") || "";
+            var sn = pick(sp, "studentNumber", "StudentNumber") || "—";
+            var phone = pick(sp, "phone", "Phone") || "—";
+            var addr = pick(sp, "address", "Address") || "—";
+            var dob = pick(sp, "dateOfBirth", "DateOfBirth");
+            var dobStr = dob ? formatAdminDateOnly(dob) : "—";
+            profileHtml =
+                '<h6 class="text-muted text-uppercase small mt-3 mb-2">Student record</h6>' +
+                '<dl class="row small mb-0">' +
+                '<dt class="col-sm-4">Student number</dt><dd class="col-sm-8">' +
+                escapeHtmlAdmin(sn) +
+                "</dd>" +
+                '<dt class="col-sm-4">Name</dt><dd class="col-sm-8">' +
+                escapeHtmlAdmin((fn + " " + ln).trim() || "—") +
+                "</dd>" +
+                '<dt class="col-sm-4">Phone</dt><dd class="col-sm-8">' +
+                escapeHtmlAdmin(phone) +
+                "</dd>" +
+                '<dt class="col-sm-4">Date of birth</dt><dd class="col-sm-8">' +
+                escapeHtmlAdmin(dobStr) +
+                "</dd>" +
+                '<dt class="col-sm-4">Address</dt><dd class="col-sm-8">' +
+                escapeHtmlAdmin(addr) +
+                "</dd>" +
+                "</dl>";
+        } else {
+            profileHtml =
+                '<p class="text-muted small mt-3 mb-0">No student profile on file (common for visitors or before first approved enrollment).</p>';
+        }
+        return (
+            '<dl class="row small mb-0">' +
+            '<dt class="col-sm-4">Username</dt><dd class="col-sm-8">' +
+            escapeHtmlAdmin(userName) +
+            "</dd>" +
+            '<dt class="col-sm-4">Email</dt><dd class="col-sm-8">' +
+            escapeHtmlAdmin(email) +
+            "</dd>" +
+            '<dt class="col-sm-4">Role</dt><dd class="col-sm-8">' +
+            escapeHtmlAdmin(role) +
+            "</dd>" +
+            '<dt class="col-sm-4">Account</dt><dd class="col-sm-8">' +
+            (active ? "Active" : "Disabled") +
+            "</dd>" +
+            '<dt class="col-sm-4">Joined</dt><dd class="col-sm-8">' +
+            escapeHtmlAdmin(created) +
+            "</dd>" +
+            "</dl>" +
+            profileHtml
+        );
+    }
+
+    async function openAdminUserProfile(userId) {
+        if (!userId || typeof window.$ === "undefined") return;
+        var $ = window.$;
+        var $m = $("#admin-user-detail-modal");
+        $("#admin-user-detail-body").html('<p class="text-muted small mb-0">Loading…</p>');
+        $("#admin-user-detail-title").text("User profile");
+        $m.modal("show");
+        if (typeof getAdminUserDetail !== "function") {
+            $("#admin-user-detail-body").html(
+                '<p class="text-danger small mb-0">Profile lookup is not available. Refresh the page.</p>'
+            );
+            return;
+        }
+        var r = await getAdminUserDetail(userId);
+        if (r.forbidden) {
+            $("#admin-user-detail-body").html(
+                '<p class="text-danger small mb-0">You do not have permission to view this profile.</p>'
+            );
+            return;
+        }
+        if (r.notFound) {
+            $("#admin-user-detail-body").html('<p class="text-muted small mb-0">User not found.</p>');
+            return;
+        }
+        if (r.error || !r.ok) {
+            $("#admin-user-detail-body").html(
+                '<p class="text-danger small mb-0">' +
+                    escapeHtmlAdmin(String(r.error || "Could not load profile.")) +
+                    "</p>"
+            );
+            return;
+        }
+        var d = r.data;
+        var titleName = (pick(d, "userName", "UserName") || "").trim();
+        $("#admin-user-detail-title").text(titleName ? "Profile: " + titleName : "User profile");
+        $("#admin-user-detail-body").html(renderAdminUserDetailHtml(d));
+    }
+
     function staffForbiddenNote() {
         return "You need staff access. Sign in with a staff account.";
+    }
+
+    function setAdminInboxUnreadBadge(count) {
+        const el = document.getElementById("admin-msg-unread-badge");
+        if (!el) return;
+        if (count > 0) {
+            el.textContent = count > 99 ? "99+" : String(count);
+            el.classList.remove("d-none");
+        } else {
+            el.textContent = "";
+            el.classList.add("d-none");
+        }
+    }
+
+    async function refreshAdminInboxUnreadUi(showIntroFlash) {
+        if (typeof getInboxUnreadCount !== "function") return;
+        try {
+            const data = await getInboxUnreadCount();
+            const count = Number(data.count != null ? data.count : data.Count) || 0;
+            setAdminInboxUnreadBadge(count);
+            if (showIntroFlash && count > 0) {
+                const msg =
+                    count === 1
+                        ? "You have 1 unread message in your inbox."
+                        : "You have " + count + " unread messages in your inbox.";
+                showAppFlash("admin-flash", msg, "inbox", undefined, "inbox-unread");
+            }
+        } catch (_) {}
     }
 
     function bindAdminPasswordToggles() {
@@ -133,6 +330,9 @@
             btn.classList.toggle("active", active);
             btn.setAttribute("aria-selected", active ? "true" : "false");
         });
+        if (paneId === "messages" && typeof dismissFlashByKind === "function") {
+            dismissFlashByKind("admin-flash", "inbox-unread");
+        }
     }
 
     function courseLanguageLine(c) {
@@ -301,6 +501,17 @@
         document.getElementById("cr-sort-created").value = "desc";
     }
 
+    function courseRequestQueueSummaryText(count, hasAppliedFilter) {
+        if (!hasAppliedFilter) {
+            if (count === 0) return "No requests in the queue right now.";
+            if (count === 1) return "1 request in the list.";
+            return count + " requests in the list.";
+        }
+        if (count === 0) return "No matching requests.";
+        if (count === 1) return "1 matching request.";
+        return count + " matching requests.";
+    }
+
     async function renderCourseRequests(filters) {
         const el = document.getElementById("cr-status");
         const table = document.getElementById("cr-table");
@@ -325,17 +536,14 @@
             !!activeFilters.status ||
             !!activeFilters.courseId ||
             !!activeFilters.applicant;
-        el.textContent =
-            items.length +
-            " request(s)" +
-            (hasAppliedFilter ? " · Filtered" : "");
+        el.textContent = courseRequestQueueSummaryText(items.length, hasAppliedFilter);
 
         items.forEach(function (row) {
             const id = pick(row, "id", "Id");
             const pending = (pick(row, "status", "Status") === 0 || pick(row, "status", "Status") === "Pending");
             const tr = document.createElement("tr");
             const email = pick(row, "userEmail", "UserEmail");
-            const name = pick(row, "userFullName", "UserFullName");
+            const name = pick(row, "userName", "UserName") || pick(row, "userFullName", "UserFullName");
             const sn = pick(row, "studentNumber", "StudentNumber");
             const course = pick(row, "courseName", "CourseName");
             const type = pick(row, "type", "Type");
@@ -409,6 +617,12 @@
         btn.disabled = !dirty;
     }
 
+    function contactMessagesSummaryText(count) {
+        if (count === 0) return "No messages in this view.";
+        if (count === 1) return "1 message.";
+        return count + " messages.";
+    }
+
     async function renderMessages(options) {
         const statusEl = document.getElementById("status");
         const msgTable = document.getElementById("msg-table");
@@ -427,7 +641,7 @@
             return;
         }
         const items = page.items || page.Items || [];
-        statusEl.textContent = items.length + " message(s).";
+        statusEl.textContent = contactMessagesSummaryText(items.length);
         items.forEach(function (m) {
             const tr = document.createElement("tr");
             const id = pick(m, "id", "Id");
@@ -436,7 +650,7 @@
             const isRead = !!readAt;
             const contentRaw = pick(m, "content", "Content") || "";
             const preview =
-                '<details class="admin-msg-details"><summary class="small text-nowrap">Show</summary><pre class="admin-msg-pre small mb-0 mt-1">' +
+                '<details class="admin-msg-details"><summary class="small">Show</summary><pre class="admin-msg-pre small mb-0 mt-1">' +
                 escapeHtmlAdmin(contentRaw) +
                 "</pre></details>";
             const senderTopic = categoryHuman(pick(m, "senderSuggestedCategory", "SenderSuggestedCategory"));
@@ -444,10 +658,28 @@
                 pick(m, "aiSuggestedCategory", "AiSuggestedCategory"),
                 pick(m, "aiConfidence", "AiConfidence")
             );
+            const senderUserId = pick(m, "senderUserId", "SenderUserId");
+            const senderUserName = (pick(m, "senderUserName", "SenderUserName") || "").trim();
+            const senderLabel = senderUserName || "—";
+            const fromCell =
+                senderUserId
+                    ? '<button type="button" class="btn btn-link btn-sm p-0 text-left admin-msg-sender-profile" data-user-id="' +
+                      escapeHtmlAdmin(String(senderUserId)) +
+                      '" title="View full profile" aria-label="View sender profile">' +
+                      escapeHtmlAdmin(senderLabel) +
+                      "</button>"
+                    : "<span>" + escapeHtmlAdmin(senderLabel) + "</span>";
+            const subjectRaw = pick(m, "subject", "Subject") || "";
+            const subjectEsc = escapeHtmlAdmin(subjectRaw);
+            const subjectTitleAttr =
+                subjectRaw.trim() !== "" ? ' title="' + escapeHtmlAdmin(subjectRaw) + '"' : "";
             tr.innerHTML =
-                "<td>" + pick(m, "senderEmail", "SenderEmail") + "</td>" +
-                "<td>" + pick(m, "receiverEmail", "ReceiverEmail") + "</td>" +
-                "<td>" + pick(m, "subject", "Subject") + "</td>" +
+                "<td>" + fromCell + "</td>" +
+                "<td" +
+                subjectTitleAttr +
+                ">" +
+                subjectEsc +
+                "</td>" +
                 "<td>" + preview + "</td>" +
                 "<td>" + senderTopic + "</td>" +
                 "<td>" + aiCell + "</td>" +
@@ -469,6 +701,18 @@
                 id +
                 '" disabled>Confirm</button>' +
                 "</div></td>";
+            var msgColLabels = [
+                "From",
+                "Subject",
+                "Message",
+                "Sender topic",
+                "AI suggestion",
+                "Read",
+                "Final category"
+            ];
+            tr.querySelectorAll("td").forEach(function (td, idx) {
+                if (msgColLabels[idx]) td.setAttribute("data-label", msgColLabels[idx]);
+            });
             tbody.appendChild(tr);
             const sel = tr.querySelector(".msg-cat");
             if (sel) {
@@ -530,6 +774,7 @@
                 }
                 showAppFlash("admin-flash", "Message marked as read.", "success", 3000);
                 await renderMessages(options);
+                await refreshAdminInboxUnreadUi(false);
             });
         });
 
@@ -589,13 +834,19 @@
         };
     }
 
+    function enrollmentRosterSummaryText(count) {
+        if (count === 0) return "No students are enrolled in this course right now.";
+        if (count === 1) return "1 student is enrolled in this course.";
+        return count + " students are enrolled in this course.";
+    }
+
     async function loadEnrollmentsByCourseUi() {
         const id = document.getElementById("enr-course-select").value.trim();
         const statusEl = document.getElementById("enr-status");
         const table = document.getElementById("enr-table");
         const tbody = document.getElementById("enr-body");
         if (!id) {
-            statusEl.textContent = "Choose a course from the list.";
+            statusEl.textContent = "Pick a course above, then click Confirm to see the class list.";
             return;
         }
         statusEl.textContent = "Loading…";
@@ -611,12 +862,12 @@
             return;
         }
         const items = res.items || [];
-        statusEl.textContent = items.length + " learner(s) enrolled.";
+        statusEl.textContent = enrollmentRosterSummaryText(items.length);
         items.forEach(function (e) {
             const tr = document.createElement("tr");
             tr.innerHTML =
                 "<td>" + pick(e, "email", "Email") + "</td>" +
-                "<td>" + (pick(e, "fullName", "FullName") || "—") + "</td>" +
+                "<td>" + (pick(e, "userName", "UserName") || pick(e, "fullName", "FullName") || "—") + "</td>" +
                 "<td>" + (pick(e, "studentNumber", "StudentNumber") || "—") + "</td>" +
                 "<td>" + roleHuman(pick(e, "role", "Role")) + "</td>" +
                 "<td>" + new Date(pick(e, "enrolledAt", "EnrolledAt")).toLocaleString() + "</td>";
@@ -815,10 +1066,21 @@
         }
     });
 
+    var adminMsgTable = document.getElementById("msg-table");
+    if (adminMsgTable) {
+        adminMsgTable.addEventListener("click", function (ev) {
+            var btn = ev.target.closest(".admin-msg-sender-profile");
+            if (!btn) return;
+            var uid = btn.getAttribute("data-user-id");
+            if (uid) void openAdminUserProfile(uid);
+        });
+    }
+
     resetCourseRequestFilters();
     document.getElementById("cr-filter-status").value = "Pending";
     renderCourseRequests(readCourseRequestFilters());
     renderMessages({ page: 1, pageSize: 50 });
     renderCourses();
+    refreshAdminInboxUnreadUi(true);
     showAdminPane("requests");
 })();

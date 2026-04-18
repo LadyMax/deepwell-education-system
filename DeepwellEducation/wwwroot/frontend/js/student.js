@@ -109,6 +109,34 @@
         return "";
     }
 
+    function setStudentInboxUnreadBadge(count) {
+        const el = document.getElementById("student-msg-unread-badge");
+        if (!el) return;
+        if (count > 0) {
+            el.textContent = count > 99 ? "99+" : String(count);
+            el.classList.remove("d-none");
+        } else {
+            el.textContent = "";
+            el.classList.add("d-none");
+        }
+    }
+
+    async function refreshStudentInboxUnreadUi(showIntroFlash) {
+        if (typeof getInboxUnreadCount !== "function") return;
+        try {
+            const data = await getInboxUnreadCount();
+            const count = Number(data.count != null ? data.count : data.Count) || 0;
+            setStudentInboxUnreadBadge(count);
+            if (showIntroFlash && count > 0) {
+                const msg =
+                    count === 1
+                        ? "You have 1 unread message in your inbox."
+                        : "You have " + count + " unread messages in your inbox.";
+                showAppFlash("student-flash", msg, "inbox", undefined, "inbox-unread");
+            }
+        } catch (_) {}
+    }
+
     function showUsernameFlash(message, variant) {
         const el = document.getElementById("profile-username-flash");
         if (!el) return;
@@ -272,7 +300,7 @@
         const me = await getMe();
         document.getElementById("profile-loading").classList.add("d-none");
         if (!me) return;
-        applyUsernameToUi(pick(me, "fullName", "FullName"));
+        applyUsernameToUi(pick(me, "userName", "UserName") || pick(me, "fullName", "FullName"));
         document.getElementById("profile-email").textContent = pick(me, "email", "Email") || "—";
         const sn = pick(me, "studentNumber", "StudentNumber");
         const snRow = document.getElementById("profile-student-number-row");
@@ -366,6 +394,7 @@
                     return;
                 }
                 await loadInbox();
+                await refreshStudentInboxUnreadUi(false);
             });
         });
         document.getElementById("inbox-table").classList.remove("d-none");
@@ -388,7 +417,6 @@
         items.forEach(function (m) {
             const tr = document.createElement("tr");
             tr.innerHTML =
-                "<td>" + pick(m, "receiverEmail", "ReceiverEmail") + "</td>" +
                 "<td>" + messageTopicHuman(pick(m, "senderSuggestedCategory", "SenderSuggestedCategory")) + "</td>" +
                 "<td>" + pick(m, "subject", "Subject") + "</td>" +
                 "<td>" + new Date(pick(m, "createdAt", "CreatedAt")).toLocaleString() + "</td>";
@@ -524,7 +552,7 @@
             showUsernameFlash(r.message || "Could not update username.", "danger");
             return;
         }
-        const updated = pick(r.data, "fullName", "FullName");
+        const updated = pick(r.data, "userName", "UserName") || pick(r.data, "fullName", "FullName");
         applyUsernameToUi(updated);
         setUsernameEditorVisible(false);
         showAppFlash("student-flash", "Username updated.", "success", 3500);
@@ -640,4 +668,15 @@
     loadEnrollments();
     loadInbox();
     loadSent();
+    refreshStudentInboxUnreadUi(true);
+
+    var tabRoot = document.getElementById("student-dashboard-tabs");
+    if (tabRoot && typeof jQuery !== "undefined" && typeof dismissFlashByKind === "function") {
+        jQuery(tabRoot).on("shown.bs.tab", 'a[data-toggle="tab"]', function (e) {
+            var href = e.target && e.target.getAttribute("href");
+            if (href === "#sc-pane-messages") {
+                dismissFlashByKind("student-flash", "inbox-unread");
+            }
+        });
+    }
 })();

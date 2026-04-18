@@ -86,7 +86,7 @@ public static class AdminSeeder
         {
             Id = Guid.NewGuid(),
             Email = normalizedEmail,
-            FullName = "Administrator",
+            UserName = "Administrator",
             Role = UserRole.Admin,
             IsActive = true,
             CreatedAt = DateTime.UtcNow

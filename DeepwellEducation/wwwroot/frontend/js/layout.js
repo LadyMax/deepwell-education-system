@@ -37,9 +37,17 @@
     }
 
     function readName(user) {
-        const fullName = user && (user.fullName !== undefined ? user.fullName : user.FullName);
+        const display =
+            user &&
+            (user.userName !== undefined
+                ? user.userName
+                : user.UserName !== undefined
+                    ? user.UserName
+                    : user.fullName !== undefined
+                        ? user.fullName
+                        : user.FullName);
         const email = user && (user.email !== undefined ? user.email : user.Email);
-        if (fullName) return fullName;
+        if (display) return display;
         if (email) return email;
         return 'Account';
     }
@@ -62,7 +70,7 @@
         if (!p) return null;
         const name = p.name || p.unique_name || p.email || '';
         const role = p.role || p['http://schemas.microsoft.com/ws/2008/06/identity/claims/role'] || '';
-        return { fullName: name, email: name, role: role };
+        return { userName: name, email: name, role: role };
     }
 
     function currentFileName() {

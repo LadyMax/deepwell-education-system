@@ -30,6 +30,14 @@ namespace DeepwellEducation
             builder.Services.AddScoped<JwtService>();
             builder.Services.AddScoped<ICourseRequestService, CourseRequestService>();
             builder.Services.AddScoped<IMessageService, MessageService>();
+            builder.Services.Configure<AiClassifierOptions>(builder.Configuration.GetSection("AiClassifier"));
+            builder.Services.AddHttpClient<IAiMessageClassifier, FastApiMessageClassifier>((sp, client) =>
+            {
+                var options = sp.GetRequiredService<Microsoft.Extensions.Options.IOptions<AiClassifierOptions>>().Value;
+                client.BaseAddress = new Uri(options.BaseUrl);
+                var timeout = options.TimeoutSeconds <= 0 ? 5 : options.TimeoutSeconds;
+                client.Timeout = TimeSpan.FromSeconds(timeout);
+            });
 
             var jwtKey = builder.Configuration["Jwt:Key"] ?? throw new InvalidOperationException("Jwt:Key is not set.");
             if (jwtKey.Length < 32)

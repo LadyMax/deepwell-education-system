@@ -46,7 +46,7 @@ public class CourseRequestServiceTests : IAsyncLifetime
             Id = userId,
             Email = "student@test",
             PasswordHash = "x",
-            FullName = "S",
+            UserName = "S",
             Role = UserRole.Student,
             IsActive = true
         });
@@ -94,7 +94,7 @@ public class CourseRequestServiceTests : IAsyncLifetime
             Id = userId,
             Email = "student2@test",
             PasswordHash = "x",
-            FullName = "S2",
+            UserName = "S2",
             Role = UserRole.Student,
             IsActive = true
         });
@@ -149,7 +149,7 @@ public class CourseRequestServiceTests : IAsyncLifetime
             Id = userId,
             Email = "u@test",
             PasswordHash = "x",
-            FullName = "U",
+            UserName = "U",
             Role = UserRole.Visitor,
             IsActive = true
         });
@@ -184,7 +184,7 @@ public class CourseRequestServiceTests : IAsyncLifetime
             Id = adminId,
             Email = "admin@test",
             PasswordHash = "x",
-            FullName = "A",
+            UserName = "A",
             Role = UserRole.Admin,
             IsActive = true
         });
@@ -218,7 +218,7 @@ public class CourseRequestServiceTests : IAsyncLifetime
             Id = adminId,
             Email = "admin-leave@test",
             PasswordHash = "x",
-            FullName = "A2",
+            UserName = "A2",
             Role = UserRole.Admin,
             IsActive = true
         });

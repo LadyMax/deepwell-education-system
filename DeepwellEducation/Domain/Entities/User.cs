@@ -14,7 +14,8 @@ public class User
 
     public string PasswordHash { get; set; } = string.Empty;
 
-    public string FullName { get; set; } = string.Empty;
+    /// <summary>Unique public display name (what the UI calls “username”).</summary>
+    public string UserName { get; set; } = string.Empty;
 
     public UserRole Role { get; set; } = UserRole.Visitor;
 

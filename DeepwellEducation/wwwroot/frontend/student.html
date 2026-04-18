@@ -10,7 +10,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com">
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.10.0/css/all.min.css" rel="stylesheet">
-  <link href="css/app.css?v=20260416k" rel="stylesheet">
+  <link href="css/app.css?v=20260417b" rel="stylesheet">
   <script src="js/layout.js" defer></script>
 </head>
 <body class="page-student">
@@ -44,7 +44,7 @@
             <a class="nav-link text-nowrap" id="sc-tab-courses" data-toggle="tab" href="#sc-pane-courses" role="tab" aria-controls="sc-pane-courses" aria-selected="false">Courses</a>
           </li>
           <li class="nav-item">
-            <a class="nav-link text-nowrap" id="sc-tab-messages" data-toggle="tab" href="#sc-pane-messages" role="tab" aria-controls="sc-pane-messages" aria-selected="false">Messages</a>
+            <a class="nav-link text-nowrap" id="sc-tab-messages" data-toggle="tab" href="#sc-pane-messages" role="tab" aria-controls="sc-pane-messages" aria-selected="false">Messages <span id="student-msg-unread-badge" class="inbox-unread-badge inbox-unread-badge--nav d-none" aria-label="Unread messages"></span></a>
           </li>
         </ul>
         <div class="tab-content student-dashboard-tab-content" id="student-dashboard-tab-content">
@@ -231,7 +231,7 @@
                 <div id="sent-loading">Loading…</div>
                 <table class="msg-table d-none" id="sent-table">
                   <thead>
-                    <tr><th>To</th><th>Topic</th><th>Subject</th><th>Date</th></tr>
+                    <tr><th>Topic</th><th>Subject</th><th>Date</th></tr>
                   </thead>
                   <tbody id="sent-body"></tbody>
                 </table>
@@ -266,7 +266,7 @@
   <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
   <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.bundle.min.js"></script>
   <script src="js/main.js"></script>
-  <script src="./js/api.js?v=20260415c"></script>
-  <script src="./js/student.js?v=20260415c"></script>
+  <script src="./js/api.js?v=20260417e"></script>
+  <script src="./js/student.js?v=20260418n"></script>
 </body>
 </html>

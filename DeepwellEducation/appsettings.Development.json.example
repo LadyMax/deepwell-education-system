@@ -8,5 +8,12 @@
   "SeedAdmin": {
     "Email": "admin@deepwell.se",
     "Password": "Admin123!"
+  },
+  "AiClassifier": {
+    "Enabled": true,
+    "BaseUrl": "http://localhost:8000",
+    "ClassifyPath": "/classify",
+    "InternalToken": "dev-internal-token",
+    "TimeoutSeconds": 5
   }
 }

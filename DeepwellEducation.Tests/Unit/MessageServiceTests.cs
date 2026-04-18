@@ -8,6 +8,17 @@ using Xunit;
 
 namespace DeepwellEducation.Tests;
 
+internal sealed class NoOpAiMessageClassifier : IAiMessageClassifier
+{
+    public Task<AiClassificationResult?> ClassifyAsync(
+        Guid messageId,
+        string content,
+        string? senderRole,
+        string source,
+        CancellationToken ct = default) =>
+        Task.FromResult<AiClassificationResult?>(null);
+}
+
 public class MessageServiceTests : IAsyncLifetime
 {
     private SqliteConnection _connection = null!;
@@ -25,7 +36,7 @@ public class MessageServiceTests : IAsyncLifetime
 
         _db = new AppDbContext(options);
         await _db.Database.EnsureCreatedAsync();
-        _sut = new MessageService(_db);
+        _sut = new MessageService(_db, new NoOpAiMessageClassifier());
     }
 
     public async Task DisposeAsync()
@@ -45,7 +56,7 @@ public class MessageServiceTests : IAsyncLifetime
                 Id = adminId,
                 Email = "admin@test",
                 PasswordHash = "x",
-                FullName = "Admin",
+                UserName = "Admin",
                 Role = UserRole.Admin,
                 IsActive = true,
                 CreatedAt = DateTime.UtcNow.AddDays(-1)
@@ -55,7 +66,7 @@ public class MessageServiceTests : IAsyncLifetime
                 Id = senderId,
                 Email = "user@test",
                 PasswordHash = "x",
-                FullName = "User",
+                UserName = "User",
                 Role = UserRole.Student,
                 IsActive = true
             });
@@ -77,8 +88,8 @@ public class MessageServiceTests : IAsyncLifetime
         var receiverId = Guid.NewGuid();
         var senderId = Guid.NewGuid();
         _db.Users.AddRange(
-            new User { Id = receiverId, Email = "r@test", PasswordHash = "x", FullName = "R", Role = UserRole.Admin, IsActive = true },
-            new User { Id = senderId, Email = "s@test", PasswordHash = "x", FullName = "S", Role = UserRole.Student, IsActive = true });
+            new User { Id = receiverId, Email = "r@test", PasswordHash = "x", UserName = "R", Role = UserRole.Admin, IsActive = true },
+            new User { Id = senderId, Email = "s@test", PasswordHash = "x", UserName = "S", Role = UserRole.Student, IsActive = true });
 
         var older = Guid.NewGuid();
         var newer = Guid.NewGuid();
@@ -117,8 +128,8 @@ public class MessageServiceTests : IAsyncLifetime
         var adminId = Guid.NewGuid();
         var senderId = Guid.NewGuid();
         _db.Users.AddRange(
-            new User { Id = adminId, Email = "adm@test", PasswordHash = "x", FullName = "Adm", Role = UserRole.Admin, IsActive = true },
-            new User { Id = senderId, Email = "snd@test", PasswordHash = "x", FullName = "Snd", Role = UserRole.Student, IsActive = true });
+            new User { Id = adminId, Email = "adm@test", PasswordHash = "x", UserName = "Adm", Role = UserRole.Admin, IsActive = true },
+            new User { Id = senderId, Email = "snd@test", PasswordHash = "x", UserName = "Snd", Role = UserRole.Student, IsActive = true });
 
         var msgId = Guid.NewGuid();
         _db.Messages.Add(new Message
@@ -149,9 +160,9 @@ public class MessageServiceTests : IAsyncLifetime
         var senderId = Guid.NewGuid();
         var otherId = Guid.NewGuid();
         _db.Users.AddRange(
-            new User { Id = adminId, Email = "a1@test", PasswordHash = "x", FullName = "A", Role = UserRole.Admin, IsActive = true },
-            new User { Id = senderId, Email = "s1@test", PasswordHash = "x", FullName = "S", Role = UserRole.Student, IsActive = true },
-            new User { Id = otherId, Email = "o@test", PasswordHash = "x", FullName = "O", Role = UserRole.Student, IsActive = true });
+            new User { Id = adminId, Email = "a1@test", PasswordHash = "x", UserName = "A", Role = UserRole.Admin, IsActive = true },
+            new User { Id = senderId, Email = "s1@test", PasswordHash = "x", UserName = "S", Role = UserRole.Student, IsActive = true },
+            new User { Id = otherId, Email = "o@test", PasswordHash = "x", UserName = "O", Role = UserRole.Student, IsActive = true });
 
         var msgId = Guid.NewGuid();
         _db.Messages.Add(new Message
@@ -175,8 +186,8 @@ public class MessageServiceTests : IAsyncLifetime
         var adminId = Guid.NewGuid();
         var senderId = Guid.NewGuid();
         _db.Users.AddRange(
-            new User { Id = adminId, Email = "a@test", PasswordHash = "x", FullName = "A", Role = UserRole.Admin, IsActive = true },
-            new User { Id = senderId, Email = "s2@test", PasswordHash = "x", FullName = "S", Role = UserRole.Student, IsActive = true });
+            new User { Id = adminId, Email = "a@test", PasswordHash = "x", UserName = "A", Role = UserRole.Admin, IsActive = true },
+            new User { Id = senderId, Email = "s2@test", PasswordHash = "x", UserName = "S", Role = UserRole.Student, IsActive = true });
 
         var msgId = Guid.NewGuid();
         _db.Messages.Add(new Message

@@ -19,7 +19,7 @@ public class AuthControllerIntegrationTests
         {
             Email = $"  {email.ToUpperInvariant()}  ",
             Password = "TestPassword!123",
-            FullName = "  new_register_user  "
+            UserName = "  new_register_user  "
         });
 
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
@@ -29,7 +29,7 @@ public class AuthControllerIntegrationTests
         Assert.False(string.IsNullOrWhiteSpace(body!.Token));
         Assert.Equal(email, body.User.Email);
         Assert.Equal(UserRole.Visitor, body.User.Role);
-        Assert.Equal("new_register_user", body.User.FullName);
+        Assert.Equal("new_register_user", body.User.UserName);
     }
 
     [Fact]
@@ -45,7 +45,7 @@ public class AuthControllerIntegrationTests
         {
             Email = email,
             Password = "AnotherPassword!123",
-            FullName = "duplicate_try_user"
+            UserName = "duplicate_try_user"
         });
 
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
@@ -61,7 +61,7 @@ public class AuthControllerIntegrationTests
         {
             Email = $"{Guid.NewGuid():N}@example.com",
             Password = "noupper1!",
-            FullName = "weak_pw_user"
+            UserName = "weak_pw_user"
         });
 
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
@@ -77,7 +77,7 @@ public class AuthControllerIntegrationTests
         {
             Email = $"{Guid.NewGuid():N}@example.com",
             Password = "Abcd1!x",
-            FullName = "short_pw_user"
+            UserName = "short_pw_user"
         });
 
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
@@ -91,7 +91,7 @@ public class AuthControllerIntegrationTests
 
         var email = $"{Guid.NewGuid():N}@example.com";
         const string pw = "GoodPassword!123";
-        await factory.SeedUserAsync(email, pw, fullName: "verify_pw_user");
+        await factory.SeedUserAsync(email, pw, userName: "verify_pw_user");
         var token = await TestAuthHelper.LoginAndGetTokenAsync(client, email, pw);
         client.SetBearerToken(token);
 
@@ -111,7 +111,7 @@ public class AuthControllerIntegrationTests
 
         var email = $"{Guid.NewGuid():N}@example.com";
         const string pw = "GoodPassword!123";
-        await factory.SeedUserAsync(email, pw, fullName: "verify_pw_ok_user");
+        await factory.SeedUserAsync(email, pw, userName: "verify_pw_ok_user");
         var token = await TestAuthHelper.LoginAndGetTokenAsync(client, email, pw);
         client.SetBearerToken(token);
 
@@ -131,7 +131,7 @@ public class AuthControllerIntegrationTests
 
         var email = $"{Guid.NewGuid():N}@example.com";
         const string oldPw = "OldPassword!123";
-        await factory.SeedUserAsync(email, oldPw, fullName: "pwd_change_user");
+        await factory.SeedUserAsync(email, oldPw, userName: "pwd_change_user");
         var token = await TestAuthHelper.LoginAndGetTokenAsync(client, email, oldPw);
         client.SetBearerToken(token);
 
@@ -155,13 +155,13 @@ public class AuthControllerIntegrationTests
         using var client = factory.CreateClient();
 
         var taken = "taken_username_abc";
-        await factory.SeedUserAsync($"{Guid.NewGuid():N}@example.com", "ExistingPassword!123", fullName: taken);
+        await factory.SeedUserAsync($"{Guid.NewGuid():N}@example.com", "ExistingPassword!123", userName: taken);
 
         var response = await client.PostAsJsonAsync("/api/auth/register", new RegisterRequest
         {
             Email = $"{Guid.NewGuid():N}@example.com",
             Password = "AnotherPassword!123",
-            FullName = taken
+            UserName = taken
         });
 
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
@@ -222,7 +222,7 @@ public class AuthControllerIntegrationTests
 
         var email = $"{Guid.NewGuid():N}@example.com";
         var password = "ValidPassword!123";
-        var user = await factory.SeedUserAsync(email, password, UserRole.Student, fullName: "student_me_test");
+        var user = await factory.SeedUserAsync(email, password, UserRole.Student, userName: "student_me_test");
         var token = await TestAuthHelper.LoginAndGetTokenAsync(client, email, password);
         client.SetBearerToken(token);
 

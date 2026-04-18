@@ -106,6 +106,31 @@ public class MessagesControllerIntegrationTests
     }
 
     [Fact]
+    public async Task InboxUnreadCount_ReturnsNumberOfUnreadReceivedMessages()
+    {
+        await using var factory = new TestWebApplicationFactory();
+        using var client = factory.CreateClient();
+
+        var receiverEmail = $"{Guid.NewGuid():N}@example.com";
+        var receiverPassword = "ReceiverPassword!123";
+        var sender = await factory.SeedUserAsync($"{Guid.NewGuid():N}@example.com", "SenderPassword!123", UserRole.Student);
+        var receiver = await factory.SeedUserAsync(receiverEmail, receiverPassword, UserRole.Admin);
+
+        await factory.SeedMessageAsync(sender.Id, receiver.Id, subject: "First unread");
+        await factory.SeedMessageAsync(sender.Id, receiver.Id, subject: "Second unread");
+
+        var token = await TestAuthHelper.LoginAndGetTokenAsync(client, receiverEmail, receiverPassword);
+        client.SetBearerToken(token);
+
+        var response = await client.GetAsync("/api/messages/inbox/unread-count");
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        var body = await response.Content.ReadFromJsonAsync<InboxUnreadCountResponse>();
+        Assert.NotNull(body);
+        Assert.Equal(2, body!.Count);
+    }
+
+    [Fact]
     public async Task MarkRead_ByNonReceiver_ReturnsForbidden()
     {
         await using var factory = new TestWebApplicationFactory();

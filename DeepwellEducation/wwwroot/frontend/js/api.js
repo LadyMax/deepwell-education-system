@@ -47,12 +47,12 @@ async function readJsonOrText(response) {
     }
 }
 
-async function register(email, password, fullName) {
+async function register(email, password, userName) {
     try {
         const response = await fetch(`${baseUrl}/Auth/register`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ email, password, fullName })
+            body: JSON.stringify({ email, password, userName })
         });
         if (!response.ok) {
             const text = await response.text();
@@ -248,6 +248,17 @@ async function getInbox(page = 1, pageSize = 20) {
     return response.json();
 }
 
+/** Messages where you are the receiver and ReadAt is null. */
+async function getInboxUnreadCount() {
+    const response = await fetch(`${baseUrl}/Messages/inbox/unread-count`, {
+        headers: authHeaders()
+    });
+    if (!response.ok) return { count: 0 };
+    const data = await response.json();
+    const n = data.count != null ? data.count : data.Count;
+    return { count: typeof n === "number" ? n : parseInt(String(n), 10) || 0 };
+}
+
 async function getSent(page = 1, pageSize = 20) {
     const response = await fetch(`${baseUrl}/Messages/sent?page=${page}&pageSize=${pageSize}`, {
         headers: authHeaders()
@@ -318,6 +329,16 @@ async function getCourseRequestById(id) {
     return { ok: true, data: await response.json() };
 }
 
+async function getAdminUserDetail(userId) {
+    const response = await fetch(`${baseUrl}/admin/users/${encodeURIComponent(userId)}`, {
+        headers: authHeaders()
+    });
+    if (response.status === 403) return { forbidden: true };
+    if (response.status === 404) return { notFound: true };
+    if (!response.ok) return { error: await response.text() };
+    return { ok: true, data: await response.json() };
+}
+
 async function getAdminMessages(options = {}) {
     const page = options.page || 1;
     const pageSize = options.pageSize || 20;
@@ -381,9 +402,11 @@ async function reviewCourseRequest(id, approve) {
 }
 
 /**
- * Inline banner (replaces alert). variant: success | danger | warning | info
+ * Inline banner (replaces alert). variant: success | danger | warning | info | inbox
+ * @param {number} [autoHideMs]  Auto-hide after this many ms (>0). Omit to keep visible.
+ * @param {string} [flashKind]  Optional tag (e.g. "inbox-unread") for dismissFlashByKind.
  */
-function showAppFlash(elementId, message, variant, autoHideMs) {
+function showAppFlash(elementId, message, variant, autoHideMs, flashKind) {
     const el = document.getElementById(elementId);
     if (!el) return;
     const v = variant || "info";
@@ -391,10 +414,26 @@ function showAppFlash(elementId, message, variant, autoHideMs) {
     el.className = "app-flash app-flash--" + v;
     el.classList.remove("d-none");
     el.setAttribute("role", "status");
+    if (flashKind) {
+        el.dataset.deepwellFlashKind = flashKind;
+    } else {
+        el.removeAttribute("data-deepwell-flash-kind");
+    }
     if (el._flashTimer) clearTimeout(el._flashTimer);
     if (autoHideMs && autoHideMs > 0) {
         el._flashTimer = setTimeout(function () {
             el.classList.add("d-none");
         }, autoHideMs);
     }
+}
+
+/** Hide a flash only if it was shown with the same flashKind (see showAppFlash). */
+function dismissFlashByKind(elementId, kind) {
+    const el = document.getElementById(elementId);
+    if (!el || el.dataset.deepwellFlashKind !== kind) return;
+    el.classList.add("d-none");
+    el.textContent = "";
+    el.removeAttribute("data-deepwell-flash-kind");
+    if (el._flashTimer) clearTimeout(el._flashTimer);
+    el._flashTimer = undefined;
 }

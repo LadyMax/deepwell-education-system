@@ -42,17 +42,17 @@ public class AuthController : ControllerBase
         if (!TryValidatePassword(request.Password, out var passwordError))
             return BadRequest(passwordError);
 
-        var normalizedUsername = NormalizeUsername(request.FullName);
+        var normalizedUsername = NormalizeUsername(request.UserName);
         if (!TryValidateUsername(normalizedUsername, out var usernameError))
             return BadRequest(usernameError);
-        if (await _db.Users.AnyAsync(u => u.FullName.ToLower() == normalizedUsername.ToLower(), ct))
+        if (await _db.Users.AnyAsync(u => u.UserName.ToLower() == normalizedUsername.ToLower(), ct))
             return BadRequest("Username is already taken.");
 
         var user = new User
         {
             Id = Guid.NewGuid(),
             Email = normalizedEmail,
-            FullName = normalizedUsername,
+            UserName = normalizedUsername,
             Role = UserRole.Visitor,
             IsActive = true,
             CreatedAt = DateTime.UtcNow
@@ -109,7 +109,7 @@ public class AuthController : ControllerBase
         return Ok(new UserDto(user));
     }
 
-    /// <summary>Change the public username (stored in <see cref="User.FullName"/>). Must be globally unique.</summary>
+    /// <summary>Change the public username (stored in <see cref="User.UserName"/>). Must be globally unique.</summary>
     [Authorize]
     [HttpPost("change-username")]
     public async Task<ActionResult<UserDto>> ChangeUsername([FromBody] ChangeUsernameRequest request, CancellationToken ct)
@@ -128,13 +128,13 @@ public class AuthController : ControllerBase
         if (user == null || !user.IsActive)
             return NotFound("User not found or inactive.");
 
-        if (string.Equals(user.FullName, normalized, StringComparison.OrdinalIgnoreCase))
+        if (string.Equals(user.UserName, normalized, StringComparison.OrdinalIgnoreCase))
             return Ok(new UserDto(user));
 
-        if (await _db.Users.AnyAsync(u => u.Id != userId && u.FullName.ToLower() == normalized.ToLower(), ct))
+        if (await _db.Users.AnyAsync(u => u.Id != userId && u.UserName.ToLower() == normalized.ToLower(), ct))
             return BadRequest("Username is already taken.");
 
-        user.FullName = normalized;
+        user.UserName = normalized;
         await _db.SaveChangesAsync(ct);
         return Ok(new UserDto(user));
     }
@@ -274,7 +274,7 @@ public class RegisterRequest
 {
     public string Email { get; set; } = "";
     public string Password { get; set; } = "";
-    public string? FullName { get; set; }
+    public string? UserName { get; set; }
 }
 
 public class LoginRequest
@@ -285,7 +285,7 @@ public class LoginRequest
 
 public class ChangeUsernameRequest
 {
-    /// <summary>Unique username (maps to <see cref="User.FullName"/>).</summary>
+    /// <summary>Unique username (maps to <see cref="User.UserName"/>).</summary>
     public string Username { get; set; } = "";
 }
 
@@ -310,7 +310,7 @@ public class UserDto
 {
     public Guid Id { get; set; }
     public string Email { get; set; } = "";
-    public string FullName { get; set; } = "";
+    public string UserName { get; set; } = "";
     public UserRole Role { get; set; }
     public bool IsActive { get; set; }
     public string? StudentNumber { get; set; }
@@ -321,7 +321,7 @@ public class UserDto
     {
         Id = u.Id;
         Email = u.Email;
-        FullName = u.FullName;
+        UserName = u.UserName;
         Role = u.Role;
         IsActive = u.IsActive;
         StudentNumber = u.StudentProfile?.StudentNumber;

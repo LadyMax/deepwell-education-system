@@ -23,6 +23,12 @@ public class Message
     /// <summary>Future AI pipeline: model confidence 0–1.</summary>
     public double? AiConfidence { get; set; }
 
+    /// <summary>AI classifier version identifier (e.g. rule_v1, llm_v2).</summary>
+    public string? AiModelVersion { get; set; }
+
+    /// <summary>When AI classification was produced (UTC).</summary>
+    public DateTime? AiClassifiedAtUtc { get; set; }
+
     /// <summary>Admin-confirmed category from fixed set (authoritative for reporting).</summary>
     public MessageCategory? FinalCategory { get; set; }
 

@@ -14,6 +14,9 @@ public interface IMessageService
         MessageCategory? senderSuggestedCategory,
         CancellationToken ct = default);
 
+    /// <summary>Count of inbox messages where <see cref="Message.ReadAt"/> is null (receiver = <paramref name="receiverUserId"/>).</summary>
+    Task<int> GetUnreadInboxCountAsync(Guid receiverUserId, CancellationToken ct = default);
+
     /// <summary>Inbox for the current user as receiver, newest first, paginated.</summary>
     Task<PagedResult<MessageInboxItemDto>> GetInboxAsync(Guid receiverUserId, int page, int pageSize, CancellationToken ct = default);
 
@@ -90,7 +93,7 @@ public sealed class MessageInboxItemDto
     public Guid Id { get; init; }
     public Guid SenderUserId { get; init; }
     public string SenderEmail { get; init; } = "";
-    public string SenderFullName { get; init; } = "";
+    public string SenderUserName { get; init; } = "";
     public string Subject { get; init; } = "";
     public string Content { get; init; } = "";
     public DateTime CreatedAt { get; init; }
@@ -106,7 +109,7 @@ public sealed class MessageSentItemDto
     public Guid Id { get; init; }
     public Guid ReceiverUserId { get; init; }
     public string ReceiverEmail { get; init; } = "";
-    public string ReceiverFullName { get; init; } = "";
+    public string ReceiverUserName { get; init; } = "";
     public string Subject { get; init; } = "";
     public string Content { get; init; } = "";
     public DateTime CreatedAt { get; init; }
@@ -120,10 +123,10 @@ public sealed class MessageAdminItemDto
     public Guid Id { get; init; }
     public Guid SenderUserId { get; init; }
     public string SenderEmail { get; init; } = "";
-    public string SenderFullName { get; init; } = "";
+    public string SenderUserName { get; init; } = "";
     public Guid ReceiverUserId { get; init; }
     public string ReceiverEmail { get; init; } = "";
-    public string ReceiverFullName { get; init; } = "";
+    public string ReceiverUserName { get; init; } = "";
     public string Subject { get; init; } = "";
     public string Content { get; init; } = "";
     public DateTime CreatedAt { get; init; }
@@ -131,6 +134,8 @@ public sealed class MessageAdminItemDto
     public MessageCategory? SenderSuggestedCategory { get; init; }
     public string? AiSuggestedCategory { get; init; }
     public double? AiConfidence { get; init; }
+    public string? AiModelVersion { get; init; }
+    public DateTime? AiClassifiedAtUtc { get; init; }
     public MessageCategory? FinalCategory { get; init; }
     public Guid? ReviewedBy { get; init; }
     public DateTime? ReviewedAt { get; init; }

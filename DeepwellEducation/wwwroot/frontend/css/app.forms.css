@@ -57,6 +57,10 @@
   padding: 0;
 }
 
+.student-flash-slot .app-flash--inbox {
+  margin-bottom: 0.25rem;
+}
+
 .contact-form .help-block ul {
   margin: 0;
   padding: 0;

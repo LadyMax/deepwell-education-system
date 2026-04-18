@@ -58,7 +58,7 @@ public class CourseRequestsController : ControllerBase
             var term = $"%{applicant.Trim()}%";
             q = q.Where(x =>
                 EF.Functions.Like(x.u.Email, term) ||
-                EF.Functions.Like(x.u.FullName, term) ||
+                EF.Functions.Like(x.u.UserName, term) ||
                 (x.sp != null && EF.Functions.Like(x.sp.StudentNumber, term)));
         }
 
@@ -74,7 +74,7 @@ public class CourseRequestsController : ControllerBase
                 Id = x.r.Id,
                 UserId = x.r.UserId,
                 UserEmail = x.u.Email,
-                UserFullName = x.u.FullName,
+                UserName = x.u.UserName,
                 StudentNumber = x.sp != null ? x.sp.StudentNumber : null,
                 CourseId = x.r.CourseId,
                 CourseName = x.c.Name,
@@ -150,7 +150,7 @@ public class CourseRequestListItemDto
     public Guid Id { get; set; }
     public Guid UserId { get; set; }
     public string UserEmail { get; set; } = "";
-    public string UserFullName { get; set; } = "";
+    public string UserName { get; set; } = "";
     public string? StudentNumber { get; set; }
     public Guid CourseId { get; set; }
     public string CourseName { get; set; } = "";

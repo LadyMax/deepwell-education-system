@@ -70,6 +70,36 @@ body.page-admin .admin-select-apply .btn-admin-confirm {
   white-space: nowrap;
 }
 
+/* Active Enrollments: keep course select + Confirm on one row (long course names shrink the select). */
+body.page-admin .admin-select-apply.admin-select-apply--enroll-toolbar {
+  flex-wrap: nowrap;
+  max-width: min(100%, 40rem);
+}
+
+body.page-admin .admin-select-apply.admin-select-apply--enroll-toolbar .admin-enr-course-label {
+  flex-shrink: 0;
+  align-self: center;
+  margin-right: 0.15rem;
+}
+
+body.page-admin .admin-select-apply.admin-select-apply--enroll-toolbar .custom-select {
+  /* Enough width to read "Choose a course…"; can still grow for long names. */
+  flex: 1 1 14rem;
+  min-width: 12rem;
+  max-width: 100%;
+}
+
+/* Students by course: breathing room between Confirm and the status line. */
+body.page-admin .admin-enr-toolbar .admin-enr-status {
+  margin-left: 1rem;
+}
+
+@media (min-width: 768px) {
+  body.page-admin .admin-enr-toolbar .admin-enr-status {
+    margin-left: 1.75rem;
+  }
+}
+
 /* Courses panel: normalize field styling across input/select/textarea controls. */
 body.page-admin #course-name,
 body.page-admin #course-language-code,
@@ -105,47 +135,130 @@ body.page-admin #course-desc {
   resize: vertical;
 }
 
-/* Contact messages: table — Final category column; Confirm stays to the right of the select. */
-body.page-admin #msg-table .msg-cat-cell {
-  min-width: 13rem;
-  max-width: 18rem;
-  vertical-align: middle;
+/*
+ * Contact messages: use Bootstrap .table-responsive (horizontal scroll on narrow
+ * viewports when needed). Extra rules below reduce desktop-wide min-width blowout.
+ */
+body.page-admin .admin-msg-table-wrap {
+  width: 100%;
 }
 
-/* Keep key message columns readable; allow only content column to wrap. */
+body.page-admin #msg-table {
+  table-layout: fixed;
+  width: 100%;
+}
+
 body.page-admin #msg-table th,
 body.page-admin #msg-table td {
-  white-space: nowrap;
   vertical-align: middle;
+  white-space: normal;
+  word-break: break-word;
+  overflow-wrap: anywhere;
 }
 
 body.page-admin #msg-table th:nth-child(1),
-body.page-admin #msg-table td:nth-child(1),
+body.page-admin #msg-table td:nth-child(1) {
+  width: 7%;
+  min-width: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+body.page-admin #msg-table .admin-msg-sender-profile {
+  font-weight: 500;
+  max-width: 100%;
+  text-decoration: none;
+  display: inline-block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  vertical-align: bottom;
+}
+
+body.page-admin #msg-table .admin-msg-sender-profile:hover,
+body.page-admin #msg-table .admin-msg-sender-profile:focus {
+  text-decoration: underline;
+}
+
+body.page-admin #msg-table thead th {
+  white-space: nowrap;
+}
+
 body.page-admin #msg-table th:nth-child(2),
 body.page-admin #msg-table td:nth-child(2) {
-  min-width: 12rem;
+  width: 16%;
+  min-width: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  word-break: normal;
+  overflow-wrap: normal;
 }
 
 body.page-admin #msg-table th:nth-child(3),
 body.page-admin #msg-table td:nth-child(3) {
-  min-width: 14rem;
+  width: 24%;
 }
 
 body.page-admin #msg-table th:nth-child(4),
 body.page-admin #msg-table td:nth-child(4) {
-  min-width: 16rem;
+  width: 9%;
+}
+
+body.page-admin #msg-table th:nth-child(5) {
+  width: 18%;
+  min-width: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  word-break: normal;
+  overflow-wrap: normal;
+}
+
+body.page-admin #msg-table td:nth-child(5) {
+  width: 18%;
+  min-width: 0;
   white-space: normal;
+  overflow: visible;
+  text-overflow: clip;
+  word-break: normal;
+  overflow-wrap: break-word;
+}
+
+body.page-admin #msg-table .admin-ai-suggestion-topic {
+  font-weight: 600;
+  line-height: 1.25;
+}
+
+body.page-admin #msg-table .admin-ai-suggestion-note {
+  display: block;
+  margin-top: 0.2rem;
+  line-height: 1.35;
+}
+
+body.page-admin #msg-table th:nth-child(6),
+body.page-admin #msg-table td:nth-child(6) {
+  width: 10%;
+}
+
+body.page-admin #msg-table th:nth-child(7),
+body.page-admin #msg-table td:nth-child(7) {
+  width: 16%;
+  min-width: 0;
+  max-width: none;
 }
 
 body.page-admin #msg-table .msg-cat-cell .admin-select-apply {
-  flex-wrap: nowrap;
+  flex-wrap: wrap;
   align-items: center;
+  gap: 0.35rem;
 }
 
 body.page-admin #msg-table .msg-cat-cell .msg-cat {
-  flex: 1 1 auto;
+  flex: 1 1 6.5rem;
   min-width: 0;
-  max-width: 11rem;
+  max-width: 100%;
 }
 
 body.page-admin #msg-table .msg-cat-cell .msg-cat-confirm {
@@ -160,6 +273,95 @@ body.page-admin #msg-table .msg-cat-cell .msg-cat-confirm:focus {
   color: #fff !important;
   background-color: #6c757d !important;
   border-color: #6c757d !important;
+}
+
+/* Messages: stacked “cards” on small screens (no squeezed wide table). */
+@media (max-width: 767.98px) {
+  body.page-admin .admin-msg-table-wrap {
+    overflow-x: visible !important;
+    -webkit-overflow-scrolling: auto;
+  }
+
+  body.page-admin #msg-table {
+    table-layout: auto;
+    border-collapse: separate;
+    border-spacing: 0 0.65rem;
+    background: transparent;
+  }
+
+  body.page-admin #msg-table thead {
+    display: none;
+  }
+
+  body.page-admin #msg-table tbody tr {
+    display: block;
+    background: #fff;
+    border: 1px solid #dee2e6;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    overflow: hidden;
+  }
+
+  body.page-admin #msg-table tbody td {
+    display: block;
+    width: 100% !important;
+    max-width: none !important;
+    box-sizing: border-box;
+    padding: 0.65rem 1rem;
+    border: none;
+    border-bottom: 1px solid #eef2f4;
+    text-align: left !important;
+  }
+
+  body.page-admin #msg-table tbody td:nth-child(1) {
+    overflow: visible;
+    text-overflow: unset;
+    white-space: normal;
+  }
+
+  body.page-admin #msg-table tbody td:nth-child(2),
+  body.page-admin #msg-table tbody td:nth-child(3),
+  body.page-admin #msg-table tbody td:nth-child(5) {
+    overflow: visible;
+    text-overflow: unset;
+    white-space: normal;
+  }
+
+  body.page-admin #msg-table tbody td:last-child {
+    border-bottom: none;
+    padding-bottom: 0.85rem;
+  }
+
+  body.page-admin #msg-table tbody td::before {
+    content: attr(data-label);
+    display: block;
+    font-size: 0.65rem;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: #6c757d;
+    margin-bottom: 0.4rem;
+  }
+
+  body.page-admin #msg-table .msg-cat-cell .admin-select-apply {
+    width: 100%;
+    max-width: 100%;
+  }
+
+  body.page-admin #msg-table .msg-cat-cell .msg-cat {
+    flex: 1 1 100%;
+    max-width: 100%;
+  }
+
+  body.page-admin #msg-table .msg-mark-read {
+    display: inline-block;
+    margin-top: 0.35rem;
+    margin-left: 0 !important;
+  }
+
+  body.page-admin #msg-table .admin-msg-pre {
+    max-height: 10rem;
+  }
 }
 
 /*
@@ -218,6 +420,48 @@ body.page-admin #msg-table .msg-cat-cell .msg-cat-confirm:focus {
 }
 
 /* My account (student.html): tabbed layout */
+/* Unread message count (nav tab + staff Messages button) */
+.inbox-unread-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 1.35rem;
+  height: 1.35rem;
+  padding: 0 0.4rem;
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  line-height: 1;
+  border-radius: 999px;
+  vertical-align: middle;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.12);
+}
+
+.inbox-unread-badge--nav {
+  margin-left: 0.35rem !important;
+  background: linear-gradient(160deg, var(--app-primary) 0%, #009a9d 100%);
+  color: #fff;
+  border: 1px solid rgba(255, 255, 255, 0.35);
+}
+
+.student-dashboard-panel .student-dashboard-nav .nav-link .inbox-unread-badge--nav {
+  position: relative;
+  top: -1px;
+}
+
+body.page-admin .admin-pane-nav .inbox-unread-badge--admin {
+  margin-left: 0.35rem !important;
+  background: #fff;
+  color: var(--app-primary-hover);
+  border: 1px solid rgba(0, 181, 184, 0.45);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+}
+
+body.page-admin .admin-pane-nav .btn-outline-primary.active .inbox-unread-badge--admin {
+  background: rgba(255, 255, 255, 0.95);
+  color: var(--app-primary-hover);
+}
+
 .student-dashboard-panel .student-dashboard-nav {
   border-bottom: 1px solid rgba(0, 206, 209, 0.2);
 }

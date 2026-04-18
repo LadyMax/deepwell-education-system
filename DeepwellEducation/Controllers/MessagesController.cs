@@ -75,6 +75,20 @@ public class MessagesController : ControllerBase
         return Ok(result);
     }
 
+    /// <summary>Unread inbox count for the current user (messages received, not yet opened).</summary>
+    [Authorize]
+    [HttpGet("inbox/unread-count")]
+    [ProducesResponseType(typeof(InboxUnreadCountResponse), StatusCodes.Status200OK)]
+    public async Task<ActionResult<InboxUnreadCountResponse>> InboxUnreadCount(CancellationToken ct)
+    {
+        var userId = GetCurrentUserId();
+        if (userId == null)
+            return Unauthorized();
+
+        var count = await _messageService.GetUnreadInboxCountAsync(userId.Value, ct);
+        return Ok(new InboxUnreadCountResponse(count));
+    }
+
     /// <summary>Messages you sent, newest first, paginated.</summary>
     [Authorize]
     [HttpGet("sent")]
@@ -183,3 +197,5 @@ public sealed record SentMessageResponse(Guid Id, Guid ReceiverUserId, DateTime 
 public sealed record CategorizedMessageResponse(Guid Id, MessageCategory FinalCategory, Guid ReviewedBy, DateTime ReviewedAt);
 
 public sealed record MessageReadResponse(Guid Id, DateTime ReadAt);
+
+public sealed record InboxUnreadCountResponse(int Count);

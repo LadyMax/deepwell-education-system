@@ -7,7 +7,7 @@ namespace DeepwellEducation.Services;
 
 /// <summary>
 /// Messaging: <see cref="Message.SenderSuggestedCategory"/> is set at send; <see cref="Message.AiSuggestedCategory"/> /
-/// <see cref="Message.AiConfidence"/> are reserved for a future background AI step; <see cref="Message.FinalCategory"/> is staff-confirmed.
+/// <see cref="Message.AiConfidence"/> are AI-assist metadata only; <see cref="Message.FinalCategory"/> is staff-confirmed.
 /// </summary>
 public class MessageService : IMessageService
 {
@@ -15,10 +15,12 @@ public class MessageService : IMessageService
     public const int MaxPageSize = 100;
 
     private readonly AppDbContext _db;
+    private readonly IAiMessageClassifier _aiMessageClassifier;
 
-    public MessageService(AppDbContext db)
+    public MessageService(AppDbContext db, IAiMessageClassifier aiMessageClassifier)
     {
         _db = db;
+        _aiMessageClassifier = aiMessageClassifier;
     }
 
     private static (int page, int pageSize) NormalizePaging(int page, int pageSize)
@@ -74,6 +76,8 @@ public class MessageService : IMessageService
             SenderSuggestedCategory = senderSuggestedCategory,
             AiSuggestedCategory = null,
             AiConfidence = null,
+            AiModelVersion = null,
+            AiClassifiedAtUtc = null,
             FinalCategory = null,
             ReviewedBy = null,
             ReviewedAt = null,
@@ -84,8 +88,28 @@ public class MessageService : IMessageService
         _db.Messages.Add(message);
         await _db.SaveChangesAsync(ct);
 
+        // AI is best-effort enrichment: do not block primary send flow.
+        var ai = await _aiMessageClassifier.ClassifyAsync(
+            message.Id,
+            message.Content,
+            sender.Role.ToString().ToLowerInvariant(),
+            "web_portal",
+            ct);
+        if (ai != null)
+        {
+            message.AiSuggestedCategory = ai.Category;
+            message.AiConfidence = ai.Confidence;
+            message.AiModelVersion = ai.ModelVersion;
+            message.AiClassifiedAtUtc = ai.ClassifiedAtUtc;
+            await _db.SaveChangesAsync(ct);
+        }
+
         return SendMessageResult.Ok(message);
     }
+
+    public Task<int> GetUnreadInboxCountAsync(Guid receiverUserId, CancellationToken ct = default) =>
+        _db.Messages.AsNoTracking()
+            .CountAsync(m => m.ReceiverUserId == receiverUserId && m.ReadAt == null, ct);
 
     public async Task<PagedResult<MessageInboxItemDto>> GetInboxAsync(Guid receiverUserId, int page, int pageSize, CancellationToken ct = default)
     {
@@ -101,7 +125,7 @@ public class MessageService : IMessageService
                 Id = m.Id,
                 SenderUserId = m.SenderUserId,
                 SenderEmail = s.Email,
-                SenderFullName = s.FullName,
+                SenderUserName = s.UserName,
                 Subject = m.Subject,
                 Content = m.Content,
                 CreatedAt = m.CreatedAt,
@@ -138,7 +162,7 @@ public class MessageService : IMessageService
                 Id = m.Id,
                 ReceiverUserId = m.ReceiverUserId,
                 ReceiverEmail = r.Email,
-                ReceiverFullName = r.FullName,
+                ReceiverUserName = r.UserName,
                 Subject = m.Subject,
                 Content = m.Content,
                 CreatedAt = m.CreatedAt,
@@ -223,10 +247,10 @@ public class MessageService : IMessageService
                 Id = x.m.Id,
                 SenderUserId = x.m.SenderUserId,
                 SenderEmail = x.s.Email,
-                SenderFullName = x.s.FullName,
+                SenderUserName = x.s.UserName,
                 ReceiverUserId = x.m.ReceiverUserId,
                 ReceiverEmail = x.r.Email,
-                ReceiverFullName = x.r.FullName,
+                ReceiverUserName = x.r.UserName,
                 Subject = x.m.Subject,
                 Content = x.m.Content,
                 CreatedAt = x.m.CreatedAt,
@@ -234,6 +258,8 @@ public class MessageService : IMessageService
                 SenderSuggestedCategory = x.m.SenderSuggestedCategory,
                 AiSuggestedCategory = x.m.AiSuggestedCategory,
                 AiConfidence = x.m.AiConfidence,
+                AiModelVersion = x.m.AiModelVersion,
+                AiClassifiedAtUtc = x.m.AiClassifiedAtUtc,
                 FinalCategory = x.m.FinalCategory,
                 ReviewedBy = x.m.ReviewedBy,
                 ReviewedAt = x.m.ReviewedAt

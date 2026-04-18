@@ -74,7 +74,7 @@ public class EnrollmentsController : ControllerBase
                 EnrollmentId = e.Id,
                 UserId = e.UserId,
                 Email = e.User.Email,
-                FullName = e.User.FullName,
+                UserName = e.User.UserName,
                 StudentNumber = e.User.StudentProfile != null ? e.User.StudentProfile.StudentNumber : null,
                 Role = e.User.Role,
                 EnrolledAt = e.CreatedAt
@@ -101,7 +101,7 @@ public class CourseEnrollmentDto
     public Guid EnrollmentId { get; set; }
     public Guid UserId { get; set; }
     public string Email { get; set; } = "";
-    public string FullName { get; set; } = "";
+    public string UserName { get; set; } = "";
     public string? StudentNumber { get; set; }
     public UserRole Role { get; set; }
     public DateTime EnrolledAt { get; set; }

@@ -8,7 +8,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com">
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.10.0/css/all.min.css" rel="stylesheet">
-  <link rel="stylesheet" href="./css/app.css?v=20260415c">
+  <link rel="stylesheet" href="./css/app.css?v=20260418q">
   <script src="./js/layout.js" defer></script>
 </head>
 <body class="page-admin">
@@ -22,9 +22,9 @@
         <div id="admin-flash" class="app-flash d-none" role="status" aria-live="polite"></div>
         <nav class="d-flex flex-wrap gap-2 mb-3 admin-pane-nav" role="tablist" aria-label="Staff dashboard sections">
           <button type="button" class="btn btn-outline-primary active" data-admin-pane-btn="requests">Enrollment Queue</button>
-          <button type="button" class="btn btn-outline-primary" data-admin-pane-btn="messages">Messages</button>
+          <button type="button" class="btn btn-outline-primary" data-admin-pane-btn="messages">Messages <span id="admin-msg-unread-badge" class="inbox-unread-badge inbox-unread-badge--admin d-none" aria-label="Unread inbox"></span></button>
           <button type="button" class="btn btn-outline-primary" data-admin-pane-btn="courses">Courses</button>
-          <button type="button" class="btn btn-outline-primary" data-admin-pane-btn="enrollments">Active Enrollments</button>
+          <button type="button" class="btn btn-outline-primary" data-admin-pane-btn="enrollments">Students by course</button>
           <button type="button" class="btn btn-outline-primary" data-admin-pane-btn="account">Account security</button>
         </nav>
 
@@ -115,17 +115,33 @@
           </select>
         </div>
         <div id="status" class="small text-muted mb-2"></div>
-        <div class="table-responsive">
+        <div class="table-responsive admin-msg-table-wrap">
           <table class="table table-sm table-striped table-bordered d-none" id="msg-table">
             <thead class="table-light">
               <tr>
-                <th>From</th><th>To</th><th>Subject</th><th>Message</th><th>Sender topic</th><th>AI (when enabled)</th><th>Read</th><th>Final category</th>
+                <th>From</th><th>Subject</th><th>Message</th><th>Sender topic</th><th title="When the message has been run through the optional AI helper, its best guess at the topic appears here.">AI suggestion</th><th>Read</th><th>Final category</th>
               </tr>
             </thead>
             <tbody id="msg-body"></tbody>
           </table>
         </div>
         </section>
+
+        <div class="modal fade" id="admin-user-detail-modal" tabindex="-1" role="dialog" aria-labelledby="admin-user-detail-title" aria-hidden="true">
+          <div class="modal-dialog modal-dialog-scrollable" role="document">
+            <div class="modal-content">
+              <div class="modal-header">
+                <h5 class="modal-title" id="admin-user-detail-title">User profile</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                  <span aria-hidden="true">&times;</span>
+                </button>
+              </div>
+              <div class="modal-body" id="admin-user-detail-body">
+                <p class="text-muted small mb-0">Loading…</p>
+              </div>
+            </div>
+          </div>
+        </div>
 
         <section class="admin-section d-none" data-admin-pane-id="courses" aria-labelledby="admin-courses-heading">
         <h2 class="h5 mb-3" id="admin-courses-heading">Courses</h2>
@@ -176,20 +192,21 @@
         </section>
 
         <section class="admin-section d-none" data-admin-pane-id="enrollments" aria-labelledby="admin-enr-heading">
-        <h2 class="h5 mb-3" id="admin-enr-heading">Active Enrollments</h2>
-        <div class="d-flex flex-wrap gap-2 align-items-center mb-2">
-            <div class="admin-select-apply app-max-420">
-            <select id="enr-course-select" class="custom-select custom-select-sm" aria-label="Course">
-                <option value="">Choose a course…</option>
+        <h2 class="h5 mb-3" id="admin-enr-heading">Students by course</h2>
+        <p class="small text-muted mb-2">See who is currently taking each class.</p>
+        <div class="d-flex flex-wrap gap-2 align-items-center mb-2 admin-enr-toolbar">
+          <div class="admin-select-apply admin-select-apply--enroll-toolbar">
+            <select id="enr-course-select" class="custom-select custom-select-sm" aria-label="Choose a course to see its student list">
+              <option value="">Choose a course…</option>
             </select>
-              <button type="button" class="btn btn-outline-secondary btn-sm btn-admin-confirm" id="btn-enr-load">Confirm</button>
+            <button type="button" class="btn btn-outline-secondary btn-sm btn-admin-confirm" id="btn-enr-load">Confirm</button>
           </div>
-          <span id="enr-status" class="small text-muted"></span>
+          <span id="enr-status" class="small text-muted admin-enr-status"></span>
         </div>
         <div class="table-responsive">
           <table class="table table-sm table-striped table-bordered d-none" id="enr-table">
             <thead class="table-light">
-              <tr><th>Email</th><th>Name</th><th>Student number</th><th>Account</th><th>Enrolled at</th></tr>
+              <tr><th>Sign-in email</th><th>Username</th><th>Student number</th><th>Role</th><th>Joined on</th></tr>
             </thead>
             <tbody id="enr-body"></tbody>
           </table>
@@ -198,7 +215,7 @@
 
         <section class="admin-section d-none" data-admin-pane-id="account" aria-labelledby="admin-account-heading">
         <h2 class="h5 mb-3" id="admin-account-heading">Account security</h2>
-        <p class="small text-muted">Change your sign-in password. Other sessions will be signed out until you sign in again with the new password.</p>
+        <p class="small text-muted">Change your sign-in password.</p>
         <div id="admin-password-flash" class="app-flash d-none mb-3" role="status" aria-live="polite"></div>
         <div class="form-row">
           <div class="form-group col-md-6 col-lg-5">
@@ -241,7 +258,7 @@
   <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
   <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.bundle.min.js"></script>
   <script src="./js/main.js"></script>
-  <script src="./js/api.js?v=20260415c"></script>
-  <script src="./js/admin.js?v=20260415c"></script>
+  <script src="./js/api.js?v=20260418a"></script>
+  <script src="./js/admin.js?v=20260418u"></script>
 </body>
 </html>

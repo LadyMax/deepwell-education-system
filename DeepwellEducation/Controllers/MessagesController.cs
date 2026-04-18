@@ -175,6 +175,25 @@ public class MessagesController : ControllerBase
             m.ReviewedBy!.Value,
             m.ReviewedAt!.Value));
     }
+
+    /// <summary>Admin: re-run AI assist (calls configured classifier; best-effort).</summary>
+    [Authorize(Roles = "Admin")]
+    [HttpPost("{id:guid}/reassist-ai")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status502BadGateway)]
+    public async Task<IActionResult> ReassistAi(Guid id, CancellationToken ct)
+    {
+        var result = await _messageService.ReassistAiAsync(id, ct);
+        return result.Error switch
+        {
+            ReassistAiError.None => NoContent(),
+            ReassistAiError.NotFound => NotFound(),
+            ReassistAiError.ClassifierUnavailable =>
+                StatusCode(StatusCodes.Status502BadGateway, "AI service did not return a result."),
+            _ => BadRequest()
+        };
+    }
 }
 
 public class SendMessageRequest

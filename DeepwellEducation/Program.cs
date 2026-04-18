@@ -187,6 +187,7 @@ namespace DeepwellEducation
             {
                 var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
                 db.Database.Migrate();
+                await MessageAiAssistBackfill.ApplyIfNeededAsync(db);
                 await AdminSeeder.SeedAsync(scope.ServiceProvider);
             }
 

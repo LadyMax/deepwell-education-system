@@ -78,6 +78,10 @@ public class MessageService : IMessageService
             AiConfidence = null,
             AiModelVersion = null,
             AiClassifiedAtUtc = null,
+            AiSuggestedPriority = null,
+            AiSummary = null,
+            AiSuggestedReplyDraft = null,
+            AiExtractedJson = null,
             FinalCategory = null,
             ReviewedBy = null,
             ReviewedAt = null,
@@ -91,6 +95,7 @@ public class MessageService : IMessageService
         // AI is best-effort enrichment: do not block primary send flow.
         var ai = await _aiMessageClassifier.ClassifyAsync(
             message.Id,
+            message.Subject,
             message.Content,
             sender.Role.ToString().ToLowerInvariant(),
             "web_portal",
@@ -101,6 +106,10 @@ public class MessageService : IMessageService
             message.AiConfidence = ai.Confidence;
             message.AiModelVersion = ai.ModelVersion;
             message.AiClassifiedAtUtc = ai.ClassifiedAtUtc;
+            message.AiSuggestedPriority = ai.SuggestedPriority;
+            message.AiSummary = ai.Summary;
+            message.AiSuggestedReplyDraft = ai.SuggestedReplyDraft;
+            message.AiExtractedJson = ai.ExtractedJson;
             await _db.SaveChangesAsync(ct);
         }
 
@@ -216,6 +225,38 @@ public class MessageService : IMessageService
         return CategorizeResult.Ok(message);
     }
 
+    public async Task<ReassistAiResult> ReassistAiAsync(Guid messageId, CancellationToken ct = default)
+    {
+        var message = await _db.Messages.FirstOrDefaultAsync(m => m.Id == messageId, ct);
+        if (message == null)
+            return ReassistAiResult.Fail(ReassistAiError.NotFound);
+
+        var sender = await _db.Users.AsNoTracking().FirstOrDefaultAsync(u => u.Id == message.SenderUserId, ct);
+        var senderRole = sender?.Role.ToString().ToLowerInvariant();
+
+        var ai = await _aiMessageClassifier.ClassifyAsync(
+            message.Id,
+            message.Subject,
+            message.Content,
+            senderRole,
+            "web_portal",
+            ct);
+        if (ai == null)
+            return ReassistAiResult.Fail(ReassistAiError.ClassifierUnavailable);
+
+        message.AiSuggestedCategory = ai.Category;
+        message.AiConfidence = ai.Confidence;
+        message.AiModelVersion = ai.ModelVersion;
+        message.AiClassifiedAtUtc = ai.ClassifiedAtUtc;
+        message.AiSuggestedPriority = ai.SuggestedPriority;
+        message.AiSummary = ai.Summary;
+        message.AiSuggestedReplyDraft = ai.SuggestedReplyDraft;
+        message.AiExtractedJson = ai.ExtractedJson;
+        await _db.SaveChangesAsync(ct);
+
+        return ReassistAiResult.Ok(message);
+    }
+
     public async Task<PagedResult<MessageAdminItemDto>> GetAllForAdminAsync(
         bool uncategorizedOnly,
         bool unreadOnly,
@@ -260,6 +301,10 @@ public class MessageService : IMessageService
                 AiConfidence = x.m.AiConfidence,
                 AiModelVersion = x.m.AiModelVersion,
                 AiClassifiedAtUtc = x.m.AiClassifiedAtUtc,
+                AiSuggestedPriority = x.m.AiSuggestedPriority,
+                AiSummary = x.m.AiSummary,
+                AiSuggestedReplyDraft = x.m.AiSuggestedReplyDraft,
+                AiExtractedJson = x.m.AiExtractedJson,
                 FinalCategory = x.m.FinalCategory,
                 ReviewedBy = x.m.ReviewedBy,
                 ReviewedAt = x.m.ReviewedAt

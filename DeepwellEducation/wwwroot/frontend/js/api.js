@@ -364,6 +364,21 @@ async function categorizeMessage(id, finalCategory) {
     return { ok: true, data: await response.json() };
 }
 
+/** Admin: fill or refresh AI assist fields for one message (requires ai-service when enabled). */
+async function reassistMessageAi(id) {
+    const response = await fetch(`${baseUrl}/Messages/${encodeURIComponent(id)}/reassist-ai`, {
+        method: "POST",
+        headers: authHeaders()
+    });
+    if (response.status === 204) return { ok: true };
+    if (response.status === 502) {
+        const t = await response.text();
+        return { ok: false, message: t || "The AI helper is not responding (check it is running)." };
+    }
+    if (!response.ok) return { ok: false, message: await response.text() };
+    return { ok: true };
+}
+
 /**
  * Admin request list filters.
  * Backward compatible: a string argument is treated as status.

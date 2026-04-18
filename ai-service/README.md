@@ -4,14 +4,23 @@ Minimal FastAPI service for message classification.
 
 ## Run locally
 
-Copy `.env.example` to `.env` if you use a tool that loads it, or set `INTERNAL_TOKEN` in your shell (must match the ASP.NET Core setting `AiClassifier:InternalToken`).
+Copy `.env.example` to `.env` in this folder. `settings.py` loads that file automatically on startup. You can also set variables in the shell (must match the ASP.NET Core setting `AiClassifier:InternalToken` for `INTERNAL_TOKEN`).
+
+Optional: set `OPENAI_API_KEY` to use the LangChain + OpenAI classifier; if it is empty or the model call fails, the service falls back to keyword rules (`model_version` = `rule_v1`).
 
 ```bash
 cd ai-service
 python -m venv .venv
-.venv\\Scripts\\activate
+.venv\Scripts\activate
 pip install -r requirements.txt
-set INTERNAL_TOKEN=dev-internal-token
+uvicorn main:app --host 127.0.0.1 --port 8000 --reload
+```
+
+PowerShell (no `.env` file):
+
+```powershell
+$env:INTERNAL_TOKEN = "dev-internal-token"
+$env:OPENAI_API_KEY = "sk-..."   # optional
 uvicorn main:app --host 127.0.0.1 --port 8000 --reload
 ```
 
@@ -24,23 +33,28 @@ Request payload:
 
 ```json
 {
-  "message_id": "optional-guid",
+  "messageId": "optional-guid",
+  "subject": "optional subject line",
   "content": "message text",
-  "sender_role": "student",
+  "senderRole": "student",
   "source": "web_portal"
 }
 ```
 
-Response payload:
+Response payload (extra fields are always present; `suggestedReplyDraft` is often null when using rule fallback without an API key):
 
 ```json
 {
   "category": "course_inquiry",
   "confidence": 0.85,
-  "model_version": "rule_v1",
-  "classified_at_utc": "2026-04-16T20:00:00Z",
-  "detected_language": null,
-  "suggested_level": null
+  "modelVersion": "rule_v1",
+  "classifiedAtUtc": "2026-04-16T20:00:00Z",
+  "detectedLanguage": null,
+  "suggestedLevel": null,
+  "priority": "normal",
+  "summary": "Short plain-language summary for staff.",
+  "suggestedReplyDraft": null,
+  "extracted": { "time_sensitive": false, "sentiment": "calm" }
 }
 ```
 
@@ -49,4 +63,19 @@ Response payload:
 Callers must pass header:
 
 - `X-Internal-Token: <INTERNAL_TOKEN>`
+
+## Tests (optional)
+
+```bash
+cd ai-service
+.venv\Scripts\activate
+pip install -r requirements.txt -r requirements-dev.txt
+python -m pytest tests -q
+```
+
+Uses **no** `OPENAI_API_KEY` (rule path only) and a fixed test token from `tests/conftest.py`.
+
+## Legacy rows (main ASP.NET app)
+
+Older `Messages` rows may lack `AiSuggestedPriority` or have `AiModelVersion = unknown` while still having AI text fields. The main app runs **`MessageAiAssistBackfill.ApplyIfNeededAsync`** right after `Migrate()` on startup: it **idempotently** sets missing priority to `normal` and normalizes `unknown`/empty model version to `rule_v1` when a category is present. No manual SQL is required for typical dev databases.
 

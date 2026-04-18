@@ -12,11 +12,28 @@ internal sealed class NoOpAiMessageClassifier : IAiMessageClassifier
 {
     public Task<AiClassificationResult?> ClassifyAsync(
         Guid messageId,
+        string? subject,
         string content,
         string? senderRole,
         string source,
         CancellationToken ct = default) =>
         Task.FromResult<AiClassificationResult?>(null);
+}
+
+internal sealed class FixedAiMessageClassifier : IAiMessageClassifier
+{
+    private readonly AiClassificationResult _result;
+
+    public FixedAiMessageClassifier(AiClassificationResult result) => _result = result;
+
+    public Task<AiClassificationResult?> ClassifyAsync(
+        Guid messageId,
+        string? subject,
+        string content,
+        string? senderRole,
+        string source,
+        CancellationToken ct = default) =>
+        Task.FromResult<AiClassificationResult?>(_result);
 }
 
 public class MessageServiceTests : IAsyncLifetime
@@ -211,5 +228,90 @@ public class MessageServiceTests : IAsyncLifetime
         Assert.Equal(adminId, result.Message.ReviewedBy);
         Assert.NotNull(result.Message.ReviewedAt);
         Assert.InRange(result.Message.ReviewedAt!.Value, before, after);
+    }
+
+    [Fact]
+    public async Task ReassistAiAsync_NotFound_ReturnsNotFound()
+    {
+        var r = await _sut.ReassistAiAsync(Guid.NewGuid());
+        Assert.Equal(ReassistAiError.NotFound, r.Error);
+    }
+
+    [Fact]
+    public async Task ReassistAiAsync_ClassifierReturnsNull_ReturnsClassifierUnavailable()
+    {
+        var adminId = Guid.NewGuid();
+        var senderId = Guid.NewGuid();
+        _db.Users.AddRange(
+            new User { Id = adminId, Email = "a3@test", PasswordHash = "x", UserName = "A3", Role = UserRole.Admin, IsActive = true },
+            new User { Id = senderId, Email = "s3@test", PasswordHash = "x", UserName = "S3", Role = UserRole.Student, IsActive = true });
+
+        var msgId = Guid.NewGuid();
+        _db.Messages.Add(new Message
+        {
+            Id = msgId,
+            SenderUserId = senderId,
+            ReceiverUserId = adminId,
+            Subject = "Sub",
+            Content = "Body",
+            CreatedAt = DateTime.UtcNow
+        });
+        await _db.SaveChangesAsync();
+
+        var r = await _sut.ReassistAiAsync(msgId);
+        Assert.Equal(ReassistAiError.ClassifierUnavailable, r.Error);
+    }
+
+    [Fact]
+    public async Task ReassistAiAsync_ClassifierSucceeds_PersistsAiFields()
+    {
+        var adminId = Guid.NewGuid();
+        var senderId = Guid.NewGuid();
+        _db.Users.AddRange(
+            new User { Id = adminId, Email = "a4@test", PasswordHash = "x", UserName = "A4", Role = UserRole.Admin, IsActive = true },
+            new User { Id = senderId, Email = "s4@test", PasswordHash = "x", UserName = "S4", Role = UserRole.Student, IsActive = true });
+
+        var msgId = Guid.NewGuid();
+        _db.Messages.Add(new Message
+        {
+            Id = msgId,
+            SenderUserId = senderId,
+            ReceiverUserId = adminId,
+            Subject = "Hello",
+            Content = "Need help",
+            CreatedAt = DateTime.UtcNow
+        });
+        await _db.SaveChangesAsync();
+
+        var classifiedAt = new DateTime(2026, 4, 17, 12, 0, 0, DateTimeKind.Utc);
+        var sut = new MessageService(
+            _db,
+            new FixedAiMessageClassifier(
+                new AiClassificationResult
+                {
+                    Category = "course_inquiry",
+                    Confidence = 0.91,
+                    ModelVersion = "test_v1",
+                    ClassifiedAtUtc = classifiedAt,
+                    SuggestedPriority = "high",
+                    Summary = "Student asks about a course.",
+                    SuggestedReplyDraft = "Thanks for reaching out…",
+                    ExtractedJson = "{\"sentiment\":\"neutral\"}"
+                }));
+
+        var r = await sut.ReassistAiAsync(msgId);
+        Assert.Equal(ReassistAiError.None, r.Error);
+        Assert.NotNull(r.Message);
+        Assert.Equal("course_inquiry", r.Message!.AiSuggestedCategory);
+        Assert.Equal(0.91, r.Message.AiConfidence);
+        Assert.Equal("test_v1", r.Message.AiModelVersion);
+        Assert.Equal(classifiedAt, r.Message.AiClassifiedAtUtc);
+        Assert.Equal("high", r.Message.AiSuggestedPriority);
+        Assert.Equal("Student asks about a course.", r.Message.AiSummary);
+        Assert.Equal("Thanks for reaching out…", r.Message.AiSuggestedReplyDraft);
+        Assert.Equal("{\"sentiment\":\"neutral\"}", r.Message.AiExtractedJson);
+
+        var reloaded = await _db.Messages.AsNoTracking().FirstAsync(m => m.Id == msgId);
+        Assert.Equal("course_inquiry", reloaded.AiSuggestedCategory);
     }
 }

@@ -29,6 +29,18 @@ public class Message
     /// <summary>When AI classification was produced (UTC).</summary>
     public DateTime? AiClassifiedAtUtc { get; set; }
 
+    /// <summary>AI triage hint: normal, high, urgent (staff decides actual handling order).</summary>
+    public string? AiSuggestedPriority { get; set; }
+
+    /// <summary>Short plain-language summary for staff (AI assist, not authoritative).</summary>
+    public string? AiSummary { get; set; }
+
+    /// <summary>Optional suggested reply for staff to edit; never sent automatically by the system.</summary>
+    public string? AiSuggestedReplyDraft { get; set; }
+
+    /// <summary>Optional structured hints as JSON (e.g. sentiment, flags).</summary>
+    public string? AiExtractedJson { get; set; }
+
     /// <summary>Admin-confirmed category from fixed set (authoritative for reporting).</summary>
     public MessageCategory? FinalCategory { get; set; }
 

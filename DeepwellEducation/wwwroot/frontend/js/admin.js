@@ -52,7 +52,10 @@
         return d.innerHTML;
     }
 
-    /** Maps classifier output (often snake_case) to short, staff-facing labels. */
+    /**
+     * Maps classifier slugs to labels that line up with the Final category dropdown (4 options).
+     * AI service uses five buckets; technical_support + general_question both roll up to Final "Other".
+     */
     function aiCategoryHumanLabel(raw) {
         if (raw == null || String(raw).trim() === "") return "—";
         var k = String(raw)
@@ -60,11 +63,11 @@
             .toLowerCase()
             .replace(/\s+/g, "_");
         var map = {
-            general_question: "General question",
             course_inquiry: "Course inquiry",
-            technical_support: "Account or tech help",
             complaint: "Complaint",
             feedback: "Feedback",
+            general_question: "Other — general / unclear",
+            technical_support: "Other — account or tech",
             other: "Other"
         };
         if (map[k]) return map[k];
@@ -78,14 +81,13 @@
             .join(" ");
     }
 
-    /** Short plain sentence (second line) — avoids cryptic fragments like “topic · uncertain”. */
-    function aiConfidencePlainLine(conf) {
+    /** Short note when the topic guess looks weak (plain English for non-technical staff). */
+    function aiConfidenceFootnote(conf) {
         var n = Number(conf);
-        if (isNaN(n)) return "";
-        if (n >= 0.85) return "Likely a solid label.";
-        if (n >= 0.65) return "Probably fine — skim the message to confirm.";
-        if (n >= 0.45) return "Only a weak hint — please double-check.";
-        return "Not reliable here — trust your own reading of the message.";
+        if (isNaN(n) || n >= 0.72) return "";
+        if (n >= 0.5) return "This topic guess might be wrong — read the message to decide.";
+        if (n >= 0.35) return "The guess is unreliable — trust what you read, not the label.";
+        return "Only a rough guess — choose the category from the message yourself.";
     }
 
     /** Populated when a background AI job sets AiSuggestedCategory / AiConfidence on the message. */
@@ -94,22 +96,210 @@
         var hasConf = conf != null && conf !== "" && !isNaN(Number(conf));
         if (!hasCat && !hasConf) return "—";
         var topic = hasCat ? escapeHtmlAdmin(aiCategoryHumanLabel(String(aiCat).trim())) : "";
-        var note = hasConf ? escapeHtmlAdmin(aiConfidencePlainLine(Number(conf))) : "";
+        var note = hasConf ? escapeHtmlAdmin(aiConfidenceFootnote(Number(conf))) : "";
         if (hasCat && hasConf) {
+            var body =
+                '<div class="admin-ai-suggestion-topic">' +
+                '<span class="text-muted small font-weight-normal">Topic guess</span> · ' +
+                topic +
+                "</div>";
+            if (note) {
+                body +=
+                    '<div class="text-muted small admin-ai-suggestion-note mt-1">' +
+                    note +
+                    "</div>";
+            }
+            return '<div class="admin-ai-suggestion">' + body + "</div>";
+        }
+        if (hasCat) {
             return (
                 '<div class="admin-ai-suggestion">' +
                 '<div class="admin-ai-suggestion-topic">' +
+                '<span class="text-muted small font-weight-normal">Topic guess</span> · ' +
                 topic +
-                "</div>" +
-                '<div class="text-muted small admin-ai-suggestion-note">' +
-                note +
                 "</div></div>"
             );
         }
-        if (hasCat) {
-            return '<div class="admin-ai-suggestion"><div class="admin-ai-suggestion-topic">' + topic + "</div></div>";
-        }
         return '<div class="admin-ai-suggestion"><div class="text-muted small">' + note + "</div></div>";
+    }
+
+    function priorityRank(p) {
+        var v = String(p || "").toLowerCase();
+        if (v === "urgent") return 3;
+        if (v === "high") return 2;
+        if (v === "normal") return 1;
+        return 0;
+    }
+
+    /**
+     * Older rows may have topic/summary but null AiSuggestedPriority (column added later or partial save).
+     * Treat that as normal priority for display so the badge matches user expectation.
+     */
+    function effectiveSuggestedPriority(pri, aiCat, summary) {
+        var ps = pri != null && pri !== "" ? String(pri).trim().toLowerCase() : "";
+        if (ps === "urgent" || ps === "high" || ps === "normal") return ps;
+        var hasTopic = aiCat != null && String(aiCat).trim() !== "";
+        var hasSummary = summary != null && String(summary).trim() !== "";
+        if (hasTopic || hasSummary) return "normal";
+        return ps;
+    }
+
+    function formatPriorityLine(pri) {
+        var v = String(pri || "").toLowerCase();
+        var title = ' title="Priority: ' + escapeHtmlAdmin(v || "—") + '"';
+        if (v === "urgent") {
+            return '<span class="badge badge-danger"' + title + ">Time-sensitive</span>";
+        }
+        if (v === "high") {
+            return '<span class="badge badge-warning text-dark"' + title + ">Worth opening soon</span>";
+        }
+        if (v === "normal") {
+            return '<span class="badge badge-secondary"' + title + ">Normal</span>";
+        }
+        return "";
+    }
+
+    function extractedFieldLabel(key) {
+        var map = {
+            time_sensitive: "Mentions an urgent deadline?",
+            mentions_schedule_change: "Mentions a schedule or class change?",
+            mentions_payment_or_refund: "Mentions payment or a refund?",
+            student_reference: "Who / which student (if detected)",
+            main_request: "Main request (if detected)",
+            sentiment: "Tone (very rough)",
+            source: ""
+        };
+        if (map[key] !== undefined) return map[key];
+        return key.replace(/_/g, " ").replace(/\b\w/g, function (c) {
+            return c.toUpperCase();
+        });
+    }
+
+    function extractedValueHuman(key, val) {
+        if (val === true) return "Yes";
+        if (val === false) return "No";
+        if (val === null || val === undefined) return "—";
+        if (typeof val === "number") return String(val);
+        if (typeof val !== "string") return JSON.stringify(val);
+        var s = val.trim();
+        if (key === "sentiment") {
+            var m = {
+                calm: "Sounds calm",
+                concerned: "Sounds worried",
+                angry: "Sounds upset or angry",
+                unknown: "Hard to tell"
+            };
+            if (m[s.toLowerCase()]) return m[s.toLowerCase()];
+        }
+        return s;
+    }
+
+    /** Only show “flags” when at least one is actually useful (skip pages of “No / hard to tell”). */
+    function extractedRowsForDisplay(o) {
+        var rows = [];
+        function push(label, valueHtml) {
+            rows.push(
+                '<dt class="col-sm-5 text-muted small">' +
+                    escapeHtmlAdmin(label) +
+                    '</dt><dd class="col-sm-7 small">' +
+                    valueHtml +
+                    "</dd>"
+            );
+        }
+        if (o.main_request && String(o.main_request).trim()) {
+            push(extractedFieldLabel("main_request"), escapeHtmlAdmin(String(o.main_request).trim()));
+        }
+        if (o.student_reference && String(o.student_reference).trim()) {
+            push(extractedFieldLabel("student_reference"), escapeHtmlAdmin(String(o.student_reference).trim()));
+        }
+        if (o.mentions_schedule_change === true) {
+            push(extractedFieldLabel("mentions_schedule_change"), escapeHtmlAdmin("Yes"));
+        }
+        if (o.mentions_payment_or_refund === true) {
+            push(extractedFieldLabel("mentions_payment_or_refund"), escapeHtmlAdmin("Yes"));
+        }
+        if (o.time_sensitive === true) {
+            push(extractedFieldLabel("time_sensitive"), escapeHtmlAdmin("Yes"));
+        }
+        var sent = String(o.sentiment || "").toLowerCase();
+        if (sent === "concerned" || sent === "angry") {
+            push(extractedFieldLabel("sentiment"), escapeHtmlAdmin(extractedValueHuman("sentiment", o.sentiment)));
+        }
+        return rows;
+    }
+
+    function formatExtractedBlock(jsonStr) {
+        if (jsonStr == null || String(jsonStr).trim() === "") return "";
+        try {
+            var o = JSON.parse(String(jsonStr));
+            if (!o || typeof o !== "object") return "";
+            var rows = extractedRowsForDisplay(o);
+            if (!rows.length) return "";
+            return (
+                '<details class="admin-ai-block mt-1"><summary class="small">Worth a glance</summary>' +
+                '<dl class="row small mb-0 mt-2">' +
+                rows.join("") +
+                "</dl></details>"
+            );
+        } catch {
+            return "";
+        }
+    }
+
+    /** One row: queue badge + plain explanation (no version codes — staff are not engineers). */
+    function formatPriorityAndEngineLine(pri, modelVersion) {
+        var badge = formatPriorityLine(pri);
+        var v = String(modelVersion || "").trim();
+        var short = "Quick hint for this message.";
+        if (/rule/i.test(v)) {
+            short = "We looked for a few common words in the text.";
+        } else if (/langchain|openai|gpt/i.test(v)) {
+            short = "We used the fuller AI read of the message.";
+        } else if (/unknown/i.test(v)) {
+            short = "Older message — we didn’t keep how this was sorted.";
+        }
+        var hint = '<span class="text-muted small">' + escapeHtmlAdmin(short) + "</span>";
+        if (!badge && !v) return "";
+        if (!badge) {
+            return '<div class="mb-2 admin-ai-head">' + hint + "</div>";
+        }
+        return (
+            '<div class="mb-2 d-flex flex-wrap align-items-center admin-ai-head">' +
+            '<div class="mr-2 mb-1">' +
+            badge +
+            "</div>" +
+            '<div class="mb-1">' +
+            hint +
+            "</div></div>"
+        );
+    }
+
+    /** Category, confidence, optional priority, summary, draft (not sent), extracted JSON hints. */
+    function formatAiAssistCell(aiCat, conf, pri, summary, draft, extractedJson, modelVersion) {
+        var parts = [];
+        var priEff = effectiveSuggestedPriority(pri, aiCat, summary);
+        var head = formatPriorityAndEngineLine(priEff, modelVersion);
+        if (head) parts.push(head);
+        var core = formatAiSuggestionCell(aiCat, conf);
+        if (core !== "—") parts.push(core);
+        if (summary != null && String(summary).trim() !== "") {
+            parts.push(
+                '<details class="admin-ai-block mt-1"><summary class="small">Auto summary</summary><p class="small mb-0 mt-2 text-muted">' +
+                    escapeHtmlAdmin(String(summary)) +
+                    "</p></details>"
+            );
+        }
+        if (draft != null && String(draft).trim() !== "") {
+            parts.push(
+                '<details class="admin-ai-block mt-1"><summary class="small">Draft reply (for you to edit or ignore)</summary><p class="small mb-0 mt-2 admin-ai-draft">' +
+                    escapeHtmlAdmin(String(draft)) +
+                    "</p></details>"
+            );
+        }
+        var ex = formatExtractedBlock(extractedJson);
+        if (ex) parts.push(ex);
+        if (!parts.length) return "—";
+        return '<div class="admin-ai-assist">' + parts.join("") + "</div>";
     }
 
     function roleHuman(r) {
@@ -642,6 +832,26 @@
         }
         const items = page.items || page.Items || [];
         statusEl.textContent = contactMessagesSummaryText(items.length);
+        items.sort(function (a, b) {
+            var pa = priorityRank(
+                effectiveSuggestedPriority(
+                    pick(a, "aiSuggestedPriority", "AiSuggestedPriority"),
+                    pick(a, "aiSuggestedCategory", "AiSuggestedCategory"),
+                    pick(a, "aiSummary", "AiSummary")
+                )
+            );
+            var pb = priorityRank(
+                effectiveSuggestedPriority(
+                    pick(b, "aiSuggestedPriority", "AiSuggestedPriority"),
+                    pick(b, "aiSuggestedCategory", "AiSuggestedCategory"),
+                    pick(b, "aiSummary", "AiSummary")
+                )
+            );
+            if (pb !== pa) return pb - pa;
+            var da = new Date(pick(a, "createdAt", "CreatedAt") || 0).getTime();
+            var dbe = new Date(pick(b, "createdAt", "CreatedAt") || 0).getTime();
+            return dbe - da;
+        });
         items.forEach(function (m) {
             const tr = document.createElement("tr");
             const id = pick(m, "id", "Id");
@@ -654,10 +864,22 @@
                 escapeHtmlAdmin(contentRaw) +
                 "</pre></details>";
             const senderTopic = categoryHuman(pick(m, "senderSuggestedCategory", "SenderSuggestedCategory"));
-            const aiCell = formatAiSuggestionCell(
-                pick(m, "aiSuggestedCategory", "AiSuggestedCategory"),
-                pick(m, "aiConfidence", "AiConfidence")
+            const aiCatRaw = pick(m, "aiSuggestedCategory", "AiSuggestedCategory");
+            const aiCell = formatAiAssistCell(
+                aiCatRaw,
+                pick(m, "aiConfidence", "AiConfidence"),
+                pick(m, "aiSuggestedPriority", "AiSuggestedPriority"),
+                pick(m, "aiSummary", "AiSummary"),
+                pick(m, "aiSuggestedReplyDraft", "AiSuggestedReplyDraft"),
+                pick(m, "aiExtractedJson", "AiExtractedJson"),
+                pick(m, "aiModelVersion", "AiModelVersion")
             );
+            const needsReassist = aiCatRaw == null || String(aiCatRaw).trim() === "";
+            const reassistBlock = needsReassist
+                ? '<div class="mt-1"><button type="button" class="btn btn-link btn-sm p-0 msg-reassist-ai" data-id="' +
+                  escapeHtmlAdmin(String(id)) +
+                  '">Get AI assist</button><div class="text-muted small">Use if this message was sent without hints.</div></div>'
+                : "";
             const senderUserId = pick(m, "senderUserId", "SenderUserId");
             const senderUserName = (pick(m, "senderUserName", "SenderUserName") || "").trim();
             const senderLabel = senderUserName || "—";
@@ -682,7 +904,7 @@
                 "</td>" +
                 "<td>" + preview + "</td>" +
                 "<td>" + senderTopic + "</td>" +
-                "<td>" + aiCell + "</td>" +
+                "<td>" + aiCell + reassistBlock + "</td>" +
                 "<td>" + (isRead
                     ? "Yes"
                     : ('No <button type="button" class="btn btn-outline-primary btn-sm ml-2 msg-mark-read" data-id="' + id + '">Mark read</button>')) + "</td>" +
@@ -706,7 +928,7 @@
                 "Subject",
                 "Message",
                 "Sender topic",
-                "AI suggestion",
+                "AI assist",
                 "Read",
                 "Final category"
             ];
@@ -775,6 +997,27 @@
                 showAppFlash("admin-flash", "Message marked as read.", "success", 3000);
                 await renderMessages(options);
                 await refreshAdminInboxUnreadUi(false);
+            });
+        });
+
+        tbody.querySelectorAll(".msg-reassist-ai").forEach(function (btn) {
+            btn.addEventListener("click", async function () {
+                const id = btn.getAttribute("data-id");
+                if (!id) return;
+                btn.disabled = true;
+                const r = await reassistMessageAi(id);
+                if (!r.ok) {
+                    btn.disabled = false;
+                    showAppFlash(
+                        "admin-flash",
+                        r.message || "Could not get AI assist. Is the AI service running?",
+                        "danger",
+                        7000
+                    );
+                    return;
+                }
+                showAppFlash("admin-flash", "AI assist updated.", "success", 3000);
+                await renderMessages(options);
             });
         });
 

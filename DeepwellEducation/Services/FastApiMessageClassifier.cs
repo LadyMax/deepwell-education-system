@@ -1,4 +1,5 @@
 using System.Net.Http.Json;
+using System.Text.Json;
 using Microsoft.Extensions.Options;
 
 namespace DeepwellEducation.Services;
@@ -13,6 +14,15 @@ public sealed class FastApiMessageClassifier : IAiMessageClassifier
         "feedback",
         "general_question"
     };
+
+    private static readonly JsonSerializerOptions JsonRead = new()
+    {
+        PropertyNameCaseInsensitive = true
+    };
+
+    private const int MaxSummaryChars = 4000;
+    private const int MaxDraftChars = 12000;
+    private const int MaxExtractedJsonChars = 8000;
 
     private readonly HttpClient _http;
     private readonly AiClassifierOptions _options;
@@ -30,6 +40,7 @@ public sealed class FastApiMessageClassifier : IAiMessageClassifier
 
     public async Task<AiClassificationResult?> ClassifyAsync(
         Guid messageId,
+        string? subject,
         string content,
         string? senderRole,
         string source,
@@ -45,6 +56,7 @@ public sealed class FastApiMessageClassifier : IAiMessageClassifier
                 Content = JsonContent.Create(new ClassifyRequest
                 {
                     MessageId = messageId,
+                    Subject = string.IsNullOrWhiteSpace(subject) ? null : subject.Trim(),
                     Content = content,
                     SenderRole = senderRole,
                     Source = source
@@ -64,7 +76,7 @@ public sealed class FastApiMessageClassifier : IAiMessageClassifier
                 return null;
             }
 
-            var body = await res.Content.ReadFromJsonAsync<ClassifyResponse>(cancellationToken: ct);
+            var body = await res.Content.ReadFromJsonAsync<ClassifyResponse>(JsonRead, ct);
             if (body == null || string.IsNullOrWhiteSpace(body.Category))
             {
                 _logger.LogWarning("AI classify empty response for message {MessageId}", messageId);
@@ -95,6 +107,11 @@ public sealed class FastApiMessageClassifier : IAiMessageClassifier
             if (classifiedAtUtc.Kind != DateTimeKind.Utc)
                 classifiedAtUtc = DateTime.SpecifyKind(classifiedAtUtc, DateTimeKind.Utc);
 
+            var priority = NormalizePriority(body.Priority);
+            var summary = ClampOptionalString(body.Summary, MaxSummaryChars);
+            var draft = ClampOptionalString(body.SuggestedReplyDraft, MaxDraftChars);
+            var extractedJson = SerializeExtracted(body.Extracted);
+
             return new AiClassificationResult
             {
                 Category = category,
@@ -102,7 +119,11 @@ public sealed class FastApiMessageClassifier : IAiMessageClassifier
                 ModelVersion = string.IsNullOrWhiteSpace(body.ModelVersion) ? "unknown" : body.ModelVersion.Trim(),
                 ClassifiedAtUtc = classifiedAtUtc,
                 DetectedLanguage = body.DetectedLanguage,
-                SuggestedLevel = body.SuggestedLevel
+                SuggestedLevel = body.SuggestedLevel,
+                SuggestedPriority = priority,
+                Summary = summary,
+                SuggestedReplyDraft = draft,
+                ExtractedJson = extractedJson
             };
         }
         catch (Exception ex)
@@ -112,9 +133,37 @@ public sealed class FastApiMessageClassifier : IAiMessageClassifier
         }
     }
 
+    private static string NormalizePriority(string? raw)
+    {
+        if (string.IsNullOrWhiteSpace(raw))
+            return "normal";
+        var p = raw.Trim().ToLowerInvariant();
+        return p is "urgent" or "high" or "normal" ? p : "normal";
+    }
+
+    private static string? ClampOptionalString(string? value, int maxChars)
+    {
+        if (string.IsNullOrWhiteSpace(value))
+            return null;
+        var t = value.Trim();
+        return t.Length <= maxChars ? t : t[..maxChars];
+    }
+
+    private static string? SerializeExtracted(JsonElement extracted)
+    {
+        if (extracted.ValueKind is JsonValueKind.Undefined or JsonValueKind.Null)
+            return null;
+        if (extracted.ValueKind is not (JsonValueKind.Object or JsonValueKind.Array))
+            return null;
+
+        var text = extracted.GetRawText();
+        return text.Length <= MaxExtractedJsonChars ? text : text[..MaxExtractedJsonChars];
+    }
+
     private sealed class ClassifyRequest
     {
         public Guid MessageId { get; init; }
+        public string? Subject { get; init; }
         public string Content { get; init; } = "";
         public string? SenderRole { get; init; }
         public string Source { get; init; } = "web_portal";
@@ -128,6 +177,10 @@ public sealed class FastApiMessageClassifier : IAiMessageClassifier
         public DateTime? ClassifiedAtUtc { get; init; }
         public string? DetectedLanguage { get; init; }
         public string? SuggestedLevel { get; init; }
+        public string? Priority { get; init; }
+        public string? Summary { get; init; }
+        public string? SuggestedReplyDraft { get; init; }
+        public JsonElement Extracted { get; init; }
     }
 }
 
@@ -139,4 +192,3 @@ public sealed class AiClassifierOptions
     public string? InternalToken { get; set; }
     public int TimeoutSeconds { get; set; } = 5;
 }
-

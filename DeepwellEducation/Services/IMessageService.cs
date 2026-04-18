@@ -29,6 +29,9 @@ public interface IMessageService
     /// <summary>Admin sets final category and review metadata.</summary>
     Task<CategorizeResult> CategorizeAsync(Guid messageId, Guid adminUserId, MessageCategory finalCategory, CancellationToken ct = default);
 
+    /// <summary>Admin: re-run the optional AI classifier to populate or refresh AI assist fields.</summary>
+    Task<ReassistAiResult> ReassistAiAsync(Guid messageId, CancellationToken ct = default);
+
     /// <summary>All messages for admin console with optional filters (mutually exclusive), paginated.</summary>
     Task<PagedResult<MessageAdminItemDto>> GetAllForAdminAsync(
         bool uncategorizedOnly,
@@ -61,6 +64,13 @@ public enum MarkReadError
     NotReceiver
 }
 
+public enum ReassistAiError
+{
+    None,
+    NotFound,
+    ClassifierUnavailable
+}
+
 public sealed class SendMessageResult
 {
     public Message? Message { get; init; }
@@ -86,6 +96,15 @@ public sealed class MarkReadResult
 
     public static MarkReadResult Ok(Message message) => new() { Message = message, Error = MarkReadError.None };
     public static MarkReadResult Fail(MarkReadError error) => new() { Error = error };
+}
+
+public sealed class ReassistAiResult
+{
+    public Message? Message { get; init; }
+    public ReassistAiError Error { get; init; }
+
+    public static ReassistAiResult Ok(Message message) => new() { Message = message, Error = ReassistAiError.None };
+    public static ReassistAiResult Fail(ReassistAiError error) => new() { Error = error };
 }
 
 public sealed class MessageInboxItemDto
@@ -136,6 +155,10 @@ public sealed class MessageAdminItemDto
     public double? AiConfidence { get; init; }
     public string? AiModelVersion { get; init; }
     public DateTime? AiClassifiedAtUtc { get; init; }
+    public string? AiSuggestedPriority { get; init; }
+    public string? AiSummary { get; init; }
+    public string? AiSuggestedReplyDraft { get; init; }
+    public string? AiExtractedJson { get; init; }
     public MessageCategory? FinalCategory { get; init; }
     public Guid? ReviewedBy { get; init; }
     public DateTime? ReviewedAt { get; init; }

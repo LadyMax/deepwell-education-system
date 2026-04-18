@@ -198,7 +198,7 @@ body.page-admin #msg-table td:nth-child(2) {
 
 body.page-admin #msg-table th:nth-child(3),
 body.page-admin #msg-table td:nth-child(3) {
-  width: 24%;
+  width: 17%;
 }
 
 body.page-admin #msg-table th:nth-child(4),
@@ -207,17 +207,17 @@ body.page-admin #msg-table td:nth-child(4) {
 }
 
 body.page-admin #msg-table th:nth-child(5) {
-  width: 18%;
+  width: 28%;
   min-width: 0;
-  white-space: nowrap;
+  white-space: normal;
   overflow: hidden;
-  text-overflow: ellipsis;
+  text-overflow: clip;
   word-break: normal;
-  overflow-wrap: normal;
+  overflow-wrap: break-word;
 }
 
 body.page-admin #msg-table td:nth-child(5) {
-  width: 18%;
+  width: 28%;
   min-width: 0;
   white-space: normal;
   overflow: visible;
@@ -235,6 +235,10 @@ body.page-admin #msg-table .admin-ai-suggestion-note {
   display: block;
   margin-top: 0.2rem;
   line-height: 1.35;
+}
+
+body.page-admin #msg-table .admin-ai-assist .admin-ai-draft {
+  white-space: pre-wrap;
 }
 
 body.page-admin #msg-table th:nth-child(6),

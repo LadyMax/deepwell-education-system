@@ -1,4 +1,3 @@
-// course.html: catalog URL sync, hide language cards when ?lang=, render via DeepwellCourse.
 (function () {
     document.addEventListener('DOMContentLoaded', function () {
         var params = new URLSearchParams(window.location.search);

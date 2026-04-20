@@ -1,7 +1,5 @@
-// Same origin as the site; works with any launch port.
 const baseUrl = `${window.location.origin}/api`;
 
-/** Prefer camelCase key `a`, fallback PascalCase `b` (.NET JSON). */
 function pick(o, a, b) {
     if (!o) return "";
     return o[a] !== undefined ? o[a] : o[b];
@@ -14,7 +12,6 @@ function authHeaders() {
     return h;
 }
 
-/** @returns {string|number|null} JWT role claim, or null */
 function getAuthRoleFromToken() {
     const token = localStorage.getItem("token");
     if (!token) return null;
@@ -32,7 +29,6 @@ function getAuthRoleFromToken() {
     }
 }
 
-/** Staff (admin) accounts use the dashboard; they do not submit learner course applications. */
 function isStaffAdminAccount() {
     const r = getAuthRoleFromToken();
     return r === "Admin" || r === 2;
@@ -101,7 +97,6 @@ function evaluatePasswordRules(password) {
     };
 }
 
-/** Client-side mirror of server password policy. Returns empty string if valid. */
 function validatePasswordPolicy(password) {
     const r = evaluatePasswordRules(password);
     if (!r.minLen) return "Password must be at least 8 characters.";
@@ -248,7 +243,6 @@ async function getInbox(page = 1, pageSize = 20) {
     return response.json();
 }
 
-/** Messages where you are the receiver and ReadAt is null. */
 async function getInboxUnreadCount() {
     const response = await fetch(`${baseUrl}/Messages/inbox/unread-count`, {
         headers: authHeaders()
@@ -296,7 +290,6 @@ async function sendMessage(subject, content, receiverUserId, senderSuggestedCate
     }
 }
 
-/** RequestType.Join = 0, Leave = 1 */
 async function submitCourseRequest(courseId, type) {
     const response = await fetch(`${baseUrl}/CourseRequests`, {
         method: "POST",
@@ -339,6 +332,30 @@ async function getAdminUserDetail(userId) {
     return { ok: true, data: await response.json() };
 }
 
+async function getAdminUsersList(options = {}) {
+    const params = new URLSearchParams();
+    const q = (options.q || "").trim();
+    if (q) params.set("q", q);
+    if (options.role !== undefined && options.role !== null && options.role !== "") {
+        params.set("role", String(options.role));
+    }
+    params.set("page", String(options.page || 1));
+    params.set("pageSize", String(options.pageSize || 20));
+    const response = await fetch(`${baseUrl}/admin/users?${params.toString()}`, {
+        headers: authHeaders()
+    });
+    if (response.status === 403) return { forbidden: true, items: [], totalCount: 0, page: 1, pageSize: 20, totalPages: 0 };
+    if (!response.ok) return { error: await response.text(), items: [], totalCount: 0, page: 1, pageSize: 20, totalPages: 0 };
+    const data = await response.json();
+    return {
+        items: data.items || data.Items || [],
+        totalCount: data.totalCount ?? data.TotalCount ?? 0,
+        page: data.page ?? data.Page ?? 1,
+        pageSize: data.pageSize ?? data.PageSize ?? 20,
+        totalPages: data.totalPages ?? data.TotalPages ?? 0
+    };
+}
+
 async function getAdminMessages(options = {}) {
     const page = options.page || 1;
     const pageSize = options.pageSize || 20;
@@ -364,7 +381,6 @@ async function categorizeMessage(id, finalCategory) {
     return { ok: true, data: await response.json() };
 }
 
-/** Admin: fill or refresh AI assist fields for one message (requires ai-service when enabled). */
 async function reassistMessageAi(id) {
     const response = await fetch(`${baseUrl}/Messages/${encodeURIComponent(id)}/reassist-ai`, {
         method: "POST",
@@ -379,10 +395,6 @@ async function reassistMessageAi(id) {
     return { ok: true };
 }
 
-/**
- * Admin request list filters.
- * Backward compatible: a string argument is treated as status.
- */
 async function getCourseRequests(filtersOrStatus) {
     const params = new URLSearchParams();
     if (typeof filtersOrStatus === "string") {
@@ -416,11 +428,6 @@ async function reviewCourseRequest(id, approve) {
     return { ok: true, data: body.json || {} };
 }
 
-/**
- * Inline banner (replaces alert). variant: success | danger | warning | info | inbox
- * @param {number} [autoHideMs]  Auto-hide after this many ms (>0). Omit to keep visible.
- * @param {string} [flashKind]  Optional tag (e.g. "inbox-unread") for dismissFlashByKind.
- */
 function showAppFlash(elementId, message, variant, autoHideMs, flashKind) {
     const el = document.getElementById(elementId);
     if (!el) return;
@@ -442,7 +449,6 @@ function showAppFlash(elementId, message, variant, autoHideMs, flashKind) {
     }
 }
 
-/** Hide a flash only if it was shown with the same flashKind (see showAppFlash). */
 function dismissFlashByKind(elementId, kind) {
     const el = document.getElementById(elementId);
     if (!el || el.dataset.deepwellFlashKind !== kind) return;

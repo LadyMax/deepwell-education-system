@@ -1,11 +1,7 @@
-/*  Student / Admin Dashboard Shell */
-
-/* Inner public pages (my account): template body; admin keeps dashboard tint */
 body.page-student {
   min-height: 100vh;
 }
 
-/* My account: same tokens as inner pages (.panel supplies --site-main-panel-margin-top) */
 body.page-student .student-account-wrap {
   padding-top: var(--site-content-wrap-padding-top);
   padding-bottom: 2.5rem;
@@ -21,14 +17,10 @@ body.page-admin {
   min-height: 100vh;
 }
 
-/* Staff dashboard can use a wider content area than learner pages. */
 body.page-admin .admin-dashboard-panel {
   max-width: min(1520px, calc(100vw - 1.5rem));
 }
 
-/*
- * Staff dashboard: use default Bootstrap .custom-select; only fix flex row stretching here.
- */
 body.page-admin #msg-final-filter {
   flex: 0 0 auto;
   max-width: min(14rem, 100%);

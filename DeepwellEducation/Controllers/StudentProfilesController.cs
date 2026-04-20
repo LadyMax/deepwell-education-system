@@ -63,9 +63,10 @@ public class StudentProfilesController : ControllerBase
         var firstName = (body.FirstName ?? string.Empty).Trim();
         var lastName = (body.LastName ?? string.Empty).Trim();
         var phone = (body.Phone ?? string.Empty).Trim();
+        var city = (body.City ?? string.Empty).Trim();
         var address = (body.Address ?? string.Empty).Trim();
 
-        if (firstName.Length > 100 || lastName.Length > 100 || phone.Length > 32 || address.Length > 200)
+        if (firstName.Length > 100 || lastName.Length > 100 || phone.Length > 32 || city.Length > 100 || address.Length > 200)
             return BadRequest("One or more fields exceed the allowed length.");
 
         if (body.DateOfBirth.HasValue)
@@ -79,6 +80,7 @@ public class StudentProfilesController : ControllerBase
         profile.LastName = lastName;
         profile.Phone = phone;
         profile.DateOfBirth = body.DateOfBirth?.Date;
+        profile.City = city;
         profile.Address = address;
         profile.UpdatedAt = DateTime.UtcNow;
 
@@ -95,6 +97,7 @@ public class StudentProfileDto
     public string LastName { get; set; } = "";
     public string Phone { get; set; } = "";
     public DateTime? DateOfBirth { get; set; }
+    public string City { get; set; } = "";
     public string Address { get; set; } = "";
     public DateTime CreatedAt { get; set; }
     public DateTime? UpdatedAt { get; set; }
@@ -109,6 +112,7 @@ public class StudentProfileDto
         LastName = p.LastName;
         Phone = p.Phone;
         DateOfBirth = p.DateOfBirth;
+        City = p.City;
         Address = p.Address;
         CreatedAt = p.CreatedAt;
         UpdatedAt = p.UpdatedAt;
@@ -121,5 +125,6 @@ public class UpdateStudentProfileRequest
     public string? LastName { get; set; }
     public string? Phone { get; set; }
     public DateTime? DateOfBirth { get; set; }
+    public string? City { get; set; }
     public string? Address { get; set; }
 }

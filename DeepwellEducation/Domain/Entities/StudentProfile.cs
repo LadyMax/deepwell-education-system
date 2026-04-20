@@ -18,6 +18,9 @@ public class StudentProfile
 
     public DateTime? DateOfBirth { get; set; }
 
+    /// <summary>City or town (separate from street address).</summary>
+    public string City { get; set; } = string.Empty;
+
     public string Address { get; set; } = string.Empty;
 
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;

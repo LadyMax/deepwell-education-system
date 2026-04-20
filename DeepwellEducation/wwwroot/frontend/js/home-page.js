@@ -1,4 +1,3 @@
-// index.html: featured beginner courses grid.
 (function () {
     document.addEventListener('DOMContentLoaded', function () {
         var row = document.getElementById('home-popular-courses');

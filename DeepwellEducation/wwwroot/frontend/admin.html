@@ -4,12 +4,13 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Staff dashboard — Deepwell Education</title>
-  <link rel="icon" href="./images/Deepwell.png" type="image/png">
+  <link rel="icon" href="images/Deepwell.png" type="image/png">
   <link rel="preconnect" href="https://fonts.gstatic.com">
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.10.0/css/all.min.css" rel="stylesheet">
-  <link rel="stylesheet" href="./css/app.css?v=20260419c">
-  <script src="./js/layout.js" defer></script>
+  <link rel="stylesheet" href="css/app.css?v=20260419c">
+  <script src="js/shared-dom.js?v=20260422a"></script>
+  <script src="js/layout.js" defer></script>
 </head>
 <body class="page-admin">
   <div id="site-header"></div>
@@ -25,6 +26,7 @@
           <button type="button" class="btn btn-outline-primary" data-admin-pane-btn="messages">Messages <span id="admin-msg-unread-badge" class="inbox-unread-badge inbox-unread-badge--admin d-none" aria-label="Unread inbox"></span></button>
           <button type="button" class="btn btn-outline-primary" data-admin-pane-btn="courses">Courses</button>
           <button type="button" class="btn btn-outline-primary" data-admin-pane-btn="enrollments">Students by course</button>
+          <button type="button" class="btn btn-outline-primary" data-admin-pane-btn="users">Search user</button>
           <button type="button" class="btn btn-outline-primary" data-admin-pane-btn="account">Account security</button>
         </nav>
 
@@ -61,19 +63,19 @@
           </div>
           <div class="col-sm-6 col-md-3">
             <label for="cr-filter-applicant" class="form-label small mb-1">Applicant</label>
-            <input type="text" id="cr-filter-applicant" class="form-control form-control-sm" placeholder="Name / email / student no.">
+            <input type="text" id="cr-filter-applicant" class="form-control form-control-sm" placeholder="Username / Email / Student number">
           </div>
           <div class="col-sm-6 col-md-2">
             <label for="cr-sort-created" class="form-label small mb-1">Created</label>
             <select id="cr-sort-created" class="custom-select custom-select-sm">
-              <option value="desc">Newest first</option>
-              <option value="asc">Oldest first</option>
+              <option value="desc">Newest</option>
+              <option value="asc">Oldest</option>
             </select>
           </div>
         </div>
         <div class="d-flex flex-wrap gap-2 mb-3">
-          <button type="button" class="btn btn-outline-primary btn-sm" id="btn-cr-apply-filters">Apply filters</button>
-          <button type="button" class="btn btn-outline-secondary btn-sm" id="btn-cr-reset-filters">Reset</button>
+          <button type="button" class="btn btn-outline-primary btn-sm" id="btn-cr-apply-filters">Search</button>
+          <button type="button" class="btn btn-outline-secondary btn-sm" id="btn-cr-reset-filters">Clear filters</button>
         </div>
         <details class="admin-advanced small mb-3">
           <summary>Look up one request by reference id</summary>
@@ -101,7 +103,7 @@
         </section>
 
         <section class="admin-section d-none" data-admin-pane-id="messages" aria-labelledby="admin-msg-heading">
-        <h2 class="h5 mb-3" id="admin-msg-heading">Contact messages</h2>
+        <h2 class="h5 mb-3" id="admin-msg-heading">Messages</h2>
         <div class="d-flex flex-wrap gap-2 align-items-center mb-2">
           <button type="button" class="btn btn-primary btn-sm" id="btn-load-msg-all">All messages</button>
           <button type="button" class="btn btn-outline-primary btn-sm" id="btn-load-msg-new">New messages</button>
@@ -131,7 +133,7 @@
           <div class="modal-dialog modal-dialog-scrollable" role="document">
             <div class="modal-content">
               <div class="modal-header">
-                <h5 class="modal-title" id="admin-user-detail-title">User profile</h5>
+                <h5 class="modal-title" id="admin-user-detail-title">Account details</h5>
                 <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                   <span aria-hidden="true">&times;</span>
                 </button>
@@ -148,13 +150,13 @@
         <div class="form-row mb-3">
           <div class="col-12">
             <span class="form-label small text-muted d-block mb-1">Editing</span>
-            <p id="course-selected-summary" class="form-control-plaintext border rounded px-3 py-2 mb-0 bg-light small" role="status">No course selected — click a row in the table below.</p>
+            <p id="course-selected-summary" class="form-control-plaintext border rounded px-3 py-2 mb-0 bg-light small" role="status">No course selected</p>
             <input type="hidden" id="course-id" value="">
-            <button type="button" class="btn btn-link btn-sm p-0 mt-1 d-none" id="btn-course-clear-selection" aria-label="Clear course selection">Clear selection</button>
+            <button type="button" class="btn btn-link btn-sm p-0 mt-1 d-none" id="btn-course-clear-selection" aria-label="Clear course selection">Clear</button>
           </div>
           <div class="col-md-4"><input id="course-name" class="form-control form-control-sm" placeholder="Course name"></div>
           <div class="col-md-2"><input id="course-language-code" class="form-control form-control-sm" placeholder="Code (e.g. en)" maxlength="16"></div>
-          <div class="col-md-3"><input id="course-language-name" class="form-control form-control-sm" placeholder="Language label (English, e.g. German)"></div>
+          <div class="col-md-3"><input id="course-language-name" class="form-control form-control-sm" placeholder="Language"></div>
           <div class="col-md-3">
             <div class="admin-select-apply">
               <select id="course-level" class="custom-select custom-select-sm" aria-label="Level">
@@ -165,7 +167,7 @@
               <button type="button" class="btn btn-outline-secondary btn-sm btn-admin-confirm" id="btn-course-apply-level" disabled>Confirm</button>
             </div>
           </div>
-          <div class="col-12"><textarea id="course-desc" class="form-control form-control-sm" rows="2" placeholder="Short description for learners"></textarea></div>
+          <div class="col-12"><textarea id="course-desc" class="form-control form-control-sm" rows="2" placeholder="Description"></textarea></div>
           <div class="col-md-2"><button type="button" class="btn btn-primary btn-sm w-100" id="btn-course-create">Add course</button></div>
           <div class="col-md-2"><button type="button" class="btn btn-outline-primary btn-sm w-100" id="btn-course-update" disabled>Save changes</button></div>
           <div class="col-md-2"><button type="button" class="btn btn-outline-danger btn-sm w-100" id="btn-course-delete" disabled>Deactivate</button></div>
@@ -184,7 +186,7 @@
         <div class="table-responsive">
           <table class="table table-sm table-striped table-bordered table-hover d-none" id="course-table">
             <thead class="table-light">
-              <tr><th>Course</th><th>Language</th><th>Level</th><th>On site</th></tr>
+              <tr><th>Course</th><th>Language</th><th>Level</th><th>Available</th></tr>
             </thead>
             <tbody id="course-body"></tbody>
           </table>
@@ -197,18 +199,71 @@
         <div class="d-flex flex-wrap gap-2 align-items-center mb-2 admin-enr-toolbar">
           <div class="admin-select-apply admin-select-apply--enroll-toolbar">
             <select id="enr-course-select" class="custom-select custom-select-sm" aria-label="Choose a course to see its student list">
-              <option value="">Choose a course…</option>
+              <option value="">Choose a course</option>
             </select>
-            <button type="button" class="btn btn-outline-secondary btn-sm btn-admin-confirm" id="btn-enr-load">Confirm</button>
+            <button type="button" class="btn btn-outline-secondary btn-sm btn-admin-confirm" id="btn-enr-load">Search</button>
           </div>
           <span id="enr-status" class="small text-muted admin-enr-status"></span>
         </div>
         <div class="table-responsive">
           <table class="table table-sm table-striped table-bordered d-none" id="enr-table">
             <thead class="table-light">
-              <tr><th>Sign-in email</th><th>Username</th><th>Student number</th><th>Role</th><th>Joined on</th></tr>
+              <tr><th>Username</th><th>Email</th><th>Student number</th><th>Type</th><th>Joined on</th></tr>
             </thead>
             <tbody id="enr-body"></tbody>
+          </table>
+        </div>
+        </section>
+
+        <section class="admin-section d-none" data-admin-pane-id="users" aria-labelledby="admin-users-heading">
+        <h2 class="h5 mb-3" id="admin-users-heading">Search user</h2>
+        <div class="form-row align-items-end mb-2">
+          <div class="col-sm-6 col-md-4">
+            <label for="admin-users-q" class="form-label small mb-1">Search</label>
+            <input type="text" id="admin-users-q" class="form-control form-control-sm" placeholder="Email or username" autocomplete="off">
+          </div>
+          <div class="col-sm-6 col-md-3">
+            <label for="admin-users-role" class="form-label small mb-1">Account type</label>
+            <select id="admin-users-role" class="custom-select custom-select-sm">
+              <option value="">All types</option>
+              <option value="0">Visitor</option>
+              <option value="1">Student</option>
+              <option value="2">Administrator</option>
+            </select>
+          </div>
+          <div class="col-sm-6 col-md-3">
+            <label for="admin-users-page-size" class="form-label small mb-1">Rows per page</label>
+            <select id="admin-users-page-size" class="custom-select custom-select-sm">
+              <option value="10">10</option>
+              <option value="20" selected>20</option>
+              <option value="50">50</option>
+            </select>
+          </div>
+          <div class="col-sm-6 col-md-2 d-flex flex-wrap gap-1">
+            <button type="button" class="btn btn-primary btn-sm" id="btn-admin-users-search">Search</button>
+            <button type="button" class="btn btn-outline-secondary btn-sm" id="btn-admin-users-reset">Clear filters</button>
+          </div>
+        </div>
+        <div id="admin-users-status" class="small text-muted mb-2" role="status"></div>
+        <div class="d-flex flex-wrap align-items-center gap-2 mb-2 d-none" id="admin-users-pager">
+          <button type="button" class="btn btn-outline-secondary btn-sm" id="btn-admin-users-prev" disabled>Previous</button>
+          <span id="admin-users-page-info" class="small text-muted"></span>
+          <button type="button" class="btn btn-outline-secondary btn-sm" id="btn-admin-users-next" disabled>Next</button>
+        </div>
+        <div class="table-responsive">
+          <table class="table table-sm table-striped table-bordered d-none" id="admin-users-table">
+            <thead class="table-light">
+              <tr>
+                <th>Email</th>
+                <th>Username</th>
+                <th>Account type</th>
+                <th>Student number</th>
+                <th>Active</th>
+                <th>Joined</th>
+                <th class="admin-users-actions-col">Profile</th>
+              </tr>
+            </thead>
+            <tbody id="admin-users-body"></tbody>
           </table>
         </div>
         </section>
@@ -257,8 +312,16 @@
   <div id="site-footer"></div>
   <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
   <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.bundle.min.js"></script>
-  <script src="./js/main.js"></script>
-  <script src="./js/api.js?v=20260419g"></script>
-  <script src="./js/admin.js?v=20260419h"></script>
+  <script src="js/main.js"></script>
+  <script src="js/api.js?v=20260420d"></script>
+  <script src="js/shared-password-ui.js?v=20260422a"></script>
+  <script src="js/shared-dashboard.js?v=20260422a"></script>
+  <script src="js/admin-common.js?v=20260422g"></script>
+  <script src="js/admin-ai-format.js?v=20260422g"></script>
+  <script src="js/admin-users.js?v=20260422h"></script>
+  <script src="js/admin-course-requests.js?v=20260422g"></script>
+  <script src="js/admin-courses.js?v=20260422g"></script>
+  <script src="js/admin-messages.js?v=20260422g"></script>
+  <script src="js/admin.js?v=20260422g"></script>
 </body>
 </html>

@@ -10,6 +10,8 @@
     }
 
     function escapeHtml(text) {
+        var D = window.DeepwellDom;
+        if (D && typeof D.escapeHtml === 'function') return D.escapeHtml(text);
         return String(text || '')
             .replace(/&/g, '&amp;')
             .replace(/</g, '&lt;')
@@ -167,17 +169,13 @@
 
         try {
             await Promise.all(tasks);
-        } catch (e) {
-            // Silent failure: page still usable without shared chrome.
-            // Consider logging during development if needed.
-        }
+        } catch (e) {}
 
         const navRoot = document.querySelector('[data-site-nav]');
         const authSlot = document.getElementById('auth-nav-slot');
         let me = null;
         const token = getToken();
         if (token) {
-            // Immediate UI update from token so nav does not stay on "Login".
             me = userFromToken(token);
             renderAuthNav(authSlot, me);
 
@@ -195,7 +193,6 @@
         bindAccountMenu(authSlot);
     }
 
-    /** After changing username on account pages, refresh the header “Hi, …” label. */
     window.deepwellRefreshAuthNav = async function () {
         const authSlot = document.getElementById('auth-nav-slot');
         const token = getToken();

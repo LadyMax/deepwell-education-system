@@ -1,7 +1,6 @@
 (function ($) {
     "use strict";
-    
-    // Dropdown on mouse hover
+
     $(document).ready(function () {
         function toggleNavbarMethod() {
             if ($(window).width() > 992) {
@@ -17,9 +16,7 @@
         toggleNavbarMethod();
         $(window).resize(toggleNavbarMethod);
     });
-    
-    
-    // Back to top button
+
     $(window).scroll(function () {
         if ($(this).scrollTop() > 100) {
             $('.back-to-top').fadeIn('slow');

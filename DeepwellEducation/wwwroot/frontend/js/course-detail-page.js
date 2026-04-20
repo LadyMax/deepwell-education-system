@@ -1,4 +1,3 @@
-// course-detail.html: load course by ?id=.
 (function () {
     document.addEventListener('DOMContentLoaded', function () {
         if (!window.DeepwellCourse || typeof DeepwellCourse.renderDetail !== 'function') return;

@@ -33,7 +33,9 @@ See `docs/frontend-pages.md` for frontend page-level inventory.
    - `dotnet build`
 2. Run tests:
    - `dotnet test "DeepwellEducation.Tests/DeepwellEducation.Tests.csproj"`
-3. Run app:
+   - Python classifier (from `ai-service/`): `pip install -r requirements.txt -r requirements-dev.txt` then `pytest tests/ -v`
+3. Continuous integration: on GitHub, pushes and pull requests run `.github/workflows/ci.yml` (dotnet test + ai-service pytest).
+4. Run app:
    - `dotnet run --project "DeepwellEducation/DeepwellEducation.csproj"`
 
 ## Configuration Notes

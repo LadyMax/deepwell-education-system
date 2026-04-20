@@ -11,6 +11,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.10.0/css/all.min.css" rel="stylesheet">
   <link href="css/app.css?v=20260417b" rel="stylesheet">
+  <script src="js/shared-dom.js?v=20260422a"></script>
   <script src="js/layout.js" defer></script>
 </head>
 <body class="page-student">
@@ -71,7 +72,7 @@
               </div>
               <p class="mb-1"><strong>Email:</strong> <span id="profile-email"></span></p>
               <p id="profile-student-number-row" class="mb-1 d-none"><strong>Student number:</strong> <span id="profile-student-number"></span></p>
-              <p class="mb-0"><strong>Role:</strong> <span id="profile-role"></span></p>
+              <p class="mb-0"><strong>Account type:</strong> <span id="profile-role"></span></p>
               <p id="profile-details-note" class="small text-muted mt-2 mb-0 d-none"></p>
 
               <div id="profile-details-section" class="d-none">
@@ -103,9 +104,13 @@
                           <label for="profile-dob" class="mb-1">Date of birth</label>
                           <input type="date" id="profile-dob" class="form-control form-control-sm">
                         </div>
+                        <div class="form-group col-md-6">
+                          <label for="profile-city" class="mb-1">City</label>
+                          <input type="text" id="profile-city" class="form-control form-control-sm" maxlength="100" placeholder="e.g. Toronto">
+                        </div>
                         <div class="form-group col-12 mb-0">
-                          <label for="profile-address" class="mb-1">Address</label>
-                          <input type="text" id="profile-address" class="form-control form-control-sm" maxlength="200">
+                          <label for="profile-address" class="mb-1">Street address</label>
+                          <input type="text" id="profile-address" class="form-control form-control-sm" maxlength="200" placeholder="Building, street, unit">
                         </div>
                       </div>
                       <div class="mt-2">
@@ -266,7 +271,12 @@
   <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
   <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.bundle.min.js"></script>
   <script src="js/main.js"></script>
-  <script src="./js/api.js?v=20260417e"></script>
-  <script src="./js/student.js?v=20260418n"></script>
+  <script src="js/api.js?v=20260417e"></script>
+  <script src="js/shared-password-ui.js?v=20260422a"></script>
+  <script src="js/shared-dashboard.js?v=20260422a"></script>
+  <script src="js/student-enrollments.js?v=20260423a"></script>
+  <script src="js/student-messages.js?v=20260423a"></script>
+  <script src="js/student-profile.js?v=20260423a"></script>
+  <script src="js/student.js?v=20260423a"></script>
 </body>
 </html>

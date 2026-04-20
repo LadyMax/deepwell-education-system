@@ -16,7 +16,21 @@ pip install -r requirements.txt
 uvicorn main:app --host 127.0.0.1 --port 8000 --reload
 ```
 
-PowerShell (no `.env` file):
+### PowerShell (Windows, each time you start the service)
+
+After the venv exists and dependencies are installed, from a new terminal:
+
+```powershell
+cd c:\Users\brend\source\repos\DeepwellEducation\ai-service
+.\.venv\Scripts\Activate.ps1
+uvicorn main:app --host 127.0.0.1 --port 8000 --reload
+```
+
+If your repo is checked out elsewhere, change the `cd` path to your local `ai-service` folder (or `cd ai-service` from the repository root).
+
+**Exit the virtual environment:** in the same terminal, run `deactivate`. Closing the terminal window also ends the activated session.
+
+PowerShell without a `.env` file (set variables before `uvicorn` if needed):
 
 ```powershell
 $env:INTERNAL_TOKEN = "dev-internal-token"

@@ -183,8 +183,13 @@ namespace DeepwellEducation
 
             app.MapControllers();
 
-            using (var scope = app.Services.CreateScope())
+            app.Lifetime.ApplicationStarted.Register(() =>
+                Console.WriteLine("Application startup completed."));
+
+            var runStartupTasks = builder.Configuration.GetValue<bool>("StartupTasks:RunOnStartup");
+            if (runStartupTasks)
             {
+                using var scope = app.Services.CreateScope();
                 var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
                 db.Database.Migrate();
                 await MessageAiAssistBackfill.ApplyIfNeededAsync(db);

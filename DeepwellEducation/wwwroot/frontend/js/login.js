@@ -2,7 +2,6 @@
     var P = window.DeepwellPasswordUi;
     if (!P) {
         console.error("Missing shared-password-ui.js (load it after api.js, before login.js).");
-        return;
     }
 
     const paneLogin = document.getElementById("login-pane-login");
@@ -84,7 +83,9 @@
     const mode = new URLSearchParams(window.location.search).get("mode");
     setMode(mode === "register" ? "register" : "login", true);
 
-    P.bindPasswordToggles(document);
+    if (P && typeof P.bindPasswordToggles === "function") {
+        P.bindPasswordToggles(document);
+    }
     var regPw = document.getElementById("register-password");
     if (regPw) {
         regPw.addEventListener("input", updateRegisterPasswordRules);

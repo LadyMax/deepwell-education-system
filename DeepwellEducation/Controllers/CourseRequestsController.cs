@@ -116,12 +116,25 @@ public class CourseRequestsController : ControllerBase
     }
 
     /// <summary>Get request by id.</summary>
+    [Authorize]
     [HttpGet("{id:guid}")]
     public async Task<ActionResult<CourseRequestDto>> GetById(Guid id, CancellationToken ct)
     {
         var request = await _db.CourseRequests.FindAsync(new object[] { id }, ct);
         if (request == null)
             return NotFound();
+
+        var isAdmin = User.IsInRole("Admin");
+        if (!isAdmin)
+        {
+            var userId = GetCurrentUserId();
+            if (userId == null || request.UserId != userId.Value)
+            {
+                // Use 404 to avoid leaking whether a request id exists.
+                return NotFound();
+            }
+        }
+
         return Ok(new CourseRequestDto(request));
     }
 

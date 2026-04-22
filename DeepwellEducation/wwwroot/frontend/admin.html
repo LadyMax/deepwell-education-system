@@ -8,7 +8,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com">
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.10.0/css/all.min.css" rel="stylesheet">
-  <link rel="stylesheet" href="css/app.css?v=20260422r">
+  <link rel="stylesheet" href="css/app.css?v=20260422t">
   <script src="js/shared-dom.js?v=20260422a"></script>
   <script src="js/layout.js" defer></script>
 </head>
@@ -25,7 +25,6 @@
           <button type="button" class="btn btn-outline-primary active" data-admin-pane-btn="requests">Enrollment Queue</button>
           <button type="button" class="btn btn-outline-primary" data-admin-pane-btn="messages">Messages <span id="admin-msg-unread-badge" class="inbox-unread-badge inbox-unread-badge--admin d-none" aria-label="Unread inbox"></span></button>
           <button type="button" class="btn btn-outline-primary" data-admin-pane-btn="courses">Courses</button>
-          <button type="button" class="btn btn-outline-primary" data-admin-pane-btn="enrollments">Students by course</button>
           <button type="button" class="btn btn-outline-primary" data-admin-pane-btn="users">Search user</button>
           <button type="button" class="btn btn-outline-primary" data-admin-pane-btn="account">Account security</button>
         </nav>
@@ -129,6 +128,30 @@
         </div>
         </section>
 
+        <div class="modal fade" id="admin-course-roster-modal" tabindex="-1" role="dialog" aria-labelledby="admin-course-roster-title" aria-hidden="true">
+          <div class="modal-dialog modal-lg modal-dialog-scrollable" role="document">
+            <div class="modal-content">
+              <div class="modal-header">
+                <h5 class="modal-title" id="admin-course-roster-title">Course roster</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                  <span aria-hidden="true">&times;</span>
+                </button>
+              </div>
+              <div class="modal-body">
+                <p id="admin-course-roster-summary" class="small text-muted mb-2" role="status" aria-live="polite"></p>
+                <div class="table-responsive">
+                  <table class="table table-sm table-bordered mb-0">
+                    <thead class="table-light">
+                      <tr><th>Email</th><th>Username</th><th>Student number</th><th>Type</th><th>Joined on</th></tr>
+                    </thead>
+                    <tbody id="admin-course-roster-body"></tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
         <div class="modal fade" id="admin-user-detail-modal" tabindex="-1" role="dialog" aria-labelledby="admin-user-detail-title" aria-hidden="true">
           <div class="modal-dialog modal-dialog-scrollable" role="document">
             <div class="modal-content">
@@ -177,10 +200,20 @@
             </div>
           </div>
           <div class="col-12"><textarea id="course-desc" class="form-control form-control-sm" rows="2" placeholder="Description"></textarea></div>
+          <div class="col-12">
+            <div class="d-flex align-items-center flex-wrap mb-1">
+              <input type="file" id="course-cover-file" class="sr-only" accept="image/jpeg,image/png,image/webp,image/gif" aria-label="Course detail image (optional)">
+              <label for="course-cover-file" class="btn btn-outline-secondary btn-sm mb-0">Choose image</label>
+              <span id="course-cover-file-name" class="small text-muted ml-2" aria-live="polite"></span>
+            </div>
+            <div class="admin-course-cover-preview-wrap mt-2">
+              <img id="course-cover-preview" class="admin-course-cover-preview" src="images/deepwell-course.jpg" alt="">
+            </div>
+          </div>
           <div class="col-md-2" id="wrap-btn-course-create"><button type="button" class="btn btn-primary btn-sm w-100" id="btn-course-create">Create course</button></div>
           <div class="col-md-2 course-editor-existing-only"><button type="button" class="btn btn-outline-primary btn-sm w-100" id="btn-course-update" disabled>Save changes</button></div>
           <div class="col-md-2 course-editor-existing-only"><button type="button" class="btn btn-outline-danger btn-sm w-100" id="btn-course-delete" disabled>Hide</button></div>
-          <div class="col-md-2 course-editor-existing-only"><button type="button" class="btn btn-danger btn-sm w-100" id="btn-course-permanent-delete" disabled>Delete</button></div>
+          <div class="col-md-2 course-editor-existing-only" id="wrap-btn-course-permanent-delete"><button type="button" class="btn btn-danger btn-sm w-100" id="btn-course-permanent-delete" disabled>Delete</button></div>
           
         </div>
         </div>
@@ -188,30 +221,9 @@
         <div class="table-responsive">
           <table class="table table-sm table-bordered table-hover d-none" id="course-table">
             <thead class="table-light">
-              <tr><th>Course</th><th>Language</th><th>Level</th><th>Available</th></tr>
+              <tr><th>Course</th><th>Language</th><th>Level</th><th>Students</th><th>Roster</th><th>Available</th></tr>
             </thead>
             <tbody id="course-body"></tbody>
-          </table>
-        </div>
-        </section>
-
-        <section class="admin-section d-none" data-admin-pane-id="enrollments" aria-labelledby="admin-enr-heading">
-        <h2 class="h5 mb-3" id="admin-enr-heading">Students by course</h2>
-        <div class="d-flex flex-wrap gap-2 align-items-center mb-2 admin-enr-toolbar">
-          <div class="admin-select-apply admin-select-apply--enroll-toolbar">
-            <select id="enr-course-select" class="custom-select custom-select-sm" aria-label="Choose a course to see its student list">
-              <option value="">Choose a course</option>
-            </select>
-            <button type="button" class="btn btn-outline-secondary btn-sm btn-admin-confirm" id="btn-enr-load">Search</button>
-          </div>
-          <span id="enr-status" class="app-flash d-none admin-enr-status mb-0" data-base-class="app-flash admin-enr-status mb-0" role="status" aria-live="polite"></span>
-        </div>
-        <div class="table-responsive">
-          <table class="table table-sm table-striped table-bordered d-none" id="enr-table">
-            <thead class="table-light">
-              <tr><th>Username</th><th>Email</th><th>Student number</th><th>Type</th><th>Joined on</th></tr>
-            </thead>
-            <tbody id="enr-body"></tbody>
           </table>
         </div>
         </section>
@@ -330,15 +342,15 @@
   <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
   <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.bundle.min.js"></script>
   <script src="js/main.js"></script>
-  <script src="js/api.js?v=20260420d"></script>
+  <script src="js/api.js?v=20260422r"></script>
   <script src="js/shared-password-ui.js?v=20260422a"></script>
   <script src="js/shared-dashboard.js?v=20260422a"></script>
   <script src="js/admin-common.js?v=20260422i"></script>
   <script src="js/admin-ai-format.js?v=20260422g"></script>
-  <script src="js/admin-users.js?v=20260422i"></script>
+  <script src="js/admin-users.js?v=20260422p"></script>
   <script src="js/admin-course-requests.js?v=20260422j"></script>
-  <script src="js/admin-courses.js?v=20260422j"></script>
+  <script src="js/admin-courses.js?v=20260423f"></script>
   <script src="js/admin-messages.js?v=20260422i"></script>
-  <script src="js/admin.js?v=20260422m"></script>
+  <script src="js/admin.js?v=20260422p"></script>
 </body>
 </html>

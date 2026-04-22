@@ -198,6 +198,22 @@ async function updateCourse(id, payload) {
     return { ok: true, data: body.json || {} };
 }
 
+async function uploadCourseCover(courseId, blob) {
+    const token = localStorage.getItem("token");
+    const headers = {};
+    if (token) headers.Authorization = "Bearer " + token;
+    const form = new FormData();
+    form.append("file", blob, "cover.jpg");
+    const response = await fetch(`${baseUrl}/Courses/${encodeURIComponent(courseId)}/cover`, {
+        method: "POST",
+        headers,
+        body: form
+    });
+    const body = await readJsonOrText(response);
+    if (!response.ok) return { ok: false, message: body.text || response.statusText };
+    return { ok: true, data: body.json || {} };
+}
+
 async function setCourseActive(id, isActive) {
     const response = await fetch(`${baseUrl}/Courses/${encodeURIComponent(id)}/active`, {
         method: "PATCH",

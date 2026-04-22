@@ -274,8 +274,24 @@
     }
     document.getElementById("btn-course-create").addEventListener("click", async function () {
         const r = await createCourse(A.coursePayloadFromForm());
-        setCourseStatus(r.ok ? "Course created." : r.message || "Failed", r.ok ? "success" : "danger");
-        if (r.ok) A.renderCourses();
+        if (!r.ok) {
+            setCourseStatus(r.message || "Failed", "danger");
+            return;
+        }
+        var msg = "Course created.";
+        var variant = "success";
+        var newId = r.data && (r.data.id || r.data.Id);
+        if (newId && typeof A.uploadPendingCourseCoverIfAny === "function") {
+            const u = await A.uploadPendingCourseCoverIfAny(newId);
+            if (!u.ok) {
+                msg += " " + (u.message || "Cover upload failed.");
+                variant = "warning";
+            } else if (!u.skipped) {
+                msg += " Cover saved.";
+            }
+        }
+        setCourseStatus(msg, variant);
+        await A.renderCourses();
     });
     document.getElementById("btn-course-update").addEventListener("click", async function () {
         const id = document.getElementById("course-id").value.trim();
@@ -284,8 +300,23 @@
             return;
         }
         const r = await updateCourse(id, A.coursePayloadFromForm());
-        setCourseStatus(r.ok ? "Course updated." : r.message || "Failed", r.ok ? "success" : "danger");
-        if (r.ok) A.renderCourses();
+        if (!r.ok) {
+            setCourseStatus(r.message || "Failed", "danger");
+            return;
+        }
+        var msg = "Course updated.";
+        var variant = "success";
+        if (typeof A.uploadPendingCourseCoverIfAny === "function") {
+            const u = await A.uploadPendingCourseCoverIfAny(id);
+            if (!u.ok) {
+                msg += " " + (u.message || "Cover upload failed.");
+                variant = "warning";
+            } else if (!u.skipped) {
+                msg += " Cover saved.";
+            }
+        }
+        setCourseStatus(msg, variant);
+        await A.renderCourses();
     });
     document.getElementById("btn-course-delete").addEventListener("click", async function () {
         const id = document.getElementById("course-id").value.trim();
@@ -325,8 +356,6 @@
             if (r.ok) A.renderCourses();
         });
     }
-    document.getElementById("btn-enr-load").addEventListener("click", A.loadEnrollmentsByCourseUi);
-
     var btnUsersSearch = document.getElementById("btn-admin-users-search");
     if (btnUsersSearch) {
         btnUsersSearch.addEventListener("click", function () {
@@ -407,7 +436,10 @@
             var btn = ev.target.closest(".admin-msg-sender-profile");
             if (!btn) return;
             var uid = btn.getAttribute("data-user-id");
-            if (uid) void A.openAdminUserProfile(uid);
+            if (uid) {
+                A._resumeRosterAfterProfileClose = false;
+                void A.openAdminUserProfile(uid);
+            }
         });
     }
 

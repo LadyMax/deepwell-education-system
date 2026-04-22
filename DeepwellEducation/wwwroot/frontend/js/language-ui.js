@@ -1,32 +1,23 @@
 (function (global) {
-    var LANGUAGE_META = {
-        ar: { name: "Arabic", country: "Saudi Arabia and Arabic-speaking regions", family: "Afro-Asiatic", speakers: "300M+ speakers", image: "images/country/arabic.jpg" },
-        zh: { name: "Chinese", country: "China, Taiwan, Singapore", family: "Sino-Tibetan", speakers: "1.1B+ speakers", image: "images/country/china.jpg" },
-        da: { name: "Danish", country: "Denmark", family: "Indo-European (North Germanic)", speakers: "6M+ speakers", image: "images/country/denmark.jpg" },
-        nl: { name: "Dutch", country: "Netherlands, Belgium", family: "Indo-European (West Germanic)", speakers: "24M+ speakers", image: "images/country/netherlands.jpg" },
-        en: { name: "English", country: "United Kingdom, United States and more", family: "Indo-European (Germanic)", speakers: "1.5B+ speakers", image: "images/country/uk.jpg" },
-        fi: { name: "Finnish", country: "Finland", family: "Uralic", speakers: "5M+ speakers", image: "images/country/finland.jpg" },
-        fr: { name: "French", country: "France, parts of Europe, Africa, Canada", family: "Indo-European (Romance)", speakers: "300M+ speakers", image: "images/country/france.jpg" },
-        el: { name: "Greek", country: "Greece, Cyprus", family: "Indo-European (Hellenic)", speakers: "13M+ speakers", image: "images/country/greece.jpg" },
-        he: { name: "Hebrew", country: "Israel", family: "Afro-Asiatic (Semitic)", speakers: "9M+ speakers", image: "images/country/israel.jpg" },
-        is: { name: "Icelandic", country: "Iceland", family: "Indo-European (North Germanic)", speakers: "350K+ speakers", image: "images/country/iceland.jpg" },
-        it: { name: "Italian", country: "Italy", family: "Indo-European (Romance)", speakers: "65M+ speakers", image: "images/country/italy.jpg" },
-        ja: { name: "Japanese", country: "Japan", family: "Japonic", speakers: "125M+ speakers", image: "images/country/japan.jpg" },
-        de: { name: "German", country: "Germany, Austria, Switzerland", family: "Indo-European (Germanic)", speakers: "130M+ speakers", image: "images/country/germany.jpg" },
-        ko: { name: "Korean", country: "South Korea", family: "Koreanic", speakers: "80M+ speakers", image: "images/country/korea.jpg" },
-        no: { name: "Norwegian", country: "Norway", family: "Indo-European (North Germanic)", speakers: "5M+ speakers", image: "images/country/norway.jpg" },
-        fa: { name: "Persian", country: "Iran and Persian-speaking regions", family: "Indo-European (Iranian)", speakers: "120M+ speakers", image: "images/country/iran.jpg" },
-        pl: { name: "Polish", country: "Poland", family: "Indo-European (Slavic)", speakers: "45M+ speakers", image: "images/country/poland.jpg" },
-        pt: { name: "Portuguese", country: "Portugal, Brazil and Lusophone regions", family: "Indo-European (Romance)", speakers: "260M+ speakers", image: "images/country/portugal.jpg" },
-        ru: { name: "Russian", country: "Russia and Eastern Europe", family: "Indo-European (Slavic)", speakers: "250M+ speakers", image: "images/country/russia.jpg" },
-        es: { name: "Spanish", country: "Spain, Latin America", family: "Indo-European (Romance)", speakers: "560M+ speakers", image: "images/country/spain.jpg" },
-        sv: { name: "Swedish", country: "Sweden", family: "Indo-European (North Germanic)", speakers: "10M+ speakers", image: "images/country/sweden.jpg" },
-        th: { name: "Thai", country: "Thailand", family: "Kra-Dai", speakers: "60M+ speakers", image: "images/country/thailand.jpg" },
-        tr: { name: "Turkish", country: "Turkey", family: "Turkic", speakers: "90M+ speakers", image: "images/country/turkey.jpg" },
-        vi: { name: "Vietnamese", country: "Vietnam", family: "Austroasiatic", speakers: "85M+ speakers", image: "images/country/vietnam.jpg" },
-    };
-
     var LANGUAGE_DETAILS = {
+        ar: {
+            name: "Arabic",
+            country: "Saudi Arabia and Arabic-speaking regions",
+            family: "Afro-Asiatic (Semitic)",
+            speakers: "300M+ speakers",
+            intro: "Arabic connects learners to a wide regional network in the Middle East and North Africa across education, business, and culture.",
+            usage: [
+                "Used as an official or major language in many countries across the MENA region.",
+                "Important for diplomacy, media, religious studies, and cross-border trade.",
+                "Learning Modern Standard Arabic builds a strong base for regional communication.",
+            ],
+            countryFacts: [
+                "Arabic-speaking countries span diverse economies, climates, and cultural traditions.",
+                "Major regional hubs include global energy, logistics, and finance sectors.",
+                "Arabic literature, calligraphy, and music have deep historical influence.",
+            ],
+            image: "images/country/arabic.jpg",
+        },
         zh: {
             name: "Chinese",
             country: "China, Taiwan, Singapore",
@@ -172,6 +163,276 @@
             ],
             image: "images/country/germany.jpg",
         },
+        da: {
+            name: "Danish",
+            country: "Denmark",
+            family: "Indo-European (North Germanic)",
+            speakers: "6M+ speakers",
+            intro: "Danish supports integration into daily life, study, and work in Denmark while opening the door to broader Scandinavian communication.",
+            usage: [
+                "Primary language for public services, education, and employment in Denmark.",
+                "Useful for long-term residence, professional networking, and local community life.",
+                "Helps learners understand cultural context in Nordic workplaces and society.",
+            ],
+            countryFacts: [
+                "Denmark is recognized for design, sustainability, and social trust.",
+                "Copenhagen is a major center for innovation and green urban planning.",
+                "Danish work culture values clarity, collaboration, and balanced routines.",
+            ],
+            image: "images/country/denmark.jpg",
+        },
+        nl: {
+            name: "Dutch",
+            country: "Netherlands, Belgium",
+            family: "Indo-European (West Germanic)",
+            speakers: "24M+ speakers",
+            intro: "Dutch is practical for education and career opportunities in the Netherlands and Flanders, especially in international-facing sectors.",
+            usage: [
+                "Used in government, education, and business across Dutch-speaking regions.",
+                "Useful for relocation, university life, and customer-facing roles.",
+                "Supports communication in logistics, trade, and engineering contexts.",
+            ],
+            countryFacts: [
+                "The Netherlands is known for trade, water management, and technology ecosystems.",
+                "Dutch cities combine strong international access with local cultural identity.",
+                "Dutch-speaking Belgium adds multilingual exposure in European institutions.",
+            ],
+            image: "images/country/netherlands.jpg",
+        },
+        fi: {
+            name: "Finnish",
+            country: "Finland",
+            family: "Uralic",
+            speakers: "5M+ speakers",
+            intro: "Finnish helps learners fully participate in Finnish society, from education and public services to long-term career pathways.",
+            usage: [
+                "Core language for local administration, schools, and healthcare access.",
+                "Important for permanent settlement and workplace communication in Finland.",
+                "Useful for understanding everyday life, media, and social norms.",
+            ],
+            countryFacts: [
+                "Finland is known for education quality, technology, and innovation.",
+                "Finnish society emphasizes reliability, directness, and equal opportunity.",
+                "Nature and seasonal rhythms strongly shape daily life and culture.",
+            ],
+            image: "images/country/finland.jpg",
+        },
+        el: {
+            name: "Greek",
+            country: "Greece, Cyprus",
+            family: "Indo-European (Hellenic)",
+            speakers: "13M+ speakers",
+            intro: "Greek offers practical communication value in Greece and Cyprus, with added cultural depth through one of the world’s oldest literary traditions.",
+            usage: [
+                "Used across public life, education, and business in Greek-speaking regions.",
+                "Useful for tourism, local services, and long-term residence.",
+                "Supports learning in culture, history, and Mediterranean regional contexts.",
+            ],
+            countryFacts: [
+                "Greece combines major tourism activity with shipping and service industries.",
+                "Greek cultural heritage continues to influence global arts and scholarship.",
+                "Cyprus adds multilingual exposure and strong international business links.",
+            ],
+            image: "images/country/greece.jpg",
+        },
+        he: {
+            name: "Hebrew",
+            country: "Israel",
+            family: "Afro-Asiatic (Semitic)",
+            speakers: "9M+ speakers",
+            intro: "Hebrew is essential for daily communication, study, and professional life in Israel, especially in technology and innovation settings.",
+            usage: [
+                "Primary language in education, public institutions, and local workplaces.",
+                "Useful for relocation, community participation, and professional growth.",
+                "Important in sectors such as software, biotech, and research.",
+            ],
+            countryFacts: [
+                "Israel has a globally connected startup and technology ecosystem.",
+                "Hebrew media and contemporary culture are highly active and diverse.",
+                "Multilingual communities create rich real-world language practice contexts.",
+            ],
+            image: "images/country/israel.jpg",
+        },
+        is: {
+            name: "Icelandic",
+            country: "Iceland",
+            family: "Indo-European (North Germanic)",
+            speakers: "350K+ speakers",
+            intro: "Icelandic supports local integration in Iceland and offers access to a unique linguistic and literary tradition.",
+            usage: [
+                "Used in government, schools, and most community settings in Iceland.",
+                "Helpful for long-term residence, workplace communication, and services.",
+                "Useful for understanding local media, culture, and civic life.",
+            ],
+            countryFacts: [
+                "Iceland is known for renewable energy use and strong digital literacy.",
+                "The country preserves historical language traditions in modern contexts.",
+                "Small-community communication makes practical language ability especially valuable.",
+            ],
+            image: "images/country/iceland.jpg",
+        },
+        ko: {
+            name: "Korean",
+            country: "South Korea",
+            family: "Koreanic",
+            speakers: "80M+ speakers",
+            intro: "Korean is increasingly valuable for technology, media, and business engagement across East Asia and global Korean-speaking communities.",
+            usage: [
+                "Primary language for education, services, and industry in South Korea.",
+                "Useful for careers linked to Korean companies and supply chains.",
+                "Important in media sectors including entertainment, gaming, and design.",
+            ],
+            countryFacts: [
+                "South Korea is a major center for electronics, automotive, and digital services.",
+                "Korean popular culture has strong global influence in music and film.",
+                "Workplace communication often reflects hierarchy and context sensitivity.",
+            ],
+            image: "images/country/korea.jpg",
+        },
+        no: {
+            name: "Norwegian",
+            country: "Norway",
+            family: "Indo-European (North Germanic)",
+            speakers: "5M+ speakers",
+            intro: "Norwegian supports everyday communication and long-term career opportunities in Norway’s public and private sectors.",
+            usage: [
+                "Used in administration, education, and most local workplaces in Norway.",
+                "Useful for settlement, professional networking, and social participation.",
+                "Provides strong access to Scandinavian regional communication patterns.",
+            ],
+            countryFacts: [
+                "Norway is known for energy, maritime industries, and high living standards.",
+                "Norwegian society emphasizes trust, punctuality, and clear communication.",
+                "Regional dialect variation makes listening practice especially important.",
+            ],
+            image: "images/country/norway.jpg",
+        },
+        fa: {
+            name: "Persian",
+            country: "Iran and Persian-speaking regions",
+            family: "Indo-European (Iranian)",
+            speakers: "120M+ speakers",
+            intro: "Persian (Farsi) is a major regional language with strong literary heritage and practical value in cultural, academic, and business contexts.",
+            usage: [
+                "Used in public life, education, and media in Iran and related regions.",
+                "Useful for cross-cultural communication and regional market understanding.",
+                "Supports study of Persian literature, history, and contemporary society.",
+            ],
+            countryFacts: [
+                "Persian cultural influence spans poetry, architecture, and visual arts.",
+                "Iran links historical traditions with modern urban and academic life.",
+                "Persian-speaking communities are active across multiple countries.",
+            ],
+            image: "images/country/iran.jpg",
+        },
+        pl: {
+            name: "Polish",
+            country: "Poland",
+            family: "Indo-European (Slavic)",
+            speakers: "45M+ speakers",
+            intro: "Polish is practical for education and employment in Poland and valuable for communication with Polish-speaking communities across Europe.",
+            usage: [
+                "Core language in schools, services, and local business in Poland.",
+                "Useful for relocation, administration, and workplace integration.",
+                "Helpful for industries such as manufacturing, logistics, and IT.",
+            ],
+            countryFacts: [
+                "Poland has a fast-developing economy with strong regional connectivity.",
+                "Major cities combine historical identity with modern business growth.",
+                "Polish culture places value on community ties and national traditions.",
+            ],
+            image: "images/country/poland.jpg",
+        },
+        pt: {
+            name: "Portuguese",
+            country: "Portugal, Brazil and Lusophone regions",
+            family: "Indo-European (Romance)",
+            speakers: "260M+ speakers",
+            intro: "Portuguese connects learners to one of the largest global language communities across Europe, South America, and Africa.",
+            usage: [
+                "Official language in Portugal, Brazil, and multiple Lusophone countries.",
+                "Useful for global business, tourism, and international collaboration.",
+                "Supports communication in education, trade, and cultural industries.",
+            ],
+            countryFacts: [
+                "Portuguese-speaking countries span multiple continents and markets.",
+                "Brazil drives large-scale media, technology, and service demand.",
+                "Portuguese culture has strong global visibility in music and literature.",
+            ],
+            image: "images/country/portugal.jpg",
+        },
+        ru: {
+            name: "Russian",
+            country: "Russia and Eastern Europe",
+            family: "Indo-European (Slavic)",
+            speakers: "250M+ speakers",
+            intro: "Russian is widely used across Eurasia and remains valuable in technical fields, regional business, and cross-border communication.",
+            usage: [
+                "Used in education, media, and commerce across multiple countries.",
+                "Useful for engineering, science, and regional market communication.",
+                "Helps learners navigate multilingual environments in Eastern Europe and Central Asia.",
+            ],
+            countryFacts: [
+                "Russian-speaking regions cover vast geographic and cultural diversity.",
+                "The language has a major literary and scientific publication tradition.",
+                "Regional communication often combines formal and informal registers.",
+            ],
+            image: "images/country/russia.jpg",
+        },
+        th: {
+            name: "Thai",
+            country: "Thailand",
+            family: "Kra-Dai",
+            speakers: "60M+ speakers",
+            intro: "Thai supports practical communication in one of Southeast Asia’s major tourism, service, and regional business hubs.",
+            usage: [
+                "Primary language for public services, education, and local business in Thailand.",
+                "Useful for hospitality, travel, healthcare, and customer-facing roles.",
+                "Helps learners engage confidently in daily life and professional contexts.",
+            ],
+            countryFacts: [
+                "Thailand is a major regional destination for tourism and trade.",
+                "Thai communication reflects politeness levels and social context.",
+                "Bangkok is a key urban center for services, retail, and logistics.",
+            ],
+            image: "images/country/thailand.jpg",
+        },
+        tr: {
+            name: "Turkish",
+            country: "Turkey",
+            family: "Turkic",
+            speakers: "90M+ speakers",
+            intro: "Turkish is useful for communication across a strategically connected region bridging Europe and Asia.",
+            usage: [
+                "Primary language in education, services, and commerce in Turkey.",
+                "Important for regional logistics, manufacturing, and trade partnerships.",
+                "Useful for long-term residence and daily communication in local communities.",
+            ],
+            countryFacts: [
+                "Turkey has strong regional transport, tourism, and industrial sectors.",
+                "Istanbul is a major cultural and commercial crossroads.",
+                "Turkish media and business networks extend across nearby regions.",
+            ],
+            image: "images/country/turkey.jpg",
+        },
+        vi: {
+            name: "Vietnamese",
+            country: "Vietnam",
+            family: "Austroasiatic",
+            speakers: "85M+ speakers",
+            intro: "Vietnamese supports communication in one of Southeast Asia’s fastest-growing economies and expanding international markets.",
+            usage: [
+                "Primary language in government, education, and commerce in Vietnam.",
+                "Useful for manufacturing, sourcing, logistics, and service industries.",
+                "Helps learners engage with local communities and workplace communication.",
+            ],
+            countryFacts: [
+                "Vietnam has strong growth in technology, manufacturing, and exports.",
+                "Major cities combine rapid development with rich local traditions.",
+                "Vietnamese diaspora communities create wider global language use.",
+            ],
+            image: "images/country/vietnam.jpg",
+        },
     };
 
     var escapeHtml =
@@ -211,21 +472,22 @@
     }
 
     function buildLanguageInfo(key) {
-        var base = LANGUAGE_META[key];
-        if (!base) return null;
-        var detail = LANGUAGE_DETAILS[key] || {};
+        var detail = LANGUAGE_DETAILS[key];
+        if (!detail) return null;
+        var name = detail.name || key.toUpperCase();
+        var country = detail.country || name;
         return {
-            name: detail.name || base.name,
-            country: detail.country || base.country,
-            family: detail.family || base.family,
-            speakers: detail.speakers || base.speakers,
+            name: name,
+            country: country,
+            family: detail.family || "Language family information coming soon",
+            speakers: detail.speakers || "Speaker estimate coming soon",
             intro:
                 detail.intro ||
-                (base.name +
+                (name +
                     " is available at Deepwell for learners who want practical, real-world communication ability."),
-            usage: detail.usage || fallbackUsage(base.name),
-            countryFacts: detail.countryFacts || fallbackFacts(base.name, base.country),
-            image: detail.image || base.image,
+            usage: detail.usage || fallbackUsage(name),
+            countryFacts: detail.countryFacts || fallbackFacts(name, country),
+            image: detail.image || "images/country/uk.jpg",
         };
     }
 

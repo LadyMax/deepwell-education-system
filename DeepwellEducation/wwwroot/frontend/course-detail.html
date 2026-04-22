@@ -11,7 +11,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.10.0/css/all.min.css" rel="stylesheet">
-    <link href="css/app.css?v=20260416l" rel="stylesheet">
+    <link href="css/app.css?v=20260422z" rel="stylesheet">
     <script src="js/shared-dom.js?v=20260422a"></script>
     <script src="js/layout.js" defer></script>
 </head>
@@ -39,13 +39,19 @@
             <p id="course-detail-status" class="text-center text-muted" aria-live="polite"></p>
             <article id="course-detail-article">
                 <p class="mb-3"><a href="course.html" class="text-primary"><i class="fa fa-arrow-left mr-2"></i>Back to courses</a></p>
-                <h1 class="mb-3" id="cd-title"></h1>
-                <p class="mb-2">
-                    <small class="text-muted d-block mb-1">Language</small>
-                    <span class="badge badge-primary" id="cd-category"></span>
-                    <span class="text-muted ml-2" id="cd-level"></span>
-                </p>
-                <p class="mb-4"><strong class="text-dark">Language:</strong> <i class="fa fa-book-open text-primary mr-2"></i><span id="cd-subject"></span></p>
+                <div class="row align-items-start mb-4">
+                    <div class="col-lg-8 pr-lg-3 mb-3 mb-lg-0">
+                        <h1 class="mb-3" id="cd-title"></h1>
+                        <p class="mb-2">
+                            <span class="badge badge-primary" id="cd-category"></span>
+                            <span class="text-muted ml-2" id="cd-level"></span>
+                        </p>
+                        <p class="mb-0"><strong class="text-dark">Language:</strong> <i class="fa fa-book-open text-primary mr-2"></i><span id="cd-subject"></span></p>
+                    </div>
+                    <div class="col-lg-4 text-center text-lg-right">
+                        <img id="cd-hero" class="app-course-detail-hero-img app-course-detail-hero-img--masthead d-none" src="" alt="">
+                    </div>
+                </div>
                 <div class="bg-secondary p-4 rounded">
                     <h5 class="text-primary mb-3">About this course</h5>
                     <p class="mb-0 text-dark" id="cd-desc"></p>
@@ -85,8 +91,8 @@
     <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.bundle.min.js"></script>
     <script src="js/main.js"></script>
-    <script src="js/api.js?v=20260415c"></script>
-    <script src="js/course-ui.js?v=20260422j"></script>
+    <script src="js/api.js?v=20260422r"></script>
+    <script src="js/course-ui.js?v=20260423g"></script>
     <script src="js/course-detail-page.js?v=20260415c"></script>
 </body>
 

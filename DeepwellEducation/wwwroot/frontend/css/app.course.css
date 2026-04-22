@@ -93,3 +93,17 @@
 .cat-item:hover .cat-overlay {
   background: rgba(0, 0, 0, 0);
 }
+
+/* Course detail: course image (masthead = beside title) */
+.app-course-detail-hero-img {
+  display: inline-block;
+  max-width: 100%;
+  width: auto;
+  height: auto;
+  vertical-align: middle;
+  border-radius: 0.2rem;
+}
+
+.app-course-detail-hero-img--masthead {
+  max-height: 200px;
+}

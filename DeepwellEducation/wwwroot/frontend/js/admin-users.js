@@ -247,7 +247,10 @@
         tbody.querySelectorAll(".admin-users-open-profile").forEach(function (btn) {
             btn.addEventListener("click", function () {
                 var uid = btn.getAttribute("data-user-id");
-                if (uid) void A.openAdminUserProfile(uid);
+                if (uid) {
+                    A._resumeRosterAfterProfileClose = false;
+                    void A.openAdminUserProfile(uid);
+                }
             });
         });
 

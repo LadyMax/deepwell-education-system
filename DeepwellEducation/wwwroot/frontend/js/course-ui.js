@@ -240,12 +240,26 @@
             "</span>";
     }
 
-    function courseHeroImageSrc(c) {
+    /** Public catalog / home cards: always language × level artwork (cohesive grid). */
+    function courseLanguageMatchedImageSrc(c) {
+        if (!c) return DEFAULT_COURSE_IMAGE;
         var code = courseLanguageCode(c);
         var slug = LANGUAGE_IMAGE_SLUG[code];
         if (!slug) return DEFAULT_COURSE_IMAGE;
         var variant = levelNumber(c.level) + 1;
         return "images/course/course-" + slug + "-" + variant + ".jpg";
+    }
+
+    /** Course cards and detail hero: admin-uploaded cover when set, else language stock art. */
+    function coursePublicImageSrc(c) {
+        if (!c) return DEFAULT_COURSE_IMAGE;
+        var custom = (c.imageUrl || c.ImageUrl || "").trim();
+        if (custom) return custom;
+        return courseLanguageMatchedImageSrc(c);
+    }
+
+    function courseDetailHeroImageSrc(c) {
+        return coursePublicImageSrc(c);
     }
 
     function buildDetailContent(c) {
@@ -337,7 +351,7 @@
             detailHref +
             '">' +
             '<img class="img-fluid" src="' +
-            escapeHtml(courseHeroImageSrc(c)) +
+            escapeHtml(coursePublicImageSrc(c)) +
             '" alt="" onerror="this.onerror=null;this.src=\'' +
             escapeHtml(DEFAULT_COURSE_IMAGE) +
             '\';">' +
@@ -380,7 +394,7 @@
             '" alt="' +
             escapeHtml(name) +
             '">' +
-            '<a class="cat-overlay text-white text-decoration-none" href="course.html?lang=' +
+            '<a class="cat-overlay text-white text-decoration-none" href="language-detail.html?lang=' +
             encodeURIComponent(code) +
             '">' +
             '<h4 class="text-white font-weight-medium">' +
@@ -585,14 +599,19 @@
             typeof isStaffAdminAccount === "function" &&
             isStaffAdminAccount()
         ) {
-            applyBtn.disabled = true;
-            applyBtn.setAttribute("aria-disabled", "true");
-            setApplyStatus(
-                "Staff accounts cannot apply for courses. Use the staff dashboard to manage enrollments.",
-                "info",
-            );
+            applyBtn.classList.add("d-none");
+            applyBtn.disabled = false;
+            applyBtn.removeAttribute("aria-disabled");
+            applyBtn.onclick = null;
+            applyStatus.classList.add("d-none");
+            applyStatus.textContent = "";
+            applyStatus.innerHTML = "";
             return;
         }
+
+        applyBtn.classList.remove("d-none");
+        applyBtn.disabled = false;
+        applyBtn.removeAttribute("aria-disabled");
 
         applyBtn.onclick = async function () {
             var token = localStorage.getItem("token");
@@ -649,6 +668,8 @@
     function renderDetail(statusEl, articleEl, courseId) {
         bindApplyButton(courseId);
         if (!articleEl) return;
+        var heroEl = document.getElementById("cd-hero");
+        if (heroEl) heroEl.classList.add("d-none");
         if (!courseId) {
             if (statusEl)
                 statusEl.textContent =
@@ -662,6 +683,17 @@
             .then(function (c) {
                 if (statusEl) statusEl.textContent = "";
                 var detail = buildDetailContent(c);
+                var hero = document.getElementById("cd-hero");
+                if (hero) {
+                    var src = courseDetailHeroImageSrc(c);
+                    hero.src = src;
+                    hero.alt = c.name ? "Cover: " + c.name : "Course cover";
+                    hero.onerror = function () {
+                        hero.onerror = null;
+                        hero.src = DEFAULT_COURSE_IMAGE;
+                    };
+                    hero.classList.remove("d-none");
+                }
                 document.getElementById("cd-title").textContent = c.name || "";
                 fillLanguageBadge(
                     document.getElementById("cd-category"),
@@ -699,6 +731,7 @@
                 articleEl.style.display = "block";
             })
             .catch(function () {
+                if (heroEl) heroEl.classList.add("d-none");
                 if (statusEl)
                     statusEl.textContent =
                         "Course not found or could not load.";

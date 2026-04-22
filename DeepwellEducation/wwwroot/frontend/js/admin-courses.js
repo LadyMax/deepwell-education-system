@@ -8,7 +8,147 @@
     }
 
     var levelLabel = S.courseLevelLabel;
+    var escapeHtml = typeof S.escapeHtml === "function" ? S.escapeHtml : function (x) { return String(x); };
     var A = (w.DeepwellAdmin = w.DeepwellAdmin || {});
+    var PLACEHOLDER_COVER_SRC = "images/deepwell-course.jpg";
+    A._pendingCourseCoverBlob = null;
+    A._courseCoverTargetW = 960;
+    A._courseCoverTargetH = 540;
+
+    function updateCourseCoverSizeLabel() {
+        var el = document.getElementById("course-cover-size-label");
+        if (el) {
+            el.textContent = String(A._courseCoverTargetW) + " × " + String(A._courseCoverTargetH);
+        }
+    }
+
+    function drawImageCoverOnCanvas(canvas, img, w, h) {
+        var ctx = canvas.getContext("2d");
+        if (!ctx) return;
+        canvas.width = w;
+        canvas.height = h;
+        var iw = img.naturalWidth || img.width;
+        var ih = img.naturalHeight || img.height;
+        if (!iw || !ih) return;
+        var scale = Math.max(w / iw, h / ih);
+        var sw = w / scale;
+        var sh = h / scale;
+        var sx = (iw - sw) / 2;
+        var sy = (ih - sh) / 2;
+        ctx.drawImage(img, sx, sy, sw, sh, 0, 0, w, h);
+    }
+
+    function resizeCourseCoverToTargetSize(file) {
+        return new Promise(function (resolve, reject) {
+            var w = A._courseCoverTargetW;
+            var h = A._courseCoverTargetH;
+            var img = new Image();
+            var url = URL.createObjectURL(file);
+            img.onload = function () {
+                URL.revokeObjectURL(url);
+                try {
+                    var canvas = document.createElement("canvas");
+                    drawImageCoverOnCanvas(canvas, img, w, h);
+                    canvas.toBlob(
+                        function (blob) {
+                            if (!blob) reject(new Error("Could not encode image."));
+                            else resolve(blob);
+                        },
+                        "image/jpeg",
+                        0.88
+                    );
+                } catch (e) {
+                    reject(e);
+                }
+            };
+            img.onerror = function () {
+                URL.revokeObjectURL(url);
+                reject(new Error("Could not read image file."));
+            };
+            img.src = url;
+        });
+    }
+
+    function setCourseCoverPreviewSrc(src) {
+        var prev = document.getElementById("course-cover-preview");
+        if (!prev) return;
+        prev.src = src || PLACEHOLDER_COVER_SRC;
+    }
+
+    function courseCoverStoredFileBasename(path) {
+        var s = String(path || "").trim().replace(/\\/g, "/");
+        if (!s) return "";
+        var i = s.lastIndexOf("/");
+        return i >= 0 ? s.slice(i + 1) : s;
+    }
+
+    function setCourseCoverFileNameDisplay(text) {
+        var el = document.getElementById("course-cover-file-name");
+        if (!el) return;
+        el.textContent = text || "";
+    }
+
+    A.resetCourseCoverEditor = function () {
+        A._pendingCourseCoverBlob = null;
+        var fin = document.getElementById("course-cover-file");
+        if (fin) fin.value = "";
+        setCourseCoverFileNameDisplay("");
+        setCourseCoverPreviewSrc(PLACEHOLDER_COVER_SRC);
+    };
+
+    A.uploadPendingCourseCoverIfAny = async function (courseId) {
+        var cid = String(courseId || "").trim();
+        if (!cid || !A._pendingCourseCoverBlob) {
+            return { ok: true, skipped: true };
+        }
+        if (typeof w.uploadCourseCover !== "function") {
+            return { ok: false, message: "uploadCourseCover is not available." };
+        }
+        var blob = A._pendingCourseCoverBlob;
+        A._pendingCourseCoverBlob = null;
+        var fin = document.getElementById("course-cover-file");
+        if (fin) fin.value = "";
+        return w.uploadCourseCover(cid, blob);
+    };
+
+    (function initCourseCoverTargetDimensions() {
+        var probe = new Image();
+        probe.onload = function () {
+            if (probe.naturalWidth > 0 && probe.naturalHeight > 0) {
+                A._courseCoverTargetW = probe.naturalWidth;
+                A._courseCoverTargetH = probe.naturalHeight;
+            }
+            updateCourseCoverSizeLabel();
+        };
+        probe.onerror = function () {
+            updateCourseCoverSizeLabel();
+        };
+        probe.src = PLACEHOLDER_COVER_SRC;
+    })();
+
+    (function initCourseCoverFileInput() {
+        var fin = document.getElementById("course-cover-file");
+        if (!fin) return;
+        fin.addEventListener("change", function () {
+            var f = fin.files && fin.files[0];
+            if (!f) {
+                A.resetCourseCoverEditor();
+                return;
+            }
+            void resizeCourseCoverToTargetSize(f)
+                .then(function (blob) {
+                    A._pendingCourseCoverBlob = blob;
+                    setCourseCoverFileNameDisplay(f.name || "");
+                    setCourseCoverPreviewSrc(URL.createObjectURL(blob));
+                })
+                .catch(function () {
+                    A.resetCourseCoverEditor();
+                    if (typeof A.setCourseStatus === "function") {
+                        A.setCourseStatus("Could not process that image. Try JPG or PNG.", "warning");
+                    }
+                });
+        });
+    })();
     var setInlineStatus = A.setInlineStatus || function (id, message) {
         var el = document.getElementById(id);
         if (el) el.textContent = message || "";
@@ -175,10 +315,16 @@
     };
 
     A.syncCourseEditorActionVisibility = function () {
-        var hasId = !!document.getElementById("course-id").value.trim();
+        var idEl = document.getElementById("course-id");
+        var hasId = !!(idEl && idEl.value.trim());
+        var availableYes = !!(idEl && idEl.dataset.courseIsActive === "1");
         var editOnly = document.querySelectorAll(".course-editor-existing-only");
         for (var i = 0; i < editOnly.length; i++) {
             editOnly[i].classList.toggle("d-none", !hasId);
+        }
+        var permWrap = document.getElementById("wrap-btn-course-permanent-delete");
+        if (permWrap) {
+            permWrap.classList.toggle("d-none", !hasId || availableYes);
         }
     };
 
@@ -223,7 +369,13 @@
             A.selectedCourseRow = null;
         }
         var id = c ? pick(c, "id", "Id") : "";
-        document.getElementById("course-id").value = id || "";
+        var courseIdEl = document.getElementById("course-id");
+        courseIdEl.value = id || "";
+        if (!c) {
+            delete courseIdEl.dataset.courseIsActive;
+        } else {
+            courseIdEl.dataset.courseIsActive = pick(c, "isActive", "IsActive") ? "1" : "0";
+        }
         var summaryEl = document.getElementById("course-selected-summary");
         var clearBtn = document.getElementById("btn-course-clear-selection");
         if (!c) {
@@ -268,6 +420,13 @@
         A.syncCourseEditorActionVisibility();
         A.showCourseEditor();
         A.isAddingCourse = false;
+        A._pendingCourseCoverBlob = null;
+        var fin = document.getElementById("course-cover-file");
+        if (fin) fin.value = "";
+        var imgu = pick(c, "imageUrl", "ImageUrl");
+        var imguTrim = imgu && String(imgu).trim() ? String(imgu).trim() : "";
+        setCourseCoverPreviewSrc(imguTrim || PLACEHOLDER_COVER_SRC);
+        setCourseCoverFileNameDisplay(imguTrim ? courseCoverStoredFileBasename(imguTrim) : "");
     };
 
     A.clearCourseSelection = function () {
@@ -276,6 +435,7 @@
         document.getElementById("course-desc").value = "";
         document.getElementById("course-language-name").value = "";
         document.getElementById("course-level").value = "";
+        A.resetCourseCoverEditor();
         var hideBtn = document.getElementById("btn-course-delete");
         if (hideBtn) {
             hideBtn.textContent = "Hide";
@@ -299,27 +459,6 @@
         A.clearCourseSelection();
         A.hideCourseEditor();
         A.isAddingCourse = false;
-    };
-
-    A.fillEnrollmentCourseSelect = function (items) {
-        var sel = document.getElementById("enr-course-select");
-        var keep = sel.value;
-        sel.innerHTML = "";
-        var opt0 = document.createElement("option");
-        opt0.value = "";
-        opt0.textContent = "Choose a course…";
-        sel.appendChild(opt0);
-        (items || []).forEach(function (c) {
-            var cid = pick(c, "id", "Id");
-            var name = pick(c, "name", "Name") || "Course";
-            var o = document.createElement("option");
-            o.value = cid;
-            o.textContent = name;
-            sel.appendChild(o);
-        });
-        if (keep && [].some.call(sel.options, function (o) { return o.value === keep; })) {
-            sel.value = keep;
-        }
     };
 
     A.fillCourseRequestCourseSelect = function (items) {
@@ -366,7 +505,6 @@
         var toneByLangKey = buildLanguageToneMap(items);
         A.setCourseStatus(items.length + " courses listed", "info");
         A.setCourseSelectionFromRow(null, null);
-        A.fillEnrollmentCourseSelect(items);
         A.fillCourseRequestCourseSelect(items);
         items.forEach(function (c) {
             const tr = document.createElement("tr");
@@ -385,8 +523,21 @@
                 levelLabel(pick(c, "level", "Level")) +
                 "</td>" +
                 "<td>" +
+                String(pick(c, "enrollmentCount", "EnrollmentCount") || 0) +
+                "</td>" +
+                '<td class="text-nowrap">' +
+                '<button type="button" class="btn btn-outline-secondary btn-sm course-roster-btn" aria-label="View course roster">View</button>' +
+                "</td>" +
+                "<td>" +
                 (pick(c, "isActive", "IsActive") ? "Yes" : "No") +
                 "</td>";
+            var rosterBtn = tr.querySelector(".course-roster-btn");
+            if (rosterBtn) {
+                rosterBtn.addEventListener("click", function (ev) {
+                    if (ev && ev.stopPropagation) ev.stopPropagation();
+                    void A.openCourseRosterModal(id, pick(c, "name", "Name") || "Course");
+                });
+            }
             tr.addEventListener("click", function () {
                 A.setCourseSelectionFromRow(c, tr);
             });
@@ -425,48 +576,130 @@
         return count + " students are enrolled in this course.";
     }
 
-    A.loadEnrollmentsByCourseUi = async function () {
-        const id = document.getElementById("enr-course-select").value.trim();
-        const table = document.getElementById("enr-table");
-        const tbody = document.getElementById("enr-body");
-        if (!id) {
-            setInlineStatus("enr-status", "Pick a course above, then click Confirm to see the class list.", "warning");
-            return;
+    function rosterUsernameCellHtml(e) {
+        var uid = pick(e, "userId", "UserId");
+        var raw = (pick(e, "userName", "UserName") || pick(e, "fullName", "FullName") || "").trim();
+        var display = raw || "—";
+        if (!uid) {
+            return escapeHtml(display);
         }
-        setInlineStatus("enr-status", "Loading…", "info");
+        return (
+            '<button type="button" class="btn btn-link btn-sm p-0 align-baseline text-left roster-user-profile-btn" data-user-id="' +
+            escapeHtml(String(uid)) +
+            '">' +
+            escapeHtml(display) +
+            "</button>"
+        );
+    }
+
+    function openAdminUserProfileAfterRosterIfNeeded(userId) {
+        if (!userId || typeof A.openAdminUserProfile !== "function") return;
+        var $ = w.jQuery;
+        if ($ && $.fn && $.fn.modal) {
+            var $roster = $("#admin-course-roster-modal");
+            if ($roster.length && $roster.hasClass("show")) {
+                $roster.one("hidden.bs.modal", function () {
+                    A._resumeRosterAfterProfileClose = true;
+                    void A.openAdminUserProfile(userId);
+                });
+                $roster.modal("hide");
+                return;
+            }
+        }
+        A._resumeRosterAfterProfileClose = false;
+        void A.openAdminUserProfile(userId);
+    }
+
+    (function initRosterUserProfileClicks() {
+        var tbody = document.getElementById("admin-course-roster-body");
+        if (!tbody) return;
+        tbody.addEventListener("click", function (ev) {
+            var btn = ev.target.closest("button.roster-user-profile-btn");
+            if (!btn || !tbody.contains(btn)) return;
+            ev.preventDefault();
+            ev.stopPropagation();
+            var uid = btn.getAttribute("data-user-id");
+            if (!uid) return;
+            openAdminUserProfileAfterRosterIfNeeded(uid);
+        });
+    })();
+
+    (function initReopenRosterAfterProfileClose() {
+        if (!w.jQuery || !w.jQuery.fn || !w.jQuery.fn.modal) return;
+        var $ = w.jQuery;
+        var $detail = $("#admin-user-detail-modal");
+        if (!$detail.length) return;
+        $detail.on("hidden.bs.modal", function () {
+            if (!A._resumeRosterAfterProfileClose || !A._lastRosterOpen) return;
+            A._resumeRosterAfterProfileClose = false;
+            var o = A._lastRosterOpen;
+            if (!o || !o.courseId || typeof A.openCourseRosterModal !== "function") return;
+            w.setTimeout(function () {
+                void A.openCourseRosterModal(o.courseId, o.courseName);
+            }, 10);
+        });
+    })();
+
+    function showCourseRosterModal() {
+        var el = document.getElementById("admin-course-roster-modal");
+        if (!el) return;
+        if (w.jQuery && w.jQuery.fn && w.jQuery.fn.modal) {
+            w.jQuery(el).modal("show");
+        } else {
+            el.classList.add("show");
+            el.style.display = "block";
+            el.removeAttribute("aria-hidden");
+        }
+    }
+
+    A.openCourseRosterModal = async function (courseId, courseName) {
+        var titleEl = document.getElementById("admin-course-roster-title");
+        var sumEl = document.getElementById("admin-course-roster-summary");
+        var tbody = document.getElementById("admin-course-roster-body");
+        if (!tbody || !sumEl) return;
+        var cid = String(courseId || "").trim();
+        if (!cid) return;
+        A._lastRosterOpen = { courseId: cid, courseName: courseName || "Course" };
+        if (titleEl) {
+            titleEl.textContent = "Roster — " + (courseName || "Course");
+        }
+        sumEl.textContent = "Loading…";
+        sumEl.className = "small text-muted mb-2";
         tbody.innerHTML = "";
-        table.classList.add("d-none");
-        const res = await w.getEnrollmentsByCourse(id);
+        showCourseRosterModal();
+        const res = await w.getEnrollmentsByCourse(cid);
         if (res.forbidden) {
-            setInlineStatus("enr-status", A.staffForbiddenNote(), "danger");
+            sumEl.textContent = A.staffForbiddenNote();
+            sumEl.className = "small text-danger mb-2";
             return;
         }
         if (res.error) {
-            setInlineStatus("enr-status", res.error, "danger");
+            sumEl.textContent = res.error;
+            sumEl.className = "small text-danger mb-2";
             return;
         }
         const items = res.items || [];
-        setInlineStatus("enr-status", enrollmentRosterSummaryText(items.length), "info");
+        sumEl.textContent = enrollmentRosterSummaryText(items.length);
+        sumEl.className = "small text-muted mb-2";
         items.forEach(function (e) {
             const tr = document.createElement("tr");
             tr.innerHTML =
                 "<td>" +
-                pick(e, "email", "Email") +
+                escapeHtml(String(pick(e, "email", "Email") || "")) +
                 "</td>" +
                 "<td>" +
-                (pick(e, "userName", "UserName") || pick(e, "fullName", "FullName") || "—") +
+                rosterUsernameCellHtml(e) +
                 "</td>" +
                 "<td>" +
-                (pick(e, "studentNumber", "StudentNumber") || "—") +
+                escapeHtml(String(pick(e, "studentNumber", "StudentNumber") || "—")) +
                 "</td>" +
                 "<td>" +
-                A.roleHuman(pick(e, "role", "Role")) +
+                escapeHtml(String(A.roleHuman(pick(e, "role", "Role")))) +
                 "</td>" +
                 "<td>" +
-                new Date(pick(e, "enrolledAt", "EnrolledAt")).toLocaleString() +
+                escapeHtml(new Date(pick(e, "enrolledAt", "EnrolledAt")).toLocaleString()) +
                 "</td>";
             tbody.appendChild(tr);
         });
-        if (items.length) table.classList.remove("d-none");
     };
 })(typeof window !== "undefined" ? window : this);

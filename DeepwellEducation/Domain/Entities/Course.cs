@@ -19,4 +19,7 @@ public class Course
     public CourseCategory Category { get; set; } = CourseCategory.Language;
 
     public bool IsActive { get; set; } = true;
+
+    /// <summary>Relative to frontend root, e.g. <c>images/courses/{id}.jpg</c>. Shown on course detail page only; catalog uses language-matched art.</summary>
+    public string? ImageUrl { get; set; }
 }

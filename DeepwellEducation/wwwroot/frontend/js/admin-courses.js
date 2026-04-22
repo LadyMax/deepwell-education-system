@@ -71,6 +71,75 @@
         sel.value = n;
     }
 
+    function courseLanguageCode(c) {
+        return (
+            pick(c, "languageCode", "LanguageCode") ||
+            pick(c, "subjectCode", "SubjectCode") ||
+            ""
+        )
+            .toLowerCase()
+            .trim();
+    }
+
+    function courseLanguageKey(c) {
+        var code = courseLanguageCode(c);
+        if (code) return "code:" + code;
+        var name =
+            (pick(c, "languageName", "LanguageName") ||
+                pick(c, "subjectName", "SubjectName") ||
+                "")
+                .toLowerCase()
+                .trim();
+        return name ? "name:" + name : "unknown";
+    }
+
+    function buildLanguageToneMap(items) {
+        var maxTone = 8;
+        var neighbors = {};
+        var keys = [];
+        var i;
+
+        function ensureKey(k) {
+            if (!neighbors[k]) {
+                neighbors[k] = {};
+                keys.push(k);
+            }
+        }
+
+        for (i = 0; i < (items || []).length; i++) {
+            var key = courseLanguageKey(items[i]);
+            ensureKey(key);
+            if (i === 0) continue;
+            var prevKey = courseLanguageKey(items[i - 1]);
+            ensureKey(prevKey);
+            if (prevKey !== key) {
+                neighbors[prevKey][key] = true;
+                neighbors[key][prevKey] = true;
+            }
+        }
+
+        keys.sort(function (a, b) {
+            var da = Object.keys(neighbors[a] || {}).length;
+            var db = Object.keys(neighbors[b] || {}).length;
+            return db - da;
+        });
+
+        var toneByKey = {};
+        for (i = 0; i < keys.length; i++) {
+            var k = keys[i];
+            var used = {};
+            Object.keys(neighbors[k] || {}).forEach(function (n) {
+                var t = toneByKey[n];
+                if (t) used[t] = true;
+            });
+            var tone = 1;
+            while (tone <= maxTone && used[tone]) tone++;
+            if (tone > maxTone) tone = ((i % maxTone) + 1);
+            toneByKey[k] = tone;
+        }
+        return toneByKey;
+    }
+
     A.selectedCourseRow = null;
     A.isAddingCourse = false;
 
@@ -294,6 +363,7 @@
             return;
         }
         const items = res.items || [];
+        var toneByLangKey = buildLanguageToneMap(items);
         A.setCourseStatus(items.length + " courses listed", "info");
         A.setCourseSelectionFromRow(null, null);
         A.fillEnrollmentCourseSelect(items);
@@ -302,6 +372,8 @@
             const tr = document.createElement("tr");
             const id = pick(c, "id", "Id");
             tr.classList.add("cursor-pointer");
+            var tone = toneByLangKey[courseLanguageKey(c)] || 1;
+            tr.classList.add("course-lang-tone-" + tone);
             tr.innerHTML =
                 '<td><span class="fw-semibold">' +
                 (pick(c, "name", "Name") || "—") +

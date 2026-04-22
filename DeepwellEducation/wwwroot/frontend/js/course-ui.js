@@ -1,35 +1,111 @@
 (function (global) {
+    var DEFAULT_COURSE_IMAGE = "images/deepwell-course.jpg";
     var LANGUAGE_BY_CODE = {
+        ar: "Arabic",
         zh: "Chinese",
+        da: "Danish",
+        nl: "Dutch",
         en: "English",
+        fi: "Finnish",
         fr: "French",
-        sv: "Swedish",
+        el: "Greek",
+        he: "Hebrew",
+        is: "Icelandic",
         it: "Italian",
         ja: "Japanese",
-        es: "Spanish",
         de: "German",
+        ko: "Korean",
+        no: "Norwegian",
+        fa: "Persian",
+        pl: "Polish",
+        pt: "Portuguese",
+        ru: "Russian",
+        es: "Spanish",
+        sv: "Swedish",
+        th: "Thai",
+        tr: "Turkish",
+        vi: "Vietnamese",
     };
 
     var LANGUAGE_IMAGE_SLUG = {
+        ar: "arabic",
         zh: "chinese",
+        da: "danish",
+        nl: "dutch",
         en: "english",
+        fi: "finnish",
         fr: "french",
+        el: "greek",
+        he: "hebrew",
+        is: "icelandic",
         sv: "swedish",
         it: "italian",
         ja: "japanese",
         es: "spanish",
         de: "german",
+        ko: "korean",
+        no: "norwegian",
+        fa: "persian",
+        pl: "polish",
+        pt: "portuguese",
+        ru: "russian",
+        th: "thai",
+        tr: "turkish",
+        vi: "vietnamese",
     };
 
     var LANGUAGE_FLAG_FILE = {
-        zh: "China.png",
-        en: "UK.png",
-        fr: "France.png",
-        sv: "Sweden.png",
-        it: "Italy.png",
-        ja: "Japan.png",
-        es: "Spain.png",
-        de: "Germany.png",
+        ar: "sa.png",
+        zh: "cn.png",
+        en: "gb.png",
+        fr: "fr.png",
+        sv: "se.png",
+        it: "it.png",
+        ja: "jp.png",
+        es: "es.png",
+        de: "de.png",
+        da: "dk.png",
+        nl: "nl.png",
+        fi: "fi.png",
+        el: "gr.png",
+        he: "il.png",
+        is: "is.png",
+        ko: "kr.png",
+        no: "no.png",
+        fa: "ir.png",
+        pl: "pl.png",
+        pt: "pt.png",
+        ru: "ru.png",
+        th: "th.png",
+        tr: "tr.png",
+        vi: "vn.png",
+    };
+
+    var LANGUAGE_COUNTRY_IMAGE_FILE = {
+        ar: "arabic.jpg",
+        zh: "china.jpg",
+        da: "denmark.jpg",
+        nl: "netherlands.jpg",
+        en: "uk.jpg",
+        fi: "finland.jpg",
+        fr: "france.jpg",
+        el: "greece.jpg",
+        he: "israel.jpg",
+        is: "iceland.jpg",
+        it: "italy.jpg",
+        ja: "japan.jpg",
+        de: "germany.jpg",
+        ko: "korea.jpg",
+        no: "norway.jpg",
+        fa: "iran.jpg",
+        pl: "poland.jpg",
+        pt: "portugal.jpg",
+        ru: "russia.jpg",
+        es: "spain.jpg",
+        sv: "sweden.jpg",
+        th: "thailand.jpg",
+        tr: "turkey.jpg",
+        vi: "vietnam.jpg",
     };
 
     var LEVEL_LABELS = { 0: "Beginner", 1: "Intermediate", 2: "Advanced" };
@@ -115,8 +191,14 @@
 
     function courseFlagImageSrc(c) {
         var code = courseLanguageCode(c);
-        var file = LANGUAGE_FLAG_FILE[code];
+        var file = LANGUAGE_FLAG_FILE[code] || (code ? code.toLowerCase() + ".png" : "");
         return file ? "images/flag/" + file : "";
+    }
+
+    function courseCountryImageSrc(c) {
+        var code = courseLanguageCode(c);
+        var file = LANGUAGE_COUNTRY_IMAGE_FILE[code];
+        return file ? "images/country/" + file : "";
     }
 
     function languageBadgeHtml(c, extraClass) {
@@ -160,7 +242,8 @@
 
     function courseHeroImageSrc(c) {
         var code = courseLanguageCode(c);
-        var slug = LANGUAGE_IMAGE_SLUG[code] || "english";
+        var slug = LANGUAGE_IMAGE_SLUG[code];
+        if (!slug) return DEFAULT_COURSE_IMAGE;
         var variant = levelNumber(c.level) + 1;
         return "images/course/course-" + slug + "-" + variant + ".jpg";
     }
@@ -255,7 +338,9 @@
             '">' +
             '<img class="img-fluid" src="' +
             escapeHtml(courseHeroImageSrc(c)) +
-            '" alt="">' +
+            '" alt="" onerror="this.onerror=null;this.src=\'' +
+            escapeHtml(DEFAULT_COURSE_IMAGE) +
+            '\';">' +
             "</a>" +
             '<div class="bg-secondary p-4 d-flex flex-column h-100">' +
             '<div class="d-flex justify-content-between align-items-center mb-2 flex-wrap">' +
@@ -283,6 +368,69 @@
             '">View full details</a>' +
             "</div></div></div>";
         rowEl.appendChild(col);
+    }
+
+    function appendLanguageCategoryCard(rowEl, code, name, imageSrc) {
+        var col = document.createElement("div");
+        col.className = "col-lg-3 col-md-6 mb-4";
+        col.innerHTML =
+            '<div class="cat-item position-relative overflow-hidden rounded mb-2">' +
+            '<img class="img-fluid" src="' +
+            escapeHtml(imageSrc || "images/country/uk.jpg") +
+            '" alt="' +
+            escapeHtml(name) +
+            '">' +
+            '<a class="cat-overlay text-white text-decoration-none" href="course.html?lang=' +
+            encodeURIComponent(code) +
+            '">' +
+            '<h4 class="text-white font-weight-medium">' +
+            escapeHtml(name) +
+            "</h4>" +
+            "<span>Browse courses</span>" +
+            "</a>" +
+            "</div>";
+        rowEl.appendChild(col);
+    }
+
+    function renderLanguageCategoryCards(hostEl) {
+        if (!hostEl) return;
+        fetchJson("/api/Courses")
+            .then(function (courses) {
+                var byLang = {};
+                (courses || []).forEach(function (c) {
+                    var code = courseLanguageCode(c);
+                    if (!code) return;
+                    if (!byLang[code]) {
+                        byLang[code] = {
+                            code: code,
+                            name: languageLabelFromCourse(c),
+                            image: courseCountryImageSrc(c),
+                        };
+                    }
+                });
+
+                var ordered = Object.keys(byLang)
+                    .map(function (k) {
+                        return byLang[k];
+                    })
+                    .sort(function (a, b) {
+                        return a.name.localeCompare(b.name);
+                    });
+
+                if (!ordered.length) return;
+                var row = hostEl.querySelector(".row");
+                if (!row) return;
+                row.innerHTML = "";
+                ordered.forEach(function (item) {
+                    appendLanguageCategoryCard(
+                        row,
+                        item.code,
+                        item.name,
+                        item.image,
+                    );
+                });
+            })
+            .catch(function () {});
     }
 
     function renderCatalog(
@@ -561,6 +709,7 @@
         renderCatalog: renderCatalog,
         renderHomePopular: renderHomePopular,
         renderDetail: renderDetail,
+        renderLanguageCategoryCards: renderLanguageCategoryCards,
         categoryLabel: categoryLabel,
         levelLabel: levelLabel,
         languageLabelFromCourse: languageLabelFromCourse,

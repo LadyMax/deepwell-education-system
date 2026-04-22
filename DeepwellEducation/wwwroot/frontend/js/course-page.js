@@ -6,10 +6,18 @@
         var status = document.getElementById('course-catalog-status');
         var banner = document.getElementById('course-filter-banner');
         var cards = document.getElementById('course-language-cards');
+        var languageCategoryInner = document.getElementById('language-category-inner');
         var levelSel = document.getElementById('course-level-filter');
 
         if (cards) {
             cards.classList.toggle('d-none', !!q);
+        }
+        if (
+            languageCategoryInner &&
+            window.DeepwellCourse &&
+            typeof DeepwellCourse.renderLanguageCategoryCards === 'function'
+        ) {
+            DeepwellCourse.renderLanguageCategoryCards(languageCategoryInner);
         }
 
         function syncUrl() {

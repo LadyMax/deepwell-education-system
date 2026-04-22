@@ -108,6 +108,54 @@
         if (el) el.textContent = message || "";
     }
 
+    function setActiveMessageQuickFilter(mode) {
+        var buttons = [
+            { id: "btn-load-msg-all", mode: "all" },
+            { id: "btn-load-msg-new", mode: "new" },
+            { id: "btn-load-msg-uncat", mode: "uncat" }
+        ];
+        buttons.forEach(function (entry) {
+            var btn = document.getElementById(entry.id);
+            if (!btn) return;
+            var active = entry.mode === mode;
+            btn.classList.toggle("btn-primary", active);
+            btn.classList.toggle("btn-outline-primary", !active);
+            btn.setAttribute("aria-pressed", active ? "true" : "false");
+        });
+    }
+
+    function setActiveRequestQuickFilter(mode) {
+        var buttons = [
+            { id: "btn-load-pending", mode: "pending" },
+            { id: "btn-load-all", mode: "all" }
+        ];
+        buttons.forEach(function (entry) {
+            var btn = document.getElementById(entry.id);
+            if (!btn) return;
+            var active = entry.mode === mode;
+            btn.classList.toggle("btn-primary", active);
+            btn.classList.toggle("btn-outline-primary", !active);
+            btn.classList.remove("btn-outline-secondary");
+            btn.setAttribute("aria-pressed", active ? "true" : "false");
+        });
+    }
+
+    function setActiveCourseToolbarAction(mode) {
+        var buttons = [
+            { id: "btn-course-add-open", mode: "add" },
+            { id: "btn-course-load", mode: "refresh" }
+        ];
+        buttons.forEach(function (entry) {
+            var btn = document.getElementById(entry.id);
+            if (!btn) return;
+            var active = entry.mode === mode;
+            btn.classList.toggle("btn-primary", active);
+            btn.classList.toggle("btn-outline-primary", !active);
+            btn.classList.remove("btn-outline-secondary");
+            btn.setAttribute("aria-pressed", active ? "true" : "false");
+        });
+    }
+
     function showAdminPane(paneId) {
         document.querySelectorAll("[data-admin-pane-id]").forEach(function (section) {
             var id = section.getAttribute("data-admin-pane-id");
@@ -128,22 +176,27 @@
 
     document.getElementById("btn-load-pending").addEventListener("click", function () {
         document.getElementById("cr-filter-status").value = "Pending";
+        setActiveRequestQuickFilter("pending");
         A.renderCourseRequests(A.readCourseRequestFilters());
     });
     document.getElementById("btn-load-all").addEventListener("click", function () {
         A.resetCourseRequestFilters();
+        setActiveRequestQuickFilter("all");
         A.renderCourseRequests(A.readCourseRequestFilters());
     });
     document.getElementById("btn-cr-apply-filters").addEventListener("click", function () {
+        setActiveRequestQuickFilter("");
         A.renderCourseRequests(A.readCourseRequestFilters());
     });
     document.getElementById("btn-cr-reset-filters").addEventListener("click", function () {
         A.resetCourseRequestFilters();
+        setActiveRequestQuickFilter("all");
         A.renderCourseRequests(A.readCourseRequestFilters());
     });
     document.getElementById("cr-filter-applicant").addEventListener("keydown", function (e) {
         if (e.key !== "Enter") return;
         e.preventDefault();
+        setActiveRequestQuickFilter("");
         A.renderCourseRequests(A.readCourseRequestFilters());
     });
 
@@ -171,21 +224,26 @@
 
     document.getElementById("btn-load-msg-all").addEventListener("click", function () {
         document.getElementById("msg-final-filter").value = "";
+        setActiveMessageQuickFilter("all");
         A.renderMessages({ page: 1, pageSize: 50 });
     });
     document.getElementById("btn-load-msg-new").addEventListener("click", function () {
         document.getElementById("msg-final-filter").value = "";
+        setActiveMessageQuickFilter("new");
         A.renderMessages({ unreadOnly: true, page: 1, pageSize: 50 });
     });
     document.getElementById("btn-load-msg-uncat").addEventListener("click", function () {
         document.getElementById("msg-final-filter").value = "";
+        setActiveMessageQuickFilter("uncat");
         A.renderMessages({ uncategorizedOnly: true, page: 1, pageSize: 50 });
     });
     document.getElementById("msg-final-filter").addEventListener("change", function () {
         var v = this.value;
         if (v === "") {
+            setActiveMessageQuickFilter("all");
             A.renderMessages({ page: 1, pageSize: 50 });
         } else {
+            setActiveMessageQuickFilter("");
             A.renderMessages({ finalCategory: Number(v), page: 1, pageSize: 50 });
         }
     });
@@ -197,15 +255,20 @@
     });
 
     document.getElementById("btn-course-load").addEventListener("click", A.renderCourses);
+    document.getElementById("btn-course-load").addEventListener("click", function () {
+        setActiveCourseToolbarAction("refresh");
+    });
     var btnCourseAddOpen = document.getElementById("btn-course-add-open");
     if (btnCourseAddOpen) {
         btnCourseAddOpen.addEventListener("click", function () {
+            setActiveCourseToolbarAction("add");
             if (typeof A.openCourseEditorForNew === "function") A.openCourseEditorForNew();
         });
     }
     var btnCourseCloseEditor = document.getElementById("btn-course-close-editor");
     if (btnCourseCloseEditor) {
         btnCourseCloseEditor.addEventListener("click", function () {
+            setActiveCourseToolbarAction("refresh");
             if (typeof A.closeCourseEditor === "function") A.closeCourseEditor();
         });
     }
@@ -350,7 +413,10 @@
 
     A.resetCourseRequestFilters();
     document.getElementById("cr-filter-status").value = "Pending";
+    setActiveRequestQuickFilter("pending");
     A.renderCourseRequests(A.readCourseRequestFilters());
+    setActiveCourseToolbarAction("refresh");
+    setActiveMessageQuickFilter("all");
     A.renderMessages({ page: 1, pageSize: 50 });
     A.renderCourses();
     A.refreshAdminInboxUnreadUi(true);

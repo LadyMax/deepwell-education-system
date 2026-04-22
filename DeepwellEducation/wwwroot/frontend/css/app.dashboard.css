@@ -62,6 +62,23 @@ body.page-admin .admin-select-apply .btn-admin-confirm {
   white-space: nowrap;
 }
 
+/* Staff dashboard: improve affordance for neutral action buttons. */
+body.page-admin .btn-outline-secondary {
+  color: #17676d;
+  border-color: rgba(0, 181, 184, 0.45);
+  background-color: rgba(0, 181, 184, 0.08);
+  font-weight: 400;
+}
+
+body.page-admin .btn-outline-secondary:hover,
+body.page-admin .btn-outline-secondary:focus,
+body.page-admin .btn-outline-secondary:focus-visible {
+  color: #fff;
+  border-color: #00b5b8;
+  background-color: #00b5b8;
+  box-shadow: 0 0 0 0.15rem rgba(0, 181, 184, 0.2);
+}
+
 /* Active Enrollments: keep course select + Confirm on one row (long course names shrink the select). */
 body.page-admin .admin-select-apply.admin-select-apply--enroll-toolbar {
   flex-wrap: nowrap;
@@ -112,9 +129,9 @@ body.page-admin #course-level {
   font-size: 0.875rem;
 }
 
+body.page-admin #course-language-name,
 body.page-admin #course-level {
   padding-right: 1.75rem;
-  appearance: none;
 }
 
 body.page-admin #course-desc {
@@ -543,23 +560,6 @@ body.page-admin .admin-pane-nav .btn-outline-primary:not(.active) {
 /* Keep nav pill corners consistent with other admin action buttons. */
 body.page-admin .admin-pane-nav .btn {
   border-radius: 0.2rem !important;
-}
-
-/* Enrollment Queue secondary actions: improve idle-state contrast. */
-body.page-admin #btn-load-all,
-body.page-admin #btn-cr-reset-filters {
-  color: #495057 !important;
-  border-color: #6c757d !important;
-  background-color: #fff !important;
-}
-
-body.page-admin #btn-load-all:hover,
-body.page-admin #btn-load-all:focus,
-body.page-admin #btn-cr-reset-filters:hover,
-body.page-admin #btn-cr-reset-filters:focus {
-  color: #fff !important;
-  background-color: #6c757d !important;
-  border-color: #6c757d !important;
 }
 
 .admin-advanced {

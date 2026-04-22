@@ -94,10 +94,8 @@ body.page-admin .admin-enr-toolbar .admin-enr-status {
 
 /* Courses panel: normalize field styling across input/select/textarea controls. */
 body.page-admin #course-name,
-body.page-admin #course-language-code,
 body.page-admin #course-language-name,
 body.page-admin #course-level,
-body.page-admin #course-active-select,
 body.page-admin #course-desc {
   border: 1px solid #ced4da;
   border-radius: 0.2rem;
@@ -106,18 +104,15 @@ body.page-admin #course-desc {
 }
 
 body.page-admin #course-name,
-body.page-admin #course-language-code,
 body.page-admin #course-language-name,
-body.page-admin #course-level,
-body.page-admin #course-active-select {
+body.page-admin #course-level {
   height: calc(1.5em + 0.5rem + 2px);
   padding-top: 0.25rem;
   padding-bottom: 0.25rem;
   font-size: 0.875rem;
 }
 
-body.page-admin #course-level,
-body.page-admin #course-active-select {
+body.page-admin #course-level {
   padding-right: 1.75rem;
   appearance: none;
 }
@@ -627,4 +622,32 @@ body.page-admin #cr-table .cr-status--rejected {
   color: #5c6b6b;
   font-size: 0.9em;
   line-height: 1.4;
+}
+
+/* Courses panel: keep list-count/status flash lightweight and dashboard-consistent. */
+body.page-admin #course-status.app-flash,
+body.page-admin #cr-status.app-flash,
+body.page-admin #status.app-flash,
+body.page-admin #enr-status.app-flash,
+body.page-admin #admin-users-status.app-flash {
+  display: inline-flex;
+  align-items: center;
+  width: auto;
+  max-width: 100%;
+  padding: 0.35rem 0.55rem;
+  border-radius: 999px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  line-height: 1.2;
+}
+
+body.page-admin #course-status.app-flash--info,
+body.page-admin #cr-status.app-flash--info,
+body.page-admin #status.app-flash--info,
+body.page-admin #enr-status.app-flash--info,
+body.page-admin #admin-users-status.app-flash--info {
+  color: #2f5b61;
+  background: rgba(0, 181, 184, 0.12);
+  border-color: rgba(0, 181, 184, 0.28);
 }

@@ -8,7 +8,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com">
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.10.0/css/all.min.css" rel="stylesheet">
-  <link rel="stylesheet" href="css/app.css?v=20260419c">
+  <link rel="stylesheet" href="css/app.css?v=20260422l">
   <script src="js/shared-dom.js?v=20260422a"></script>
   <script src="js/layout.js" defer></script>
 </head>
@@ -35,7 +35,7 @@
         <div class="d-flex flex-wrap gap-2 align-items-center mb-2">
           <button type="button" class="btn btn-primary btn-sm" id="btn-load-pending">Show pending</button>
           <button type="button" class="btn btn-outline-secondary btn-sm" id="btn-load-all">Show all</button>
-          <span id="cr-status" class="text-muted small mt-1 mt-md-0 ml-md-2"></span>
+          <span id="cr-status" class="app-flash d-none mb-0 ml-md-2" data-base-class="app-flash mb-0 ml-md-2" role="status" aria-live="polite"></span>
         </div>
         <div class="form-row align-items-end mb-2">
           <div class="col-sm-6 col-md-2">
@@ -116,7 +116,7 @@
             <option value="3">Other</option>
           </select>
         </div>
-        <div id="status" class="small text-muted mb-2"></div>
+        <div id="status" class="app-flash d-none mb-2" data-base-class="app-flash mb-2" role="status" aria-live="polite"></div>
         <div class="table-responsive admin-msg-table-wrap">
           <table class="table table-sm table-striped table-bordered d-none" id="msg-table">
             <thead class="table-light">
@@ -147,42 +147,44 @@
 
         <section class="admin-section d-none" data-admin-pane-id="courses" aria-labelledby="admin-courses-heading">
         <h2 class="h5 mb-3" id="admin-courses-heading">Courses</h2>
+        <div class="d-flex flex-wrap gap-2 mb-3 align-items-center">
+          <button type="button" class="btn btn-primary btn-sm" id="btn-course-add-open">Add course</button>
+          <button type="button" class="btn btn-outline-secondary btn-sm" id="btn-course-load" title="Refresh course list">Refresh</button>
+          <button type="button" class="btn btn-outline-secondary btn-sm d-none" id="btn-course-close-editor">Close editor</button>
+        </div>
+        <div id="course-editor-panel" class="d-none">
         <div class="form-row mb-3">
           <div class="col-12">
-            <span class="form-label small text-muted d-block mb-1">Editing</span>
             <p id="course-selected-summary" class="form-control-plaintext border rounded px-3 py-2 mb-0 bg-light small" role="status">No course selected</p>
             <input type="hidden" id="course-id" value="">
             <button type="button" class="btn btn-link btn-sm p-0 mt-1 d-none" id="btn-course-clear-selection" aria-label="Clear course selection">Clear</button>
           </div>
           <div class="col-md-4"><input id="course-name" class="form-control form-control-sm" placeholder="Course name"></div>
-          <div class="col-md-2"><input id="course-language-code" class="form-control form-control-sm" placeholder="Code (e.g. en)" maxlength="16"></div>
-          <div class="col-md-3"><input id="course-language-name" class="form-control form-control-sm" placeholder="Language"></div>
+          <div class="col-md-5">
+            <select id="course-language-name" class="custom-select custom-select-sm" aria-label="Language">
+              <option value="">Choose language…</option>
+            </select>
+          </div>
           <div class="col-md-3">
             <div class="admin-select-apply">
               <select id="course-level" class="custom-select custom-select-sm" aria-label="Level">
+                <option value="">Choose level…</option>
                 <option value="0">Beginner</option>
                 <option value="1">Intermediate</option>
                 <option value="2">Advanced</option>
               </select>
-              <button type="button" class="btn btn-outline-secondary btn-sm btn-admin-confirm" id="btn-course-apply-level" disabled>Confirm</button>
+              <button type="button" class="btn btn-outline-secondary btn-sm btn-admin-confirm course-editor-existing-only" id="btn-course-apply-level" disabled>Confirm</button>
             </div>
           </div>
           <div class="col-12"><textarea id="course-desc" class="form-control form-control-sm" rows="2" placeholder="Description"></textarea></div>
-          <div class="col-md-2"><button type="button" class="btn btn-primary btn-sm w-100" id="btn-course-create">Add course</button></div>
-          <div class="col-md-2"><button type="button" class="btn btn-outline-primary btn-sm w-100" id="btn-course-update" disabled>Save changes</button></div>
-          <div class="col-md-2"><button type="button" class="btn btn-outline-danger btn-sm w-100" id="btn-course-delete" disabled>Deactivate</button></div>
-          <div class="col-md-5">
-            <div class="admin-select-apply">
-              <select id="course-active-select" class="custom-select custom-select-sm" aria-label="Visibility">
-                <option value="true">Visible on site</option>
-                <option value="false">Hidden from site</option>
-              </select>
-              <button type="button" class="btn btn-outline-secondary btn-sm btn-admin-confirm" id="btn-course-set-active" disabled>Confirm</button>
-            </div>
-          </div>
-          <div class="col-md-1"><button type="button" class="btn btn-outline-secondary btn-sm w-100" id="btn-course-load" title="Refresh course list">Refresh</button></div>
+          <div class="col-md-2" id="wrap-btn-course-create"><button type="button" class="btn btn-primary btn-sm w-100" id="btn-course-create">Create course</button></div>
+          <div class="col-md-2 course-editor-existing-only"><button type="button" class="btn btn-outline-primary btn-sm w-100" id="btn-course-update" disabled>Save changes</button></div>
+          <div class="col-md-2 course-editor-existing-only"><button type="button" class="btn btn-outline-danger btn-sm w-100" id="btn-course-delete" disabled>Hide</button></div>
+          <div class="col-md-2 course-editor-existing-only"><button type="button" class="btn btn-danger btn-sm w-100" id="btn-course-permanent-delete" disabled>Delete</button></div>
+          
         </div>
-        <div id="course-status" class="small text-muted mb-2"></div>
+        </div>
+        <div id="course-status" class="app-flash d-none mb-2" role="status" aria-live="polite"></div>
         <div class="table-responsive">
           <table class="table table-sm table-striped table-bordered table-hover d-none" id="course-table">
             <thead class="table-light">
@@ -195,7 +197,6 @@
 
         <section class="admin-section d-none" data-admin-pane-id="enrollments" aria-labelledby="admin-enr-heading">
         <h2 class="h5 mb-3" id="admin-enr-heading">Students by course</h2>
-        <p class="small text-muted mb-2">See who is currently taking each class.</p>
         <div class="d-flex flex-wrap gap-2 align-items-center mb-2 admin-enr-toolbar">
           <div class="admin-select-apply admin-select-apply--enroll-toolbar">
             <select id="enr-course-select" class="custom-select custom-select-sm" aria-label="Choose a course to see its student list">
@@ -203,7 +204,7 @@
             </select>
             <button type="button" class="btn btn-outline-secondary btn-sm btn-admin-confirm" id="btn-enr-load">Search</button>
           </div>
-          <span id="enr-status" class="small text-muted admin-enr-status"></span>
+          <span id="enr-status" class="app-flash d-none admin-enr-status mb-0" data-base-class="app-flash admin-enr-status mb-0" role="status" aria-live="polite"></span>
         </div>
         <div class="table-responsive">
           <table class="table table-sm table-striped table-bordered d-none" id="enr-table">
@@ -244,7 +245,7 @@
             <button type="button" class="btn btn-outline-secondary btn-sm" id="btn-admin-users-reset">Clear filters</button>
           </div>
         </div>
-        <div id="admin-users-status" class="small text-muted mb-2" role="status"></div>
+        <div id="admin-users-status" class="app-flash d-none mb-2" data-base-class="app-flash mb-2" role="status" aria-live="polite"></div>
         <div class="d-flex flex-wrap align-items-center gap-2 mb-2 d-none" id="admin-users-pager">
           <button type="button" class="btn btn-outline-secondary btn-sm" id="btn-admin-users-prev" disabled>Previous</button>
           <span id="admin-users-page-info" class="small text-muted"></span>
@@ -270,7 +271,6 @@
 
         <section class="admin-section d-none" data-admin-pane-id="account" aria-labelledby="admin-account-heading">
         <h2 class="h5 mb-3" id="admin-account-heading">Account security</h2>
-        <p class="small text-muted">Change your sign-in password.</p>
         <div id="admin-password-flash" class="app-flash d-none mb-3" role="status" aria-live="polite"></div>
         <div class="form-row">
           <div class="form-group col-md-6 col-lg-5">
@@ -310,18 +310,35 @@
     </div>
   </div>
   <div id="site-footer"></div>
+  <div class="modal fade" id="admin-confirm-modal" tabindex="-1" role="dialog" aria-labelledby="admin-confirm-title" aria-hidden="true">
+    <div class="modal-dialog modal-sm modal-dialog-centered" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="admin-confirm-title">Please confirm</h5>
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+        <div class="modal-body" id="admin-confirm-message"></div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline-secondary btn-sm" data-dismiss="modal">Cancel</button>
+          <button type="button" class="btn btn-primary btn-sm" id="admin-confirm-ok">Confirm</button>
+        </div>
+      </div>
+    </div>
+  </div>
   <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
   <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.bundle.min.js"></script>
   <script src="js/main.js"></script>
   <script src="js/api.js?v=20260420d"></script>
   <script src="js/shared-password-ui.js?v=20260422a"></script>
   <script src="js/shared-dashboard.js?v=20260422a"></script>
-  <script src="js/admin-common.js?v=20260422g"></script>
+  <script src="js/admin-common.js?v=20260422i"></script>
   <script src="js/admin-ai-format.js?v=20260422g"></script>
-  <script src="js/admin-users.js?v=20260422h"></script>
-  <script src="js/admin-course-requests.js?v=20260422g"></script>
-  <script src="js/admin-courses.js?v=20260422g"></script>
-  <script src="js/admin-messages.js?v=20260422g"></script>
-  <script src="js/admin.js?v=20260422g"></script>
+  <script src="js/admin-users.js?v=20260422i"></script>
+  <script src="js/admin-course-requests.js?v=20260422j"></script>
+  <script src="js/admin-courses.js?v=20260422j"></script>
+  <script src="js/admin-messages.js?v=20260422i"></script>
+  <script src="js/admin.js?v=20260422k"></script>
 </body>
 </html>

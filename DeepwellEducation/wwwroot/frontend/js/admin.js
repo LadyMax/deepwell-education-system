@@ -63,6 +63,51 @@
         el.classList.remove("d-none");
     }
 
+    function showAdminConfirm(message, title) {
+        return new Promise(function (resolve) {
+            var modalEl = document.getElementById("admin-confirm-modal");
+            var msgEl = document.getElementById("admin-confirm-message");
+            var titleEl = document.getElementById("admin-confirm-title");
+            var okEl = document.getElementById("admin-confirm-ok");
+            if (!modalEl || !msgEl || !titleEl || !okEl || !window.jQuery) {
+                resolve(window.confirm(message || "Confirm action?"));
+                return;
+            }
+
+            msgEl.textContent = message || "Confirm action?";
+            titleEl.textContent = title || "Please confirm";
+            okEl.onclick = null;
+            okEl.onclick = function () {
+                window.jQuery(modalEl).modal("hide");
+                resolve(true);
+            };
+            window.jQuery(modalEl).off("hidden.bs.modal.adminConfirm");
+            window.jQuery(modalEl).on("hidden.bs.modal.adminConfirm", function () {
+                window.jQuery(modalEl).off("hidden.bs.modal.adminConfirm");
+                resolve(false);
+            });
+            window.jQuery(modalEl).modal("show");
+        });
+    }
+
+    function setCourseStatus(message, variant) {
+        if (A && typeof A.setCourseStatus === "function") {
+            A.setCourseStatus(message, variant);
+            return;
+        }
+        var el = document.getElementById("course-status");
+        if (el) el.textContent = message || "";
+    }
+
+    function setInlineStatus(elementId, message, variant) {
+        if (A && typeof A.setInlineStatus === "function") {
+            A.setInlineStatus(elementId, message, variant);
+            return;
+        }
+        var el = document.getElementById(elementId);
+        if (el) el.textContent = message || "";
+    }
+
     function showAdminPane(paneId) {
         document.querySelectorAll("[data-admin-pane-id]").forEach(function (section) {
             var id = section.getAttribute("data-admin-pane-id");
@@ -105,20 +150,23 @@
     document.getElementById("btn-cr-detail").addEventListener("click", async function () {
         const id = document.getElementById("cr-id-input").value.trim();
         if (!id) {
-            document.getElementById("cr-status").textContent = "Paste a request reference id.";
+            setInlineStatus("cr-status", "Paste a request reference id.", "warning");
             return;
         }
         const r = await getCourseRequestById(id);
         if (!r.ok) {
-            document.getElementById("cr-status").textContent = r.message || "Not found.";
+            setInlineStatus("cr-status", r.message || "Not found.", "danger");
             return;
         }
         const d = r.data || {};
-        document.getElementById("cr-status").textContent =
+        setInlineStatus(
+            "cr-status",
             "Detail · Type: " +
             typeLabel(pick(d, "type", "Type")) +
             " · Status: " +
-            statusLabel(pick(d, "status", "Status"));
+            statusLabel(pick(d, "status", "Status")),
+            "info"
+        );
     });
 
     document.getElementById("btn-load-msg-all").addEventListener("click", function () {
@@ -143,53 +191,77 @@
     });
 
     document.getElementById("course-level").addEventListener("change", A.syncCourseLevelConfirmButton);
-    document
-        .getElementById("course-active-select")
-        .addEventListener("change", A.syncCourseVisibilityConfirmButton);
 
     document.getElementById("btn-course-apply-level").addEventListener("click", function () {
         document.getElementById("btn-course-update").click();
     });
 
     document.getElementById("btn-course-load").addEventListener("click", A.renderCourses);
+    var btnCourseAddOpen = document.getElementById("btn-course-add-open");
+    if (btnCourseAddOpen) {
+        btnCourseAddOpen.addEventListener("click", function () {
+            if (typeof A.openCourseEditorForNew === "function") A.openCourseEditorForNew();
+        });
+    }
+    var btnCourseCloseEditor = document.getElementById("btn-course-close-editor");
+    if (btnCourseCloseEditor) {
+        btnCourseCloseEditor.addEventListener("click", function () {
+            if (typeof A.closeCourseEditor === "function") A.closeCourseEditor();
+        });
+    }
     document.getElementById("btn-course-create").addEventListener("click", async function () {
         const r = await createCourse(A.coursePayloadFromForm());
-        document.getElementById("course-status").textContent = r.ok ? "Course created." : r.message || "Failed";
+        setCourseStatus(r.ok ? "Course created." : r.message || "Failed", r.ok ? "success" : "danger");
         if (r.ok) A.renderCourses();
     });
     document.getElementById("btn-course-update").addEventListener("click", async function () {
         const id = document.getElementById("course-id").value.trim();
         if (!id) {
-            document.getElementById("course-status").textContent = "Select a course in the table above first.";
+            setCourseStatus("Select a course in the table above first.", "warning");
             return;
         }
         const r = await updateCourse(id, A.coursePayloadFromForm());
-        document.getElementById("course-status").textContent = r.ok ? "Course updated." : r.message || "Failed";
+        setCourseStatus(r.ok ? "Course updated." : r.message || "Failed", r.ok ? "success" : "danger");
         if (r.ok) A.renderCourses();
     });
     document.getElementById("btn-course-delete").addEventListener("click", async function () {
         const id = document.getElementById("course-id").value.trim();
         if (!id) {
-            document.getElementById("course-status").textContent = "Select a course in the table above first.";
+            setCourseStatus("Select a course in the table above first.", "warning");
             return;
         }
-        if (!confirm("Deactivate this course?")) return;
-        const r = await deleteCourse(id);
-        document.getElementById("course-status").textContent = r.ok ? "Course deactivated." : r.message || "Failed";
+        const hideBtn = document.getElementById("btn-course-delete");
+        const willHide = !hideBtn || hideBtn.textContent.trim() !== "Show";
+        var confirmHide = await showAdminConfirm(
+            willHide ? "Hide this course from the public site?" : "Show this course on the public site?",
+            willHide ? "Hide course" : "Show course"
+        );
+        if (!confirmHide) return;
+        const r = await setCourseActive(id, !willHide);
+        setCourseStatus(
+            r.ok ? (willHide ? "Course hidden." : "Course shown.") : r.message || "Failed",
+            r.ok ? "success" : "danger"
+        );
         if (r.ok) A.renderCourses();
     });
-    document.getElementById("btn-course-set-active").addEventListener("click", async function () {
-        const id = document.getElementById("course-id").value.trim();
-        if (!id) {
-            document.getElementById("course-status").textContent = "Select a course in the table above first.";
-            return;
-        }
-        const isActive = document.getElementById("course-active-select").value === "true";
-        const r = await setCourseActive(id, isActive);
-        document.getElementById("course-status").textContent = r.ok ? "Visibility updated." : r.message || "Failed";
-        if (r.ok) A.renderCourses();
-    });
-
+    var btnCoursePermanentDelete = document.getElementById("btn-course-permanent-delete");
+    if (btnCoursePermanentDelete) {
+        btnCoursePermanentDelete.addEventListener("click", async function () {
+            const id = document.getElementById("course-id").value.trim();
+            if (!id) {
+                setCourseStatus("Select a course in the table above first.", "warning");
+                return;
+            }
+            var confirmDelete = await showAdminConfirm(
+                "Permanently delete this inactive course? This cannot be undone.",
+                "Delete course"
+            );
+            if (!confirmDelete) return;
+            const r = await deleteCourse(id, true);
+            setCourseStatus(r.ok ? "Course deleted permanently." : r.message || "Failed", r.ok ? "success" : "danger");
+            if (r.ok) A.renderCourses();
+        });
+    }
     document.getElementById("btn-enr-load").addEventListener("click", A.loadEnrollmentsByCourseUi);
 
     var btnUsersSearch = document.getElementById("btn-admin-users-search");

@@ -14,6 +14,10 @@
         console.error("Missing admin-ai-format.js (load before admin-messages.js).");
         return;
     }
+    var setInlineStatus = A.setInlineStatus || function (id, message) {
+        var el = document.getElementById(id);
+        if (el) el.textContent = message || "";
+    };
 
     function syncMsgCatConfirmState(row, loading) {
         if (!row) return;
@@ -37,24 +41,23 @@
     }
 
     A.renderMessages = async function (options) {
-        const statusEl = document.getElementById("status");
         const msgTable = document.getElementById("msg-table");
         const tbody = document.getElementById("msg-body");
-        statusEl.textContent = "Loading…";
+        setInlineStatus("status", "Loading…", "info");
         tbody.innerHTML = "";
         msgTable.classList.add("d-none");
 
         const page = await w.getAdminMessages(options || { page: 1, pageSize: 50 });
         if (page.forbidden) {
-            statusEl.textContent = A.staffForbiddenNote();
+            setInlineStatus("status", A.staffForbiddenNote(), "danger");
             return;
         }
         if (page.error) {
-            statusEl.textContent = page.error;
+            setInlineStatus("status", page.error, "danger");
             return;
         }
         const items = page.items || page.Items || [];
-        statusEl.textContent = contactMessagesSummaryText(items.length);
+        setInlineStatus("status", contactMessagesSummaryText(items.length), "info");
         items.sort(function (a, b) {
             var pa = A.priorityRank(
                 A.effectiveSuggestedPriority(

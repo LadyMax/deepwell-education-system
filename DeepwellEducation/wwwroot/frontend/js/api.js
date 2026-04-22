@@ -209,8 +209,9 @@ async function setCourseActive(id, isActive) {
     return { ok: true, data: body.json || {} };
 }
 
-async function deleteCourse(id) {
-    const response = await fetch(`${baseUrl}/Courses/${encodeURIComponent(id)}`, {
+async function deleteCourse(id, permanent = false) {
+    const q = permanent ? "?permanent=true" : "";
+    const response = await fetch(`${baseUrl}/Courses/${encodeURIComponent(id)}${q}`, {
         method: "DELETE",
         headers: authHeaders()
     });

@@ -9,6 +9,10 @@
 
     var escapeHtml = S.escapeHtml;
     var A = (w.DeepwellAdmin = w.DeepwellAdmin || {});
+    var setInlineStatus = A.setInlineStatus || function (id, message) {
+        var el = document.getElementById(id);
+        if (el) el.textContent = message || "";
+    };
 
     A.roleHuman = function (r) {
         if (r === 0 || r === "Visitor") return "Visitor";
@@ -161,14 +165,14 @@
         var pageInfo = document.getElementById("admin-users-page-info");
         if (!statusEl || !table || !tbody) return;
         if (resetPage) A.adminUserDirectoryState.page = 1;
-        statusEl.textContent = "Loading…";
+        setInlineStatus("admin-users-status", "Loading…", "info");
         tbody.innerHTML = "";
         table.classList.add("d-none");
         if (pager) pager.classList.add("d-none");
 
         var f = A.readAdminUserDirectoryFilters();
         if (typeof w.getAdminUsersList !== "function") {
-            statusEl.textContent = "This list is not available. Try refreshing the page.";
+            setInlineStatus("admin-users-status", "This list is not available. Try refreshing the page.", "danger");
             return;
         }
         var res = await w.getAdminUsersList({
@@ -178,11 +182,11 @@
             pageSize: f.pageSize
         });
         if (res.forbidden) {
-            statusEl.textContent = A.staffForbiddenNote();
+            setInlineStatus("admin-users-status", A.staffForbiddenNote(), "danger");
             return;
         }
         if (res.error) {
-            statusEl.textContent = res.error;
+            setInlineStatus("admin-users-status", res.error, "danger");
             return;
         }
         var items = res.items || [];
@@ -191,10 +195,13 @@
         var pageSize = res.pageSize || 20;
         var totalPages = res.totalPages || (pageSize > 0 ? Math.ceil(total / pageSize) : 0);
         var tp = Math.max(1, totalPages || 1);
-        statusEl.textContent =
+        setInlineStatus(
+            "admin-users-status",
             total === 0
                 ? "No accounts match"
-                : total + " " + (total === 1 ? "person" : "people") + " found · page " + page + " of " + tp;
+                : total + " " + (total === 1 ? "person" : "people") + " found · page " + page + " of " + tp,
+            "info"
+        );
 
         items.forEach(function (u) {
             var id = pick(u, "id", "Id");

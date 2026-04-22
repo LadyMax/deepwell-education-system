@@ -7,6 +7,20 @@
         return "You need staff access. Sign in with a staff account.";
     };
 
+    w.DeepwellAdmin.setInlineStatus = function (elementId, message, variant) {
+        var el = document.getElementById(elementId);
+        if (!el) return;
+        var baseClass = el.getAttribute("data-base-class") || "app-flash mb-2";
+        if (!message) {
+            el.textContent = "";
+            el.className = baseClass + " d-none";
+            return;
+        }
+        var v = variant || "info";
+        el.textContent = message;
+        el.className = baseClass + " app-flash--" + v;
+    };
+
     w.DeepwellAdmin.setAdminInboxUnreadBadge = function (count) {
         const el = document.getElementById("admin-msg-unread-badge");
         if (!el) return;

@@ -130,14 +130,31 @@ public class CoursesController : ControllerBase
         return Ok(new CourseDto(course));
     }
 
-    /// <summary>Deactivate course (Admin only). Soft delete: hides from public catalog; existing data kept.</summary>
+    /// <summary>
+    /// Delete course (Admin only).
+    /// Default: soft delete (deactivate).
+    /// Use <c>?permanent=true</c> to hard-delete only if course is already inactive and has no enrollments/requests.
+    /// </summary>
     [Authorize(Roles = "Admin")]
     [HttpDelete("{id:guid}")]
-    public async Task<IActionResult> SoftDelete(Guid id, CancellationToken ct)
+    public async Task<IActionResult> SoftDelete(Guid id, [FromQuery] bool permanent = false, CancellationToken ct = default)
     {
         var course = await _db.Courses.FirstOrDefaultAsync(c => c.Id == id, ct);
         if (course == null)
             return NotFound();
+
+        if (permanent)
+        {
+            if (course.IsActive)
+                return BadRequest("Only inactive courses can be permanently deleted.");
+            var hasEnrollments = await _db.Enrollments.AnyAsync(e => e.CourseId == id, ct);
+            var hasRequests = await _db.CourseRequests.AnyAsync(r => r.CourseId == id, ct);
+            if (hasEnrollments || hasRequests)
+                return Conflict("Cannot permanently delete a course with enrollments or queue requests.");
+            _db.Courses.Remove(course);
+            await _db.SaveChangesAsync(ct);
+            return NoContent();
+        }
 
         course.IsActive = false;
         await _db.SaveChangesAsync(ct);

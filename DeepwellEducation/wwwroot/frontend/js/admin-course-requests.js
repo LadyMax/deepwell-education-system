@@ -13,6 +13,10 @@
     var statusClass = S.courseRequestStatusClass;
 
     var A = (w.DeepwellAdmin = w.DeepwellAdmin || {});
+    var setInlineStatus = A.setInlineStatus || function (id, message) {
+        var el = document.getElementById(id);
+        if (el) el.textContent = message || "";
+    };
 
     A.readCourseRequestFilters = function () {
         return {
@@ -44,21 +48,20 @@
     }
 
     A.renderCourseRequests = async function (filters) {
-        const el = document.getElementById("cr-status");
         const table = document.getElementById("cr-table");
         const tbody = document.getElementById("cr-body");
         const activeFilters = filters || A.readCourseRequestFilters();
-        el.textContent = "Loading…";
+        setInlineStatus("cr-status", "Loading…", "info");
         tbody.innerHTML = "";
         table.classList.add("d-none");
 
         const res = await w.getCourseRequests(activeFilters);
         if (res.forbidden) {
-            el.textContent = A.staffForbiddenNote();
+            setInlineStatus("cr-status", A.staffForbiddenNote(), "danger");
             return;
         }
         if (res.error) {
-            el.textContent = res.error;
+            setInlineStatus("cr-status", res.error, "danger");
             return;
         }
         const items = res.items || [];
@@ -67,7 +70,12 @@
             !!activeFilters.status ||
             !!activeFilters.courseId ||
             !!activeFilters.applicant;
-        el.textContent = courseRequestQueueSummaryText(items.length, hasAppliedFilter);
+        var statusVariant = hasAppliedFilter && items.length === 0 ? "warning" : "info";
+        setInlineStatus(
+            "cr-status",
+            courseRequestQueueSummaryText(items.length, hasAppliedFilter),
+            statusVariant
+        );
 
         items.forEach(function (row) {
             const id = pick(row, "id", "Id");

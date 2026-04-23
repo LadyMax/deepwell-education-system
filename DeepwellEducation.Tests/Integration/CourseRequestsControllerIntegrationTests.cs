@@ -144,6 +144,24 @@ public class CourseRequestsControllerIntegrationTests
     }
 
     [Fact]
+    public async Task List_AsAdmin_WhenApplicantTooLong_ReturnsBadRequest()
+    {
+        await using var factory = new TestWebApplicationFactory();
+        using var client = factory.CreateClient();
+
+        var adminEmail = $"{Guid.NewGuid():N}@example.com";
+        var adminPassword = "AdminPassword!123";
+        await factory.SeedUserAsync(adminEmail, adminPassword, UserRole.Admin);
+
+        var token = await TestAuthHelper.LoginAndGetTokenAsync(client, adminEmail, adminPassword);
+        client.SetBearerToken(token);
+
+        var longApplicant = new string('y', ApiListQueryLimits.MaxSearchTermLength + 1);
+        var response = await client.GetAsync("/api/courserequests?applicant=" + Uri.EscapeDataString(longApplicant));
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+    }
+
+    [Fact]
     public async Task Submit_WhenDuplicatePendingExists_ReturnsBadRequest()
     {
         await using var factory = new TestWebApplicationFactory();

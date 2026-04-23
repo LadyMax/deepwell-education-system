@@ -33,14 +33,20 @@ public class AdminUsersController : ControllerBase
     {
         (page, pageSize) = NormalizeUserListPaging(page, pageSize);
 
+        var qTrimmed = q?.Trim();
+        if (!string.IsNullOrEmpty(qTrimmed) && qTrimmed.Length > ApiListQueryLimits.MaxSearchTermLength)
+        {
+            return BadRequest(
+                $"Search query must be {ApiListQueryLimits.MaxSearchTermLength} characters or fewer.");
+        }
+
         var query = _db.Users.AsNoTracking().AsQueryable();
         if (role.HasValue)
             query = query.Where(u => u.Role == role.Value);
 
-        var term = q?.Trim();
-        if (!string.IsNullOrEmpty(term))
+        if (!string.IsNullOrEmpty(qTrimmed))
         {
-            var lower = term.ToLowerInvariant();
+            var lower = qTrimmed.ToLowerInvariant();
             query = query.Where(u => u.Email.ToLower().Contains(lower) || u.UserName.ToLower().Contains(lower));
         }
 

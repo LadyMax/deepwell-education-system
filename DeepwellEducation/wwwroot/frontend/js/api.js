@@ -448,7 +448,7 @@ async function getCourseRequests(filtersOrStatus) {
         if (filters.status) params.set("status", filters.status);
         if (filters.type) params.set("type", filters.type);
         if (filters.courseId) params.set("courseId", filters.courseId);
-        if (filters.applicant) params.set("applicant", filters.applicant);
+        if (filters.applicant) params.set("applicant", filters.applicant.trim());
         if (filters.created) params.set("created", filters.created);
     }
 

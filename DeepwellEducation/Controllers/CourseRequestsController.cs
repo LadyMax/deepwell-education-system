@@ -40,6 +40,14 @@ public class CourseRequestsController : ControllerBase
         [FromQuery] string? created = "desc",
         CancellationToken ct = default)
     {
+        var applicantTrimmed = applicant?.Trim();
+        if (!string.IsNullOrEmpty(applicantTrimmed) &&
+            applicantTrimmed.Length > ApiListQueryLimits.MaxSearchTermLength)
+        {
+            return BadRequest(
+                $"Applicant filter must be {ApiListQueryLimits.MaxSearchTermLength} characters or fewer.");
+        }
+
         var q =
             from r in _db.CourseRequests.AsNoTracking()
             join u in _db.Users.AsNoTracking() on r.UserId equals u.Id
@@ -54,9 +62,9 @@ public class CourseRequestsController : ControllerBase
             q = q.Where(x => x.r.Type == type.Value);
         if (courseId.HasValue)
             q = q.Where(x => x.r.CourseId == courseId.Value);
-        if (!string.IsNullOrWhiteSpace(applicant))
+        if (!string.IsNullOrEmpty(applicantTrimmed))
         {
-            var term = $"%{applicant.Trim()}%";
+            var term = $"%{applicantTrimmed}%";
             q = q.Where(x =>
                 EF.Functions.Like(x.u.Email, term) ||
                 EF.Functions.Like(x.u.UserName, term) ||

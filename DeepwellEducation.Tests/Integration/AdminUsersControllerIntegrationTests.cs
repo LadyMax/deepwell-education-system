@@ -148,6 +148,22 @@ public class AdminUsersControllerIntegrationTests
     }
 
     [Fact]
+    public async Task List_AsAdmin_WhenQueryTooLong_ReturnsBadRequest()
+    {
+        await using var factory = new TestWebApplicationFactory();
+        using var client = factory.CreateClient();
+
+        var adminEmail = $"{Guid.NewGuid():N}@example.com";
+        await factory.SeedUserAsync(adminEmail, "AdminPassword!123", UserRole.Admin);
+        var token = await TestAuthHelper.LoginAndGetTokenAsync(client, adminEmail, "AdminPassword!123");
+        client.SetBearerToken(token);
+
+        var longQ = new string('x', ApiListQueryLimits.MaxSearchTermLength + 1);
+        var response = await client.GetAsync("/api/admin/users?q=" + Uri.EscapeDataString(longQ));
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+    }
+
+    [Fact]
     public async Task List_AsStudent_ReturnsForbidden()
     {
         await using var factory = new TestWebApplicationFactory();

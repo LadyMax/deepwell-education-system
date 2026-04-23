@@ -87,6 +87,44 @@ public class AuthControllerIntegrationTests
     }
 
     [Fact]
+    public async Task Register_PasswordTooLong_ReturnsBadRequest()
+    {
+        await using var factory = new TestWebApplicationFactory();
+        using var client = factory.CreateClient();
+
+        var longPw = "Aa1!" + new string('x', AuthController.MaxPasswordLength);
+        Assert.True(longPw.Length > AuthController.MaxPasswordLength);
+
+        var response = await client.PostAsJsonAsync("/api/auth/register", new RegisterRequest
+        {
+            Email = $"{Guid.NewGuid():N}@example.com",
+            Password = longPw,
+            UserName = "long_pw_user"
+        });
+
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+    }
+
+    [Fact]
+    public async Task Login_PasswordTooLong_ReturnsUnauthorized()
+    {
+        await using var factory = new TestWebApplicationFactory();
+        using var client = factory.CreateClient();
+
+        var email = $"{Guid.NewGuid():N}@example.com";
+        await factory.SeedUserAsync(email, "CorrectPassword!123");
+
+        var longPw = "Aa1!" + new string('x', AuthController.MaxPasswordLength);
+        var response = await client.PostAsJsonAsync("/api/auth/login", new LoginRequest
+        {
+            Email = email,
+            Password = longPw
+        });
+
+        Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
+    }
+
+    [Fact]
     public async Task VerifyCurrentPassword_WrongPassword_ReturnsBadRequest()
     {
         await using var factory = new TestWebApplicationFactory();
@@ -101,6 +139,27 @@ public class AuthControllerIntegrationTests
         var response = await client.PostAsJsonAsync("/api/auth/verify-current-password", new VerifyCurrentPasswordRequest
         {
             Password = "WrongPassword!999"
+        });
+
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+    }
+
+    [Fact]
+    public async Task VerifyCurrentPassword_PasswordTooLong_ReturnsBadRequest()
+    {
+        await using var factory = new TestWebApplicationFactory();
+        using var client = factory.CreateClient();
+
+        var email = $"{Guid.NewGuid():N}@example.com";
+        const string pw = "GoodPassword!123";
+        await factory.SeedUserAsync(email, pw, userName: "verify_long_pw_user");
+        var token = await TestAuthHelper.LoginAndGetTokenAsync(client, email, pw);
+        client.SetBearerToken(token);
+
+        var longPw = "Aa1!" + new string('z', AuthController.MaxPasswordLength);
+        var response = await client.PostAsJsonAsync("/api/auth/verify-current-password", new VerifyCurrentPasswordRequest
+        {
+            Password = longPw
         });
 
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);

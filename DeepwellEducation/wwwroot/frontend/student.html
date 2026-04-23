@@ -154,25 +154,26 @@
                     <div class="form-group">
                       <label for="student-current-password" class="mb-1">Current password</label>
                       <div class="app-password-input-wrap">
-                        <input type="password" id="student-current-password" class="form-control form-control-sm app-password-input" autocomplete="current-password">
+                        <input type="password" id="student-current-password" maxlength="128" class="form-control form-control-sm app-password-input" autocomplete="current-password">
                         <button type="button" class="app-password-toggle" data-password-toggle="student-current-password" aria-label="Show password" aria-pressed="false"><i class="fa fa-eye"></i></button>
                       </div>
                     </div>
                     <div class="form-group">
                       <label for="student-new-password" class="mb-1">New password</label>
                       <div class="app-password-input-wrap">
-                        <input type="password" id="student-new-password" class="form-control form-control-sm app-password-input" autocomplete="new-password" aria-describedby="student-pw-rules">
+                        <input type="password" id="student-new-password" maxlength="128" class="form-control form-control-sm app-password-input" autocomplete="new-password" aria-describedby="student-pw-rules">
                         <button type="button" class="app-password-toggle" data-password-toggle="student-new-password" aria-label="Show password" aria-pressed="false"><i class="fa fa-eye"></i></button>
                       </div>
                     </div>
                     <div class="form-group">
                       <label for="student-confirm-password" class="mb-1">Confirm new password</label>
                       <div class="app-password-input-wrap">
-                        <input type="password" id="student-confirm-password" class="form-control form-control-sm app-password-input" autocomplete="new-password">
+                        <input type="password" id="student-confirm-password" maxlength="128" class="form-control form-control-sm app-password-input" autocomplete="new-password">
                         <button type="button" class="app-password-toggle" data-password-toggle="student-confirm-password" aria-label="Show password" aria-pressed="false"><i class="fa fa-eye"></i></button>
                       </div>
                     </div>
                     <ul id="student-pw-rules" class="app-password-rules mb-3" aria-live="polite">
+                      <li id="student-pw-rule-max" class="bad">128 characters or fewer</li>
                       <li id="student-pw-rule-len" class="bad">8+ characters</li>
                       <li id="student-pw-rule-upper" class="bad">One uppercase letter</li>
                       <li id="student-pw-rule-lower" class="bad">One lowercase letter</li>
@@ -309,12 +310,12 @@
   <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.bundle.min.js" integrity="sha256-OUFW7hFO0/r5aEGTQOz9F/aXQOt+TwqI1Z4fbVvww04=" crossorigin="anonymous"></script>
   <script src="js/main.js"></script>
   <script src="js/phone-country-config.js?v=20260423a"></script>
-  <script src="js/api.js?v=20260423a"></script>
-  <script src="js/shared-password-ui.js?v=20260422a"></script>
+  <script src="js/api.js?v=20260423t"></script>
+  <script src="js/shared-password-ui.js?v=20260423t"></script>
   <script src="js/shared-dashboard.js?v=20260422a"></script>
   <script src="js/student-enrollments.js?v=20260423p"></script>
   <script src="js/student-messages.js?v=20260423q"></script>
-  <script src="js/student-profile.js?v=20260423w"></script>
+  <script src="js/student-profile.js?v=20260423t"></script>
   <script src="js/student.js?v=20260423k"></script>
 </body>
 </html>

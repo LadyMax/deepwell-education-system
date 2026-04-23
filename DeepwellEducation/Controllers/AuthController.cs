@@ -16,6 +16,9 @@ namespace DeepwellEducation.Controllers;
 [Route("api/[controller]")]
 public class AuthController : ControllerBase
 {
+    /// <summary>OWASP-style cap: very long passwords amplify hashing cost (DoS / resource abuse).</summary>
+    public const int MaxPasswordLength = 128;
+
     private readonly AppDbContext _db;
     private readonly IPasswordHasher<User> _passwordHasher;
     private readonly JwtService _jwt;
@@ -84,6 +87,9 @@ public class AuthController : ControllerBase
             return BadRequest("Email and password are required.");
         if (!TryValidateEmail(request.Email, out var emailError))
             return BadRequest(emailError);
+
+        if (request.Password.Length > MaxPasswordLength)
+            return Unauthorized("Invalid email or password.");
 
         var normalizedEmail = request.Email.Trim().ToLowerInvariant();
         var user = await _db.Users.FirstOrDefaultAsync(u => u.Email == normalizedEmail, ct);
@@ -161,6 +167,8 @@ public class AuthController : ControllerBase
 
         if (string.IsNullOrWhiteSpace(request.CurrentPassword))
             return BadRequest("Current password is required.");
+        if (request.CurrentPassword.Length > MaxPasswordLength)
+            return BadRequest($"Password must be {MaxPasswordLength} characters or fewer.");
         if (!TryValidatePassword(request.NewPassword, out var pwError))
             return BadRequest(pwError);
         if (request.CurrentPassword == request.NewPassword)
@@ -193,15 +201,18 @@ public class AuthController : ControllerBase
         if (string.IsNullOrEmpty(userIdClaim) || !Guid.TryParse(userIdClaim, out var userId))
             return Unauthorized();
 
-        if (string.IsNullOrWhiteSpace(request.Password))
+        var pwTrimmed = request.Password.Trim();
+        if (string.IsNullOrWhiteSpace(pwTrimmed))
             return BadRequest("Current password is required.");
+        if (pwTrimmed.Length > MaxPasswordLength)
+            return BadRequest($"Password must be {MaxPasswordLength} characters or fewer.");
 
         var user = await _db.Users.AsNoTracking()
             .FirstOrDefaultAsync(u => u.Id == userId, ct);
         if (user == null || !user.IsActive)
             return NotFound("User not found or inactive.");
 
-        if (_passwordHasher.VerifyHashedPassword(user, user.PasswordHash, request.Password.Trim()) ==
+        if (_passwordHasher.VerifyHashedPassword(user, user.PasswordHash, pwTrimmed) ==
             PasswordVerificationResult.Failed)
             return BadRequest("Current password is incorrect.");
 
@@ -215,6 +226,12 @@ public class AuthController : ControllerBase
         if (string.IsNullOrEmpty(password))
         {
             error = "Password is required.";
+            return false;
+        }
+
+        if (password.Length > MaxPasswordLength)
+        {
+            error = $"Password must be {MaxPasswordLength} characters or fewer.";
             return false;
         }
 

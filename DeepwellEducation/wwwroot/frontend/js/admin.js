@@ -42,6 +42,7 @@
             if (!el) return;
             el.className = ok ? "ok" : "bad";
         }
+        setOk("admin-pw-rule-max", r.withinMax);
         setOk("admin-pw-rule-len", r.minLen);
         setOk("admin-pw-rule-upper", r.upper);
         setOk("admin-pw-rule-lower", r.lower);

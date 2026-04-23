@@ -182,6 +182,7 @@
             if (!el) return;
             el.className = ok ? "ok" : "bad";
         }
+        setOk("student-pw-rule-max", r.withinMax);
         setOk("student-pw-rule-len", r.minLen);
         setOk("student-pw-rule-upper", r.upper);
         setOk("student-pw-rule-lower", r.lower);

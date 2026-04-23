@@ -288,7 +288,7 @@
           <div class="form-group col-md-6 col-lg-5">
             <label for="admin-current-password" class="mb-1">Current password</label>
             <div class="app-password-input-wrap">
-              <input type="password" id="admin-current-password" class="form-control form-control-sm app-password-input" autocomplete="current-password">
+              <input type="password" id="admin-current-password" maxlength="128" class="form-control form-control-sm app-password-input" autocomplete="current-password">
               <button type="button" class="app-password-toggle" data-password-toggle="admin-current-password" aria-label="Show password" aria-pressed="false"><i class="fa fa-eye"></i></button>
             </div>
           </div>
@@ -304,12 +304,13 @@
           <div class="form-group col-md-6 col-lg-5">
             <label for="admin-confirm-password" class="mb-1">Confirm new password</label>
             <div class="app-password-input-wrap">
-              <input type="password" id="admin-confirm-password" class="form-control form-control-sm app-password-input" autocomplete="new-password">
+              <input type="password" id="admin-confirm-password" maxlength="128" class="form-control form-control-sm app-password-input" autocomplete="new-password">
               <button type="button" class="app-password-toggle" data-password-toggle="admin-confirm-password" aria-label="Show password" aria-pressed="false"><i class="fa fa-eye"></i></button>
             </div>
           </div>
         </div>
         <ul id="admin-pw-rules" class="app-password-rules mb-3" aria-live="polite">
+          <li id="admin-pw-rule-max" class="bad">128 characters or fewer</li>
           <li id="admin-pw-rule-len" class="bad">8+ characters</li>
           <li id="admin-pw-rule-upper" class="bad">One uppercase letter</li>
           <li id="admin-pw-rule-lower" class="bad">One lowercase letter</li>
@@ -343,8 +344,8 @@
   <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.bundle.min.js" integrity="sha256-OUFW7hFO0/r5aEGTQOz9F/aXQOt+TwqI1Z4fbVvww04=" crossorigin="anonymous"></script>
   <script src="js/main.js"></script>
   <script src="js/phone-country-config.js?v=20260423a"></script>
-  <script src="js/api.js?v=20260423s"></script>
-  <script src="js/shared-password-ui.js?v=20260422a"></script>
+  <script src="js/api.js?v=20260423t"></script>
+  <script src="js/shared-password-ui.js?v=20260423t"></script>
   <script src="js/shared-dashboard.js?v=20260422a"></script>
   <script src="js/admin-common.js?v=20260422i"></script>
   <script src="js/admin-ai-format.js?v=20260422g"></script>
@@ -352,6 +353,6 @@
   <script src="js/admin-course-requests.js?v=20260423s"></script>
   <script src="js/admin-courses.js?v=20260423r"></script>
   <script src="js/admin-messages.js?v=20260423p"></script>
-  <script src="js/admin.js?v=20260423r"></script>
+  <script src="js/admin.js?v=20260423t"></script>
 </body>
 </html>

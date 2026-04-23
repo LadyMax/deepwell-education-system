@@ -23,6 +23,7 @@
             if (!el) return;
             el.className = ok ? "ok" : "bad";
         }
+        setOk("register-pw-rule-max", r.withinMax);
         setOk("register-pw-rule-len", r.minLen);
         setOk("register-pw-rule-upper", r.upper);
         setOk("register-pw-rule-lower", r.lower);
@@ -102,6 +103,11 @@
             const password = document.getElementById("login-password").value;
             if (email.length > 50) {
                 flash("Email must be 50 characters or fewer", "warning");
+                return;
+            }
+            var maxPw = typeof maxPasswordLength !== "undefined" ? maxPasswordLength : 128;
+            if (password.length > maxPw) {
+                flash("Password must be " + maxPw + " characters or fewer.", "warning");
                 return;
             }
             const res = await login(email, password);

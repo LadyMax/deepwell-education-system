@@ -1,5 +1,8 @@
 const baseUrl = `${window.location.origin}/api`;
 
+/** Keep in sync with AuthController.MaxPasswordLength (C#). */
+var maxPasswordLength = 128;
+
 function pick(o, a, b) {
     if (!o) return "";
     return o[a] !== undefined ? o[a] : o[b];
@@ -113,6 +116,7 @@ async function getMe() {
 function evaluatePasswordRules(password) {
     const p = password || "";
     return {
+        withinMax: p.length <= maxPasswordLength,
         minLen: p.length >= 8,
         upper: /[A-Z]/.test(p),
         lower: /[a-z]/.test(p),
@@ -122,6 +126,10 @@ function evaluatePasswordRules(password) {
 }
 
 function validatePasswordPolicy(password) {
+    const p = password || "";
+    if (p.length > maxPasswordLength) {
+        return "Password must be " + maxPasswordLength + " characters or fewer.";
+    }
     const r = evaluatePasswordRules(password);
     if (!r.minLen) return "Password must be at least 8 characters.";
     if (!r.upper) return "Password must contain at least one uppercase letter.";

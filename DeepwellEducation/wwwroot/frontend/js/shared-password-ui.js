@@ -32,6 +32,11 @@
             var next = nextEl.value.trim();
             var conf = confEl.value.trim();
             cfg.flash("", "info");
+            var maxPw = typeof maxPasswordLength !== "undefined" ? maxPasswordLength : 128;
+            if (cur.length > maxPw || next.length > maxPw || conf.length > maxPw) {
+                cfg.flash("Password must be " + maxPw + " characters or fewer.", "warning");
+                return;
+            }
             if (!cur) {
                 cfg.flash("Enter your current password", "warning");
                 return;

@@ -182,7 +182,7 @@
             <input type="hidden" id="course-id" value="">
             <button type="button" class="btn btn-outline-secondary btn-sm mt-1 d-none" id="btn-course-clear-selection" aria-label="Clear course selection">Clear</button>
           </div>
-          <div class="col-md-4"><input id="course-name" class="form-control form-control-sm" placeholder="Course name"></div>
+          <div class="col-md-4"><input id="course-name" class="form-control form-control-sm" placeholder="Course name" maxlength="200" aria-label="Course name"></div>
           <div class="col-md-5">
             <select id="course-language-name" class="custom-select custom-select-sm" aria-label="Language">
               <option value="">Choose language…</option>
@@ -199,7 +199,7 @@
               <button type="button" class="btn btn-outline-secondary btn-sm btn-admin-confirm course-editor-existing-only" id="btn-course-apply-level" disabled>Confirm</button>
             </div>
           </div>
-          <div class="col-12"><textarea id="course-desc" class="form-control form-control-sm" rows="2" placeholder="Description"></textarea></div>
+          <div class="col-12"><textarea id="course-desc" class="form-control form-control-sm" rows="2" placeholder="Description" maxlength="12000" aria-label="Course description"></textarea></div>
           <div class="col-12">
             <div class="d-flex align-items-center flex-wrap mb-1">
               <input type="file" id="course-cover-file" class="sr-only" accept="image/jpeg,image/png,image/webp,image/gif" aria-label="Course detail image (optional)">
@@ -350,8 +350,8 @@
   <script src="js/admin-ai-format.js?v=20260422g"></script>
   <script src="js/admin-users.js?v=20260423r"></script>
   <script src="js/admin-course-requests.js?v=20260423p"></script>
-  <script src="js/admin-courses.js?v=20260423p"></script>
+  <script src="js/admin-courses.js?v=20260423r"></script>
   <script src="js/admin-messages.js?v=20260423p"></script>
-  <script src="js/admin.js?v=20260422p"></script>
+  <script src="js/admin.js?v=20260423r"></script>
 </body>
 </html>

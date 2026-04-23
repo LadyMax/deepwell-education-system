@@ -100,6 +100,39 @@ public class MessageServiceTests : IAsyncLifetime
     }
 
     [Fact]
+    public async Task SendAsync_WhenSubjectTooLong_ReturnsPayloadTooLarge()
+    {
+        var adminId = Guid.NewGuid();
+        var senderId = Guid.NewGuid();
+        _db.Users.AddRange(
+            new User
+            {
+                Id = adminId,
+                Email = "admin2@test",
+                PasswordHash = "x",
+                UserName = "Admin2",
+                Role = UserRole.Admin,
+                IsActive = true,
+                CreatedAt = DateTime.UtcNow.AddDays(-1)
+            },
+            new User
+            {
+                Id = senderId,
+                Email = "user2@test",
+                PasswordHash = "x",
+                UserName = "User2",
+                Role = UserRole.Student,
+                IsActive = true
+            });
+        await _db.SaveChangesAsync();
+
+        var longSubject = new string('x', MessageService.MaxSubjectLength + 1);
+        var result = await _sut.SendAsync(senderId, longSubject, "Body", receiverUserId: null, null);
+
+        Assert.Equal(SendMessageError.PayloadTooLarge, result.Error);
+    }
+
+    [Fact]
     public async Task GetInboxAsync_OrdersByCreatedAtDescending()
     {
         var receiverId = Guid.NewGuid();

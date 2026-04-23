@@ -273,7 +273,15 @@
         });
     }
     document.getElementById("btn-course-create").addEventListener("click", async function () {
-        const r = await createCourse(A.coursePayloadFromForm());
+        const payload = A.coursePayloadFromForm();
+        if (typeof A.validateCoursePayload === "function") {
+            const v = A.validateCoursePayload(payload);
+            if (!v.ok) {
+                setCourseStatus(v.message || "Invalid course data.", "danger");
+                return;
+            }
+        }
+        const r = await createCourse(payload);
         if (!r.ok) {
             setCourseStatus(r.message || "Failed", "danger");
             return;
@@ -299,7 +307,15 @@
             setCourseStatus("Select a course in the table above first.", "warning");
             return;
         }
-        const r = await updateCourse(id, A.coursePayloadFromForm());
+        const payload = A.coursePayloadFromForm();
+        if (typeof A.validateCoursePayload === "function") {
+            const v = A.validateCoursePayload(payload);
+            if (!v.ok) {
+                setCourseStatus(v.message || "Invalid course data.", "danger");
+                return;
+            }
+        }
+        const r = await updateCourse(id, payload);
         if (!r.ok) {
             setCourseStatus(r.message || "Failed", "danger");
             return;

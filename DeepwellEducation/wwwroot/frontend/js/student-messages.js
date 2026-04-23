@@ -11,6 +11,9 @@
     var escapeHtml = S.escapeHtml;
     var St = (w.DeepwellStudent = w.DeepwellStudent || {});
 
+    var maxMsgSubjectLen = 200;
+    var maxMsgContentLen = 12000;
+
     St.setStudentInboxUnreadBadge = function (count) {
         const el = document.getElementById("student-msg-unread-badge");
         if (!el) return;
@@ -148,6 +151,15 @@
         const topic = topicSel ? topicSel.value : "";
         if (!subject || !content) {
             showAppFlash("student-flash", "Subject and message content are required", "warning", 4500);
+            return;
+        }
+        if (subject.length > maxMsgSubjectLen || content.length > maxMsgContentLen) {
+            showAppFlash(
+                "student-flash",
+                "Subject must be " + maxMsgSubjectLen + " characters or fewer and message " + maxMsgContentLen + " or fewer",
+                "warning",
+                5000
+            );
             return;
         }
         var sendRes = await sendMessage(subject, content, null, topic || undefined);

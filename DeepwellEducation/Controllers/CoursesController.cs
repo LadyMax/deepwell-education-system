@@ -91,13 +91,20 @@ public class CoursesController : ControllerBase
         if (!Enum.IsDefined(typeof(CourseCategory), category))
             return BadRequest("Invalid Category.");
 
+        var name = request.Name.Trim();
+        var description = request.Description?.Trim() ?? "";
+        var languageCode = request.LanguageCode?.Trim() ?? "";
+        var languageName = request.LanguageName?.Trim() ?? "";
+        if (!ValidateCourseWritableFields(name, description, languageCode, languageName, out var limitError))
+            return BadRequest(limitError);
+
         var course = new Course
         {
             Id = Guid.NewGuid(),
-            Name = request.Name.Trim(),
-            Description = request.Description?.Trim() ?? "",
-            LanguageCode = request.LanguageCode?.Trim() ?? "",
-            LanguageName = request.LanguageName?.Trim() ?? "",
+            Name = name,
+            Description = description,
+            LanguageCode = languageCode,
+            LanguageName = languageName,
             Level = request.Level,
             Category = category,
             IsActive = true,
@@ -210,10 +217,17 @@ public class CoursesController : ControllerBase
         if (course == null)
             return NotFound();
 
-        course.Name = request.Name.Trim();
-        course.Description = request.Description?.Trim() ?? "";
-        course.LanguageCode = request.LanguageCode?.Trim() ?? "";
-        course.LanguageName = request.LanguageName?.Trim() ?? "";
+        var name = request.Name.Trim();
+        var description = request.Description?.Trim() ?? "";
+        var languageCode = request.LanguageCode?.Trim() ?? "";
+        var languageName = request.LanguageName?.Trim() ?? "";
+        if (!ValidateCourseWritableFields(name, description, languageCode, languageName, out var limitError))
+            return BadRequest(limitError);
+
+        course.Name = name;
+        course.Description = description;
+        course.LanguageCode = languageCode;
+        course.LanguageName = languageName;
         course.Level = request.Level;
         course.Category = category;
 
@@ -289,6 +303,50 @@ public class CoursesController : ControllerBase
             // best-effort cleanup
         }
     }
+
+    private static bool ValidateCourseWritableFields(
+        string name,
+        string description,
+        string languageCode,
+        string languageName,
+        out string? errorMessage)
+    {
+        errorMessage = null;
+        if (name.Length > CourseInputLimits.MaxNameLength)
+        {
+            errorMessage = $"Course name must be {CourseInputLimits.MaxNameLength} characters or fewer.";
+            return false;
+        }
+
+        if (description.Length > CourseInputLimits.MaxDescriptionLength)
+        {
+            errorMessage = $"Description must be {CourseInputLimits.MaxDescriptionLength} characters or fewer.";
+            return false;
+        }
+
+        if (languageCode.Length > CourseInputLimits.MaxLanguageCodeLength)
+        {
+            errorMessage = $"Language code must be {CourseInputLimits.MaxLanguageCodeLength} characters or fewer.";
+            return false;
+        }
+
+        if (languageName.Length > CourseInputLimits.MaxLanguageNameLength)
+        {
+            errorMessage = $"Language name must be {CourseInputLimits.MaxLanguageNameLength} characters or fewer.";
+            return false;
+        }
+
+        return true;
+    }
+}
+
+/// <summary>OWASP-style bounds for admin-authored catalog text (SQLite TEXT is otherwise unbounded).</summary>
+public static class CourseInputLimits
+{
+    public const int MaxNameLength = 200;
+    public const int MaxDescriptionLength = 12000;
+    public const int MaxLanguageCodeLength = 32;
+    public const int MaxLanguageNameLength = 120;
 }
 
 public class CourseDto

@@ -546,6 +546,9 @@
         if (items.length) table.classList.remove("d-none");
     };
 
+    /** Keep in sync with API: CourseInputLimits in CoursesController.cs */
+    var courseFieldMax = { name: 200, description: 12000, languageCode: 32, languageName: 120 };
+
     A.coursePayloadFromForm = function () {
         var languageName = document.getElementById("course-language-name").value.trim();
         var lang = languageByName(languageName);
@@ -557,6 +560,24 @@
             level: Number(document.getElementById("course-level").value),
             category: 0
         };
+    };
+
+    /** @returns {{ ok: true } | { ok: false, message: string }} */
+    A.validateCoursePayload = function (payload) {
+        if (!payload) return { ok: false, message: "Course data is missing." };
+        if (payload.name.length > courseFieldMax.name) {
+            return { ok: false, message: "Course name must be " + courseFieldMax.name + " characters or fewer." };
+        }
+        if (payload.description.length > courseFieldMax.description) {
+            return { ok: false, message: "Description must be " + courseFieldMax.description + " characters or fewer." };
+        }
+        if (String(payload.languageCode || "").length > courseFieldMax.languageCode) {
+            return { ok: false, message: "Language code is too long." };
+        }
+        if (String(payload.languageName || "").length > courseFieldMax.languageName) {
+            return { ok: false, message: "Language name must be " + courseFieldMax.languageName + " characters or fewer." };
+        }
+        return { ok: true };
     };
 
     (function initLanguageDropdown() {

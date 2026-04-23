@@ -165,6 +165,57 @@ public class CoursesControllerIntegrationTests
     }
 
     [Fact]
+    public async Task Create_AsAdmin_WhenNameTooLong_ReturnsBadRequest()
+    {
+        await using var factory = new TestWebApplicationFactory();
+        using var client = factory.CreateClient();
+
+        var adminEmail = $"{Guid.NewGuid():N}@example.com";
+        await factory.SeedUserAsync(adminEmail, "AdminPassword!123", UserRole.Admin);
+        var token = await TestAuthHelper.LoginAndGetTokenAsync(client, adminEmail, "AdminPassword!123");
+        client.SetBearerToken(token);
+
+        var longName = new string('x', CourseInputLimits.MaxNameLength + 1);
+        var response = await client.PostAsJsonAsync("/api/courses", new CreateCourseRequest
+        {
+            Name = longName,
+            Level = CourseLevel.Beginner
+        });
+
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+        var body = await response.Content.ReadAsStringAsync();
+        Assert.Contains(CourseInputLimits.MaxNameLength.ToString(), body, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public async Task Update_AsAdmin_WhenDescriptionTooLong_ReturnsBadRequest()
+    {
+        await using var factory = new TestWebApplicationFactory();
+        using var client = factory.CreateClient();
+
+        var adminEmail = $"{Guid.NewGuid():N}@example.com";
+        await factory.SeedUserAsync(adminEmail, "AdminPassword!123", UserRole.Admin);
+        var course = await factory.SeedCourseAsync(name: "Updatable");
+
+        var token = await TestAuthHelper.LoginAndGetTokenAsync(client, adminEmail, "AdminPassword!123");
+        client.SetBearerToken(token);
+
+        var longDesc = new string('y', CourseInputLimits.MaxDescriptionLength + 1);
+        var response = await client.PutAsJsonAsync($"/api/courses/{course.Id}", new UpdateCourseRequest
+        {
+            Name = "Still valid",
+            Description = longDesc,
+            LanguageCode = "en",
+            LanguageName = "English",
+            Level = CourseLevel.Beginner
+        });
+
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+        var body = await response.Content.ReadAsStringAsync();
+        Assert.Contains(CourseInputLimits.MaxDescriptionLength.ToString(), body, StringComparison.Ordinal);
+    }
+
+    [Fact]
     public async Task Create_AsAdmin_EmptyName_ReturnsBadRequest()
     {
         await using var factory = new TestWebApplicationFactory();

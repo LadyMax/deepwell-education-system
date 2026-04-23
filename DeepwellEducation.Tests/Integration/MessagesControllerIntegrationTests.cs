@@ -68,6 +68,29 @@ public class MessagesControllerIntegrationTests
     }
 
     [Fact]
+    public async Task Send_WithSubjectTooLong_ReturnsBadRequest()
+    {
+        await using var factory = new TestWebApplicationFactory();
+        using var client = factory.CreateClient();
+
+        var senderEmail = $"{Guid.NewGuid():N}@example.com";
+        var senderPassword = "SenderPassword!123";
+        await factory.SeedUserAsync($"{Guid.NewGuid():N}@example.com", "AdminPassword!123", UserRole.Admin);
+        await factory.SeedUserAsync(senderEmail, senderPassword, UserRole.Student);
+
+        var token = await TestAuthHelper.LoginAndGetTokenAsync(client, senderEmail, senderPassword);
+        client.SetBearerToken(token);
+
+        var response = await client.PostAsJsonAsync("/api/messages", new SendMessageRequest
+        {
+            Subject = new string('x', MessageService.MaxSubjectLength + 1),
+            Content = "Short body"
+        });
+
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+    }
+
+    [Fact]
     public async Task Inbox_ReturnsCurrentUsersMessagesInDescendingOrder()
     {
         await using var factory = new TestWebApplicationFactory();

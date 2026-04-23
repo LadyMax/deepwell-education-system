@@ -49,6 +49,8 @@ public class MessagesController : ControllerBase
             return result.Error switch
             {
                 SendMessageError.InvalidPayload => BadRequest("Subject and content are required."),
+                SendMessageError.PayloadTooLarge => BadRequest(
+                    $"Subject must be {MessageService.MaxSubjectLength} characters or fewer and message body {MessageService.MaxContentLength} characters or fewer."),
                 SendMessageError.SenderNotFound => NotFound("Sender not found or inactive."),
                 SendMessageError.ReceiverNotFound => NotFound("Receiver not found or inactive."),
                 SendMessageError.NoAdminAvailable => BadRequest("No active administrator is available to receive messages."),

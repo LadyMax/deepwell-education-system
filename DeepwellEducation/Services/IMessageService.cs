@@ -46,6 +46,7 @@ public enum SendMessageError
 {
     None,
     InvalidPayload,
+    PayloadTooLarge,
     SenderNotFound,
     ReceiverNotFound,
     NoAdminAvailable

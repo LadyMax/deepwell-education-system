@@ -14,6 +14,11 @@ public class MessageService : IMessageService
     public const int DefaultPageSize = 20;
     public const int MaxPageSize = 100;
 
+    /// <summary>OWASP-style input bounds; SQLite TEXT is unbounded without explicit limits.</summary>
+    public const int MaxSubjectLength = 200;
+
+    public const int MaxContentLength = 12000;
+
     private readonly AppDbContext _db;
     private readonly IAiMessageClassifier _aiMessageClassifier;
 
@@ -42,6 +47,9 @@ public class MessageService : IMessageService
         content = content.Trim();
         if (string.IsNullOrEmpty(subject) || string.IsNullOrEmpty(content))
             return SendMessageResult.Fail(SendMessageError.InvalidPayload);
+
+        if (subject.Length > MaxSubjectLength || content.Length > MaxContentLength)
+            return SendMessageResult.Fail(SendMessageError.PayloadTooLarge);
 
         var sender = await _db.Users.AsNoTracking().FirstOrDefaultAsync(u => u.Id == senderUserId, ct);
         if (sender == null || !sender.IsActive)

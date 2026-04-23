@@ -38,6 +38,8 @@
         typeof St.setUsernameEditorVisible !== "function" ||
         typeof St.onSaveUsernameClick !== "function" ||
         typeof St.onSaveProfileDetailsClick !== "function" ||
+        typeof St.onCancelProfileDetailsClick !== "function" ||
+        typeof St.updatePhoneCountryFlag !== "function" ||
         typeof St.initStudentPasswordCollapse !== "function" ||
         typeof St.initStudentProfileDetailsCollapse !== "function" ||
         typeof St.updateStudentPasswordChecklist !== "function" ||
@@ -76,6 +78,23 @@
     document.getElementById("btn-save-profile-details").addEventListener("click", function () {
         St.onSaveProfileDetailsClick();
     });
+    document.getElementById("btn-cancel-profile-details").addEventListener("click", function () {
+        St.onCancelProfileDetailsClick();
+    });
+    var profilePhone = document.getElementById("profile-phone");
+    if (profilePhone) {
+        profilePhone.addEventListener("input", St.updatePhoneCountryFlag);
+        profilePhone.addEventListener("change", St.updatePhoneCountryFlag);
+    }
+    var profilePhoneCountry = document.getElementById("profile-phone-country");
+    if (profilePhoneCountry) {
+        profilePhoneCountry.addEventListener("change", St.updatePhoneCountryFlag);
+    }
+    var profilePhoneCustomCountry = document.getElementById("profile-phone-custom-country");
+    if (profilePhoneCustomCountry) {
+        profilePhoneCustomCountry.addEventListener("input", St.updatePhoneCountryFlag);
+        profilePhoneCustomCountry.addEventListener("change", St.updatePhoneCountryFlag);
+    }
 
     P.bindPasswordToggles(document);
     St.initStudentPasswordCollapse();
@@ -108,6 +127,7 @@
     }
 
     St.loadProfile();
+    St.updatePhoneCountryFlag();
     St.loadEnrollments();
     St.loadInbox();
     St.loadSent();

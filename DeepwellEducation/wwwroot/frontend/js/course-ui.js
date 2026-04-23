@@ -55,30 +55,30 @@
     };
 
     var LANGUAGE_FLAG_FILE = {
-        ar: "sa.png",
-        zh: "cn.png",
-        en: "gb.png",
-        fr: "fr.png",
-        sv: "se.png",
-        it: "it.png",
-        ja: "jp.png",
-        es: "es.png",
-        de: "de.png",
-        da: "dk.png",
-        nl: "nl.png",
-        fi: "fi.png",
-        el: "gr.png",
-        he: "il.png",
-        is: "is.png",
-        ko: "kr.png",
-        no: "no.png",
-        fa: "ir.png",
-        pl: "pl.png",
-        pt: "pt.png",
-        ru: "ru.png",
-        th: "th.png",
-        tr: "tr.png",
-        vi: "vn.png",
+        ar: "saudi-arabia.png",
+        zh: "china.png",
+        en: "united-kingdom.png",
+        fr: "france.png",
+        sv: "sweden.png",
+        it: "italy.png",
+        ja: "japan.png",
+        es: "spain.png",
+        de: "germany.png",
+        da: "denmark.png",
+        nl: "netherlands.png",
+        fi: "finland.png",
+        el: "greece.png",
+        he: "israel.png",
+        is: "iceland.png",
+        ko: "south-korea.png",
+        no: "norway.png",
+        fa: "iran.png",
+        pl: "poland.png",
+        pt: "portugal.png",
+        ru: "russia.png",
+        th: "thailand.png",
+        tr: "turkey.png",
+        vi: "vietnam.png",
     };
 
     var LANGUAGE_COUNTRY_IMAGE_FILE = {
@@ -192,7 +192,7 @@
     function courseFlagImageSrc(c) {
         var code = courseLanguageCode(c);
         var file = LANGUAGE_FLAG_FILE[code] || (code ? code.toLowerCase() + ".png" : "");
-        return file ? "images/flag/" + file : "";
+        return file ? "images/flags-course/" + file : "";
     }
 
     function courseCountryImageSrc(c) {
@@ -750,3 +750,4 @@
         LANGUAGE_BY_CODE: LANGUAGE_BY_CODE,
     };
 })(window);
+

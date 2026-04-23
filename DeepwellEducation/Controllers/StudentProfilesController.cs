@@ -66,14 +66,22 @@ public class StudentProfilesController : ControllerBase
         var city = (body.City ?? string.Empty).Trim();
         var address = (body.Address ?? string.Empty).Trim();
 
-        if (firstName.Length > 100 || lastName.Length > 100 || phone.Length > 32 || city.Length > 100 || address.Length > 200)
+        if (firstName.Length > 20 || lastName.Length > 20 || phone.Length > 15 || city.Length > 20 || address.Length > 40)
             return BadRequest("One or more fields exceed the allowed length.");
+        if (!IsLettersOnlyOrEmpty(firstName))
+            return BadRequest("First name may only contain letters");
+        if (!IsLettersOnlyOrEmpty(lastName))
+            return BadRequest("Last name may only contain letters");
+        if (!IsLettersOnlyOrEmpty(city))
+            return BadRequest("City may only contain letters");
+        if (!IsPhoneDigitsOnlyOrEmpty(phone))
+            return BadRequest("Phone may only contain digits (with an optional leading +).");
 
         if (body.DateOfBirth.HasValue)
         {
             var d = body.DateOfBirth.Value.Date;
             if (d > DateTime.UtcNow.Date)
-                return BadRequest("Date of birth cannot be in the future.");
+                return BadRequest("Date of birth cannot be in the future");
         }
 
         profile.FirstName = firstName;
@@ -86,6 +94,17 @@ public class StudentProfilesController : ControllerBase
 
         await _db.SaveChangesAsync(ct);
         return Ok(new StudentProfileDto(profile));
+    }
+
+    private static bool IsLettersOnlyOrEmpty(string value) =>
+        string.IsNullOrEmpty(value) || value.All(char.IsLetter);
+
+    private static bool IsPhoneDigitsOnlyOrEmpty(string value)
+    {
+        if (string.IsNullOrEmpty(value))
+            return true;
+        var start = value.StartsWith("+", StringComparison.Ordinal) ? 1 : 0;
+        return start < value.Length && value.Skip(start).All(char.IsDigit);
     }
 }
 

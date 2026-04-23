@@ -25,11 +25,144 @@
     }
 
     var usernamePattern = /^[A-Za-z0-9._-]+$/;
+    var personNamePattern = /^[A-Za-zÅÄÖåäö]+$/;
+    var PHONE_COUNTRIES = [
+        { code: "+966", name: "Saudi Arabia", flag: "saudi-arabia.png" },
+        { code: "+86", name: "China", flag: "china.png" },
+        { code: "+44", name: "United Kingdom", flag: "united-kingdom.png" },
+        { code: "+33", name: "France", flag: "france.png" },
+        { code: "+46", name: "Sweden", flag: "sweden.png" },
+        { code: "+39", name: "Italy", flag: "italy.png" },
+        { code: "+81", name: "Japan", flag: "japan.png" },
+        { code: "+34", name: "Spain", flag: "spain.png" },
+        { code: "+49", name: "Germany", flag: "germany.png" },
+        { code: "+45", name: "Denmark", flag: "denmark.png" },
+        { code: "+31", name: "Netherlands", flag: "netherlands.png" },
+        { code: "+358", name: "Finland", flag: "finland.png" },
+        { code: "+30", name: "Greece", flag: "greece.png" },
+        { code: "+972", name: "Israel", flag: "israel.png" },
+        { code: "+354", name: "Iceland", flag: "iceland.png" },
+        { code: "+82", name: "South Korea", flag: "south-korea.png" },
+        { code: "+47", name: "Norway", flag: "norway.png" },
+        { code: "+98", name: "Iran", flag: "iran.png" },
+        { code: "+48", name: "Poland", flag: "poland.png" },
+        { code: "+351", name: "Portugal", flag: "portugal.png" },
+        { code: "+7", name: "Russia", flag: "russia.png" },
+        { code: "+66", name: "Thailand", flag: "thailand.png" },
+        { code: "+90", name: "Turkey", flag: "turkey.png" },
+        { code: "+84", name: "Vietnam", flag: "vietnam.png" }
+    ];
+    var phoneCountryCodes = PHONE_COUNTRIES
+        .map(function (c) { return c.code; })
+        .sort(function (a, b) { return b.length - a.length; });
+
+    function normalizePersonName(raw) {
+        var s = String(raw || "").trim();
+        if (!s) return "";
+        var lower = s.toLocaleLowerCase();
+        return lower.charAt(0).toLocaleUpperCase() + lower.slice(1);
+    }
+
+    function parseStoredPhone(phoneRaw) {
+        var raw = String(phoneRaw || "").trim();
+        if (!raw) return { countryCode: "+46", local: "", customCountryCode: "" };
+        var compact = raw.replace(/\s+/g, "");
+        for (var i = 0; i < phoneCountryCodes.length; i++) {
+            var code = phoneCountryCodes[i];
+            if (compact.indexOf(code) === 0) {
+                return {
+                    countryCode: code,
+                    local: compact.slice(code.length).replace(/[^\d]/g, ""),
+                    customCountryCode: ""
+                };
+            }
+        }
+        if (compact.indexOf("+") === 0) {
+            var digits = compact.slice(1).replace(/[^\d]/g, "");
+            var codeLen = Math.min(3, digits.length);
+            var customCode = codeLen > 0 ? "+" + digits.slice(0, codeLen) : "";
+            return {
+                countryCode: "",
+                customCountryCode: customCode,
+                local: digits.slice(codeLen)
+            };
+        }
+        return { countryCode: "", local: compact.replace(/[^\d]/g, ""), customCountryCode: "" };
+    }
+
+    function composePhoneForSave() {
+        var localEl = document.getElementById("profile-phone");
+        var countryEl = document.getElementById("profile-phone-country");
+        var customCountryEl = document.getElementById("profile-phone-custom-country");
+        var localDigits = (localEl && localEl.value ? localEl.value : "").replace(/[^\d]/g, "");
+        var countryCode = countryEl ? String(countryEl.value || "").trim() : "";
+        var customCountryCode = customCountryEl ? String(customCountryEl.value || "").trim() : "";
+        customCountryCode = customCountryCode.replace(/[^\d+]/g, "");
+        if (customCountryCode && customCountryCode.charAt(0) !== "+") {
+            customCountryCode = "+" + customCountryCode.replace(/[^\d]/g, "");
+        } else if (customCountryCode) {
+            customCountryCode = "+" + customCountryCode.slice(1).replace(/[^\d]/g, "");
+        }
+        if (!localDigits) return "";
+        if (!countryCode) {
+            if (customCountryCode) return customCountryCode + localDigits;
+            return localDigits;
+        }
+        return countryCode + localDigits;
+    }
+
+    function phoneCountryByCode(code) {
+        var normalized = String(code || "").trim();
+        for (var i = 0; i < PHONE_COUNTRIES.length; i++) {
+            if (PHONE_COUNTRIES[i].code === normalized) return PHONE_COUNTRIES[i];
+        }
+        return null;
+    }
+
+    function flagImageForCountryCode(code) {
+        var c = phoneCountryByCode(code);
+        if (!c) return { src: "images/flags-global/international.png", alt: "International flag" };
+        return { src: "images/flags-course/" + c.flag, alt: c.name + " flag" };
+    }
+
+    St.updatePhoneCountryFlag = function () {
+        var localEl = document.getElementById("profile-phone");
+        var countryEl = document.getElementById("profile-phone-country");
+        var customWrapEl = document.getElementById("profile-phone-custom-wrap");
+        var customCountryEl = document.getElementById("profile-phone-custom-country");
+        var flagImgEl = document.getElementById("profile-phone-flag-img");
+        var flagFallbackEl = document.getElementById("profile-phone-flag-fallback");
+        if (!localEl) return;
+        localEl.value = String(localEl.value || "").replace(/[^\d]/g, "");
+        var code = countryEl ? String(countryEl.value || "") : "";
+        if (customWrapEl) customWrapEl.classList.toggle("d-none", !!code);
+        if (customCountryEl) {
+            var cleanCustom = String(customCountryEl.value || "").replace(/[^\d+]/g, "");
+            if (cleanCustom && cleanCustom.charAt(0) !== "+") {
+                cleanCustom = "+" + cleanCustom.replace(/[^\d]/g, "");
+            } else if (cleanCustom) {
+                cleanCustom = "+" + cleanCustom.slice(1).replace(/[^\d]/g, "");
+            }
+            customCountryEl.value = cleanCustom;
+        }
+        if (flagImgEl) {
+            var flag = flagImageForCountryCode(code);
+            if (flag) {
+                flagImgEl.src = flag.src;
+                flagImgEl.alt = flag.alt;
+                flagImgEl.classList.remove("d-none");
+                if (flagFallbackEl) flagFallbackEl.classList.add("d-none");
+            } else {
+                flagImgEl.classList.add("d-none");
+                if (flagFallbackEl) flagFallbackEl.classList.remove("d-none");
+            }
+        }
+    };
 
     St.validateUsernameForChange = function (raw) {
         const s = (raw || "").trim();
         if (!s) return "Username is required.";
-        if (s.length < 3 || s.length > 32) return "Username must be 3–32 characters.";
+        if (s.length < 3 || s.length > 20) return "Username must be 3–20 characters";
         if (!usernamePattern.test(s)) return "Username may only contain letters, digits, and . _ -";
         return "";
     };
@@ -138,13 +271,38 @@
     };
 
     St.fillStudentProfileForm = function (p) {
-        document.getElementById("profile-first-name").value = pick(p, "firstName", "FirstName") || "";
-        document.getElementById("profile-last-name").value = pick(p, "lastName", "LastName") || "";
-        document.getElementById("profile-phone").value = pick(p, "phone", "Phone") || "";
-        document.getElementById("profile-dob").value = toDateInputValue(pick(p, "dateOfBirth", "DateOfBirth"));
+        var firstName = pick(p, "firstName", "FirstName") || "";
+        var lastName = pick(p, "lastName", "LastName") || "";
+        var phone = pick(p, "phone", "Phone") || "";
+        var dob = toDateInputValue(pick(p, "dateOfBirth", "DateOfBirth"));
+        var city = pick(p, "city", "City") || "";
+        var address = pick(p, "address", "Address") || "";
+        document.getElementById("profile-first-name").value = firstName;
+        document.getElementById("profile-last-name").value = lastName;
+        var parsedPhone = parseStoredPhone(phone);
+        var countryEl = document.getElementById("profile-phone-country");
+        if (countryEl) countryEl.value = parsedPhone.countryCode;
+        var customCountryEl = document.getElementById("profile-phone-custom-country");
+        if (customCountryEl) customCountryEl.value = parsedPhone.customCountryCode || "";
+        document.getElementById("profile-phone").value = parsedPhone.local;
+        St.updatePhoneCountryFlag();
+        document.getElementById("profile-dob").value = dob;
         var cityEl = document.getElementById("profile-city");
-        if (cityEl) cityEl.value = pick(p, "city", "City") || "";
-        document.getElementById("profile-address").value = pick(p, "address", "Address") || "";
+        if (cityEl) cityEl.value = city;
+        document.getElementById("profile-address").value = address;
+        St._lastSavedStudentProfile = {
+            firstName: firstName,
+            lastName: lastName,
+            phone: phone,
+            dateOfBirth: dob || null,
+            city: city,
+            address: address
+        };
+    };
+
+    St.onCancelProfileDetailsClick = function () {
+        if (!St._lastSavedStudentProfile) return;
+        St.fillStudentProfileForm(St._lastSavedStudentProfile);
     };
 
     St.loadStudentProfileDetails = async function (roleRaw) {
@@ -242,15 +400,49 @@
 
     St.onSaveProfileDetailsClick = async function () {
         const btn = document.getElementById("btn-save-profile-details");
+        var firstNameRaw = normalizePersonName(document.getElementById("profile-first-name").value);
+        var lastNameRaw = normalizePersonName(document.getElementById("profile-last-name").value);
+        if (firstNameRaw && !personNamePattern.test(firstNameRaw)) {
+            showAppFlash(
+                "student-flash",
+                "First name may only contain letters (A-Z, plus Swedish letters å/ä/ö; no spaces, digits, or special characters).",
+                "warning",
+                6000
+            );
+            return;
+        }
+        if (lastNameRaw && !personNamePattern.test(lastNameRaw)) {
+            showAppFlash(
+                "student-flash",
+                "Last name may only contain letters (A-Z, plus Swedish letters å/ä/ö; no spaces, digits, or special characters).",
+                "warning",
+                6000
+            );
+            return;
+        }
+        var cityRaw = (function () {
+            var el = document.getElementById("profile-city");
+            return el ? el.value.trim() : "";
+        })();
+        if (cityRaw && !personNamePattern.test(cityRaw)) {
+            showAppFlash(
+                "student-flash",
+                "City may only contain letters (A-Z, plus Swedish letters å/ä/ö; no spaces, digits, or special characters).",
+                "warning",
+                6000
+            );
+            return;
+        }
+        document.getElementById("profile-first-name").value = firstNameRaw;
+        document.getElementById("profile-last-name").value = lastNameRaw;
+        var cityEl = document.getElementById("profile-city");
+        if (cityEl) cityEl.value = cityRaw;
         const payload = {
-            firstName: document.getElementById("profile-first-name").value.trim(),
-            lastName: document.getElementById("profile-last-name").value.trim(),
-            phone: document.getElementById("profile-phone").value.trim(),
+            firstName: firstNameRaw,
+            lastName: lastNameRaw,
+            phone: composePhoneForSave(),
             dateOfBirth: document.getElementById("profile-dob").value || null,
-            city: (function () {
-                var el = document.getElementById("profile-city");
-                return el ? el.value.trim() : "";
-            })(),
+            city: cityRaw,
             address: document.getElementById("profile-address").value.trim()
         };
         btn.disabled = true;
@@ -264,3 +456,4 @@
         showAppFlash("student-flash", "Student profile saved.", "success", 3500);
     };
 })(typeof window !== "undefined" ? window : this);
+

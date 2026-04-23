@@ -90,15 +90,55 @@
                       <div class="form-row">
                         <div class="form-group col-md-6">
                           <label for="profile-first-name" class="mb-1">First name</label>
-                          <input type="text" id="profile-first-name" class="form-control form-control-sm" maxlength="100">
+                          <input type="text" id="profile-first-name" class="form-control form-control-sm" maxlength="20">
                         </div>
                         <div class="form-group col-md-6">
                           <label for="profile-last-name" class="mb-1">Last name</label>
-                          <input type="text" id="profile-last-name" class="form-control form-control-sm" maxlength="100">
+                          <input type="text" id="profile-last-name" class="form-control form-control-sm" maxlength="20">
                         </div>
                         <div class="form-group col-md-6">
                           <label for="profile-phone" class="mb-1">Phone</label>
-                          <input type="text" id="profile-phone" class="form-control form-control-sm" maxlength="32" placeholder="e.g. +1 555 123 4567">
+                          <div class="input-group input-group-sm">
+                            <div class="input-group-prepend">
+                              <span class="input-group-text" id="profile-phone-flag" aria-live="polite">
+                                <img id="profile-phone-flag-img" src="images/flags-course/sweden.png" alt="Sweden flag" style="width:20px;height:14px;display:block;">
+                                <span id="profile-phone-flag-fallback" class="d-none">🌐</span>
+                              </span>
+                            </div>
+                            <div class="input-group-prepend">
+                              <select id="profile-phone-country" class="custom-select custom-select-sm" aria-label="Country code">
+                                <option value="+966">Saudi Arabia (+966)</option>
+                                <option value="+86">China (+86)</option>
+                                <option value="+44">United Kingdom (+44)</option>
+                                <option value="+33">France (+33)</option>
+                                <option value="+46">Sweden (+46)</option>
+                                <option value="+39">Italy (+39)</option>
+                                <option value="+81">Japan (+81)</option>
+                                <option value="+34">Spain (+34)</option>
+                                <option value="+49">Germany (+49)</option>
+                                <option value="+47">Norway (+47)</option>
+                                <option value="+45">Denmark (+45)</option>
+                                <option value="+31">Netherlands (+31)</option>
+                                <option value="+358">Finland (+358)</option>
+                                <option value="+30">Greece (+30)</option>
+                                <option value="+972">Israel (+972)</option>
+                                <option value="+354">Iceland (+354)</option>
+                                <option value="+82">South Korea (+82)</option>
+                                <option value="+98">Iran (+98)</option>
+                                <option value="+48">Poland (+48)</option>
+                                <option value="+351">Portugal (+351)</option>
+                                <option value="+7">Russia (+7)</option>
+                                <option value="+66">Thailand (+66)</option>
+                                <option value="+90">Turkey (+90)</option>
+                                <option value="+84">Vietnam (+84)</option>
+                                <option value="">Other</option>
+                              </select>
+                            </div>
+                            <div class="input-group-prepend d-none" id="profile-phone-custom-wrap">
+                              <input type="text" id="profile-phone-custom-country" class="form-control form-control-sm" maxlength="4" inputmode="numeric" placeholder="+123" aria-label="Custom country code">
+                            </div>
+                            <input type="text" id="profile-phone" class="form-control form-control-sm" maxlength="11" inputmode="numeric" pattern="[0-9]*" placeholder="e.g. 701234567">
+                          </div>
                         </div>
                         <div class="form-group col-md-6">
                           <label for="profile-dob" class="mb-1">Date of birth</label>
@@ -106,15 +146,16 @@
                         </div>
                         <div class="form-group col-md-6">
                           <label for="profile-city" class="mb-1">City</label>
-                          <input type="text" id="profile-city" class="form-control form-control-sm" maxlength="100" placeholder="e.g. Toronto">
+                          <input type="text" id="profile-city" class="form-control form-control-sm" maxlength="20">
                         </div>
                         <div class="form-group col-12 mb-0">
                           <label for="profile-address" class="mb-1">Street address</label>
-                          <input type="text" id="profile-address" class="form-control form-control-sm" maxlength="200" placeholder="Building, street, unit">
+                          <input type="text" id="profile-address" class="form-control form-control-sm" maxlength="40">
                         </div>
                       </div>
                       <div class="mt-2">
-                        <button type="button" class="btn btn-outline-primary btn-sm" id="btn-save-profile-details">Save profile</button>
+                        <button type="button" class="btn btn-outline-primary btn-sm mr-2" id="btn-save-profile-details">Save profile</button>
+                        <button type="button" class="btn btn-outline-secondary btn-sm" id="btn-cancel-profile-details">Cancel</button>
                       </div>
                     </div>
                   </div>
@@ -276,7 +317,8 @@
   <script src="js/shared-dashboard.js?v=20260422a"></script>
   <script src="js/student-enrollments.js?v=20260423a"></script>
   <script src="js/student-messages.js?v=20260423a"></script>
-  <script src="js/student-profile.js?v=20260423a"></script>
-  <script src="js/student.js?v=20260423a"></script>
+  <script src="js/student-profile.js?v=20260423p"></script>
+  <script src="js/student.js?v=20260423e"></script>
 </body>
 </html>
+

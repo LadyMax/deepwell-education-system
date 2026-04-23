@@ -31,8 +31,9 @@
     }
 
     function validateUsername(raw) {
-        const s = (raw || "").trim();
+        const s = (raw || "");
         if (!s) return "Username is required.";
+        if (/\s/.test(s)) return "Username must not contain spaces.";
         if (s.length < 3 || s.length > 32)
             return "Username must be 3–32 characters.";
         if (!usernamePattern.test(s))
@@ -121,16 +122,20 @@
             flash("", "info");
             const username = document
                 .getElementById("register-username")
-                .value.trim();
+                .value;
             const email = document
                 .getElementById("register-email")
-                .value.trim();
+                .value;
             const password = document.getElementById("register-password").value;
             const confirm = document.getElementById("register-confirm").value;
 
             const uerr = validateUsername(username);
             if (uerr) {
                 flash(uerr, "warning");
+                return;
+            }
+            if (/\s/.test(email || "")) {
+                flash("Email must not contain spaces.", "warning");
                 return;
             }
 

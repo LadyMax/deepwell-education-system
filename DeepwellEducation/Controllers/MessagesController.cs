@@ -3,6 +3,7 @@ using DeepwellEducation.Domain.Enums;
 using DeepwellEducation.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 
 namespace DeepwellEducation.Controllers;
 
@@ -25,6 +26,7 @@ public class MessagesController : ControllerBase
 
     /// <summary>Send a message; you are the sender. Receiver defaults to an active Admin if omitted.</summary>
     [Authorize]
+    [EnableRateLimiting("messages-send")]
     [HttpPost]
     [ProducesResponseType(typeof(SentMessageResponse), StatusCodes.Status201Created)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]

@@ -3,6 +3,7 @@ using DeepwellEducation.Domain.Entities;
 using DeepwellEducation.Domain.Enums;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.EntityFrameworkCore;
 
 namespace DeepwellEducation.Controllers;
@@ -107,6 +108,7 @@ public class CoursesController : ControllerBase
 
     /// <summary>Admin: upload course detail hero image (stored under wwwroot/frontend/images/courses/; public catalog cards ignore this).</summary>
     [Authorize(Roles = "Admin")]
+    [EnableRateLimiting("course-cover-upload")]
     [HttpPost("{id:guid}/cover")]
     [RequestSizeLimit(6 * 1024 * 1024)]
     public async Task<ActionResult<CourseDto>> UploadCover(Guid id, IFormFile file, CancellationToken ct)

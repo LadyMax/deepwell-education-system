@@ -5,6 +5,7 @@ using DeepwellEducation.Domain.Enums;
 using DeepwellEducation.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.EntityFrameworkCore;
 
 namespace DeepwellEducation.Controllers;
@@ -89,6 +90,7 @@ public class CourseRequestsController : ControllerBase
 
     /// <summary>Submit a Join or Leave request (requires login). UserId is taken from JWT.</summary>
     [Authorize]
+    [EnableRateLimiting("course-requests-submit")]
     [HttpPost]
     public async Task<ActionResult<CourseRequestDto>> Submit([FromBody] SubmitCourseRequestRequest body, CancellationToken ct)
     {

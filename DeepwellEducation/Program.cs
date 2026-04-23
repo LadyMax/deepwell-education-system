@@ -109,6 +109,48 @@ namespace DeepwellEducation
                     opt.QueueProcessingOrder = QueueProcessingOrder.OldestFirst;
                     opt.QueueLimit = 0;
                 });
+
+                // OWASP abuse resistance: partition by authenticated user id, else client IP.
+                static string UserOrIpPartition(HttpContext ctx) =>
+                    ctx.User?.FindFirst(ClaimTypes.NameIdentifier)?.Value
+                    ?? ctx.Connection.RemoteIpAddress?.ToString()
+                    ?? "unknown";
+
+                options.AddPolicy("messages-send", ctx =>
+                    RateLimitPartition.GetFixedWindowLimiter(
+                        UserOrIpPartition(ctx),
+                        _ => new FixedWindowRateLimiterOptions
+                        {
+                            Window = TimeSpan.FromMinutes(1),
+                            PermitLimit = 30,
+                            QueueProcessingOrder = QueueProcessingOrder.OldestFirst,
+                            QueueLimit = 0,
+                            AutoReplenishment = true
+                        }));
+
+                options.AddPolicy("course-requests-submit", ctx =>
+                    RateLimitPartition.GetFixedWindowLimiter(
+                        UserOrIpPartition(ctx),
+                        _ => new FixedWindowRateLimiterOptions
+                        {
+                            Window = TimeSpan.FromMinutes(1),
+                            PermitLimit = 40,
+                            QueueProcessingOrder = QueueProcessingOrder.OldestFirst,
+                            QueueLimit = 0,
+                            AutoReplenishment = true
+                        }));
+
+                options.AddPolicy("course-cover-upload", ctx =>
+                    RateLimitPartition.GetFixedWindowLimiter(
+                        UserOrIpPartition(ctx),
+                        _ => new FixedWindowRateLimiterOptions
+                        {
+                            Window = TimeSpan.FromMinutes(1),
+                            PermitLimit = 30,
+                            QueueProcessingOrder = QueueProcessingOrder.OldestFirst,
+                            QueueLimit = 0,
+                            AutoReplenishment = true
+                        }));
             });
 
             builder.Services.AddAuthorization(options =>

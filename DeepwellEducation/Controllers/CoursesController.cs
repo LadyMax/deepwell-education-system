@@ -5,6 +5,8 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.EntityFrameworkCore;
+using SixLabors.ImageSharp;
+using SixLabors.ImageSharp.Formats.Jpeg;
 
 namespace DeepwellEducation.Controllers;
 
@@ -125,6 +127,39 @@ public class CoursesController : ControllerBase
         if (string.IsNullOrEmpty(ext) || !allowed.Contains(ext))
             return BadRequest("Allowed types: jpg, png, webp, gif.");
 
+        await using var uploadMs = new MemoryStream();
+        await file.CopyToAsync(uploadMs, ct);
+        if (uploadMs.Length == 0)
+            return BadRequest("Image file is required.");
+        uploadMs.Position = 0;
+
+        ImageInfo? info;
+        try
+        {
+            info = await Image.IdentifyAsync(uploadMs, ct);
+        }
+        catch (UnknownImageFormatException)
+        {
+            return BadRequest("File is not a supported image.");
+        }
+        catch (InvalidImageContentException)
+        {
+            return BadRequest("Image data is invalid or corrupted.");
+        }
+
+        if (info is null)
+            return BadRequest("File is not a supported image.");
+
+        const int maxSide = 8192;
+        if (info.Width > maxSide || info.Height > maxSide)
+            return BadRequest($"Image must be at most {maxSide} pixels wide and tall.");
+
+        const long maxPixels = 25_000_000;
+        if ((long)info.Width * info.Height > maxPixels)
+            return BadRequest("Image resolution is too large.");
+
+        uploadMs.Position = 0;
+
         var wwwroot = _env.WebRootPath ?? Path.Combine(_env.ContentRootPath, "wwwroot");
         var rel = $"images/courses/{id:N}.jpg";
         var abs = Path.Combine(wwwroot, "frontend", rel.Replace('/', Path.DirectorySeparatorChar));
@@ -132,9 +167,27 @@ public class CoursesController : ControllerBase
         if (!string.IsNullOrEmpty(dir))
             Directory.CreateDirectory(dir);
 
-        await using (var fs = new FileStream(abs, FileMode.Create, FileAccess.Write, FileShare.None))
+        try
         {
-            await file.CopyToAsync(fs, ct);
+            using var image = await Image.LoadAsync(uploadMs, ct);
+            await using (var fs = new FileStream(
+                             abs,
+                             FileMode.Create,
+                             FileAccess.Write,
+                             FileShare.None,
+                             bufferSize: 81920,
+                             FileOptions.Asynchronous))
+            {
+                await image.SaveAsync(fs, new JpegEncoder { Quality = 88 }, ct);
+            }
+        }
+        catch (UnknownImageFormatException)
+        {
+            return BadRequest("File is not a supported image.");
+        }
+        catch (InvalidImageContentException)
+        {
+            return BadRequest("Image data is invalid or corrupted.");
         }
 
         course.ImageUrl = rel;

@@ -28,6 +28,7 @@ public class AuthController : ControllerBase
     }
 
     /// <summary>Register a new user as Visitor. Becomes Student only after first Join is approved by Admin.</summary>
+    [AllowAnonymous]
     [HttpPost("register")]
     [EnableRateLimiting("auth")]
     public async Task<ActionResult<AuthResponse>> Register([FromBody] RegisterRequest request, CancellationToken ct)
@@ -74,6 +75,7 @@ public class AuthController : ControllerBase
     }
 
     /// <summary>Login with email and password. Returns JWT and user info.</summary>
+    [AllowAnonymous]
     [HttpPost("login")]
     [EnableRateLimiting("auth")]
     public async Task<ActionResult<AuthResponse>> Login([FromBody] LoginRequest request, CancellationToken ct)

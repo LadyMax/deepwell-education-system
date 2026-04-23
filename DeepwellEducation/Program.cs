@@ -6,6 +6,7 @@ using DeepwellEducation.Domain.Entities;
 using DeepwellEducation.Security;
 using DeepwellEducation.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.EntityFrameworkCore;
@@ -110,6 +111,16 @@ namespace DeepwellEducation
                 });
             });
 
+            builder.Services.AddAuthorization(options =>
+            {
+                options.FallbackPolicy = new AuthorizationPolicyBuilder()
+                    .RequireAuthenticatedUser()
+                    .Build();
+            });
+
+            builder.Services.AddProblemDetails();
+            builder.Services.AddExceptionHandler<ProblemDetailsExceptionHandler>();
+
             builder.Services.AddControllers();
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen(c =>
@@ -131,6 +142,8 @@ namespace DeepwellEducation
             });
 
             var app = builder.Build();
+
+            app.UseExceptionHandler();
 
             // Configure the HTTP request pipeline.
             if (app.Environment.IsDevelopment())
@@ -185,7 +198,7 @@ namespace DeepwellEducation
 
             app.UseRateLimiter();
 
-            app.MapGet("/", () => Results.Redirect("/frontend/"));
+            app.MapGet("/", () => Results.Redirect("/frontend/")).AllowAnonymous();
 
             app.MapControllers();
 

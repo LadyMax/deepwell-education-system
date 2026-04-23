@@ -10,6 +10,7 @@
     var typeLabel = S.courseRequestTypeLabel;
     var statusLabel = S.courseRequestStatusLabel;
     var courseLevelDisplay = S.courseLevelLabel;
+    var escapeHtml = S.escapeHtml;
     var St = (w.DeepwellStudent = w.DeepwellStudent || {});
 
     var leaveRequestIdKey = "deepwell_last_leave_request_id";
@@ -95,16 +96,16 @@
             else if (!subjName && subjCode) subjectCell = subjCode;
             tr.innerHTML =
                 "<td>" +
-                pick(row, "courseName", "CourseName") +
+                escapeHtml(String(pick(row, "courseName", "CourseName") || "")) +
                 "</td>" +
                 "<td>" +
-                subjectCell +
+                escapeHtml(String(subjectCell || "")) +
                 "</td>" +
                 "<td>" +
-                courseLevelDisplay(pick(row, "level", "Level")) +
+                escapeHtml(String(courseLevelDisplay(pick(row, "level", "Level")))) +
                 "</td>" +
                 "<td>" +
-                new Date(pick(row, "enrolledAt", "EnrolledAt")).toLocaleString() +
+                escapeHtml(new Date(pick(row, "enrolledAt", "EnrolledAt")).toLocaleString()) +
                 "</td>";
             tbody.appendChild(tr);
         });

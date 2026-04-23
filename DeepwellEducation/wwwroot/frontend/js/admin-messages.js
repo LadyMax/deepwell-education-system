@@ -145,13 +145,13 @@
                 (isRead
                     ? "Yes"
                     : 'No <button type="button" class="btn btn-outline-primary btn-sm ml-2 msg-mark-read" data-id="' +
-                      id +
+                      escapeHtml(String(id)) +
                       '">Mark read</button>') +
                 "</td>" +
                 '<td class="msg-cat-cell">' +
                 '<div class="admin-select-apply">' +
                 '<select class="custom-select custom-select-sm msg-cat" data-id="' +
-                id +
+                escapeHtml(String(id)) +
                 '">' +
                 '<option value="" selected>Choose…</option>' +
                 '<option value="0">Course inquiry</option>' +
@@ -160,7 +160,7 @@
                 '<option value="3">Other</option>' +
                 "</select>" +
                 '<button type="button" class="btn btn-outline-secondary btn-sm btn-admin-confirm msg-cat-confirm" data-id="' +
-                id +
+                escapeHtml(String(id)) +
                 '" disabled>Confirm</button>' +
                 "</div></td>";
             var msgColLabels = [

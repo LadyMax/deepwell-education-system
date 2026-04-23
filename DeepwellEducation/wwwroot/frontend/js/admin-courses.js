@@ -514,16 +514,16 @@
             tr.classList.add("course-lang-tone-" + tone);
             tr.innerHTML =
                 '<td><span class="fw-semibold">' +
-                (pick(c, "name", "Name") || "—") +
+                escapeHtml(String(pick(c, "name", "Name") || "—")) +
                 "</span></td>" +
                 "<td>" +
-                A.courseLanguageLine(c) +
+                escapeHtml(String(A.courseLanguageLine(c))) +
                 "</td>" +
                 "<td>" +
-                levelLabel(pick(c, "level", "Level")) +
+                escapeHtml(String(levelLabel(pick(c, "level", "Level")))) +
                 "</td>" +
                 "<td>" +
-                String(pick(c, "enrollmentCount", "EnrollmentCount") || 0) +
+                escapeHtml(String(pick(c, "enrollmentCount", "EnrollmentCount") || 0)) +
                 "</td>" +
                 '<td class="text-nowrap">' +
                 '<button type="button" class="btn btn-outline-secondary btn-sm course-roster-btn" aria-label="View course roster">View</button>' +

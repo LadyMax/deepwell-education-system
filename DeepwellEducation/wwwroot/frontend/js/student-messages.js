@@ -8,6 +8,7 @@
     }
 
     var messageCategoryHuman = S.messageCategoryHuman;
+    var escapeHtml = S.escapeHtml;
     var St = (w.DeepwellStudent = w.DeepwellStudent || {});
 
     St.setStudentInboxUnreadBadge = function (count) {
@@ -60,13 +61,13 @@
             const readAt = pick(m, "readAt", "ReadAt");
             tr.innerHTML =
                 "<td>" +
-                pick(m, "senderEmail", "SenderEmail") +
+                escapeHtml(String(pick(m, "senderEmail", "SenderEmail") || "")) +
                 "</td>" +
                 "<td>" +
-                pick(m, "subject", "Subject") +
+                escapeHtml(String(pick(m, "subject", "Subject") || "")) +
                 "</td>" +
                 "<td>" +
-                new Date(pick(m, "createdAt", "CreatedAt")).toLocaleString() +
+                escapeHtml(new Date(pick(m, "createdAt", "CreatedAt")).toLocaleString()) +
                 "</td>" +
                 "<td>" +
                 (readAt ? "Yes" : "No") +
@@ -75,7 +76,7 @@
                 (readAt
                     ? "—"
                     : '<button type="button" class="btn btn-outline-primary btn-sm mark-read" data-id="' +
-                      id +
+                      escapeHtml(String(id)) +
                       '">Mark read</button>') +
                 "</td>";
             tbody.appendChild(tr);
@@ -116,13 +117,15 @@
             const tr = document.createElement("tr");
             tr.innerHTML =
                 "<td>" +
-                messageCategoryHuman(pick(m, "senderSuggestedCategory", "SenderSuggestedCategory")) +
+                escapeHtml(
+                    String(messageCategoryHuman(pick(m, "senderSuggestedCategory", "SenderSuggestedCategory")))
+                ) +
                 "</td>" +
                 "<td>" +
-                pick(m, "subject", "Subject") +
+                escapeHtml(String(pick(m, "subject", "Subject") || "")) +
                 "</td>" +
                 "<td>" +
-                new Date(pick(m, "createdAt", "CreatedAt")).toLocaleString() +
+                escapeHtml(new Date(pick(m, "createdAt", "CreatedAt")).toLocaleString()) +
                 "</td>";
             tbody.appendChild(tr);
         });

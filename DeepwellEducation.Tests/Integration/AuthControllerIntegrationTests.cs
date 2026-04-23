@@ -1,7 +1,10 @@
 using System.Net;
 using System.Net.Http.Json;
 using DeepwellEducation.Controllers;
+using DeepwellEducation.Data;
 using DeepwellEducation.Domain.Enums;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 using Xunit;
 
 namespace DeepwellEducation.Tests;
@@ -234,5 +237,30 @@ public class AuthControllerIntegrationTests
         Assert.Equal(user.Id, me!.Id);
         Assert.Equal(user.Email, me.Email);
         Assert.Equal(UserRole.Student, me.Role);
+    }
+
+    [Fact]
+    public async Task Me_WithTokenIssuedBeforeAccountDisabled_ReturnsUnauthorized()
+    {
+        await using var factory = new TestWebApplicationFactory();
+        using var client = factory.CreateClient();
+
+        var email = $"{Guid.NewGuid():N}@example.com";
+        var password = "ValidPassword!123";
+        var user = await factory.SeedUserAsync(email, password, UserRole.Student, userName: "inactive_token_me_test");
+        var token = await TestAuthHelper.LoginAndGetTokenAsync(client, email, password);
+
+        using (var scope = factory.Services.CreateScope())
+        {
+            var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+            var u = await db.Users.FirstAsync(x => x.Id == user.Id);
+            u.IsActive = false;
+            await db.SaveChangesAsync();
+        }
+
+        client.SetBearerToken(token);
+        var response = await client.GetAsync("/api/auth/me");
+
+        Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
     }
 }

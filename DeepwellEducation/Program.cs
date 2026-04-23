@@ -76,12 +76,18 @@ namespace DeepwellEducation
                             var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
                             var row = await db.Users.AsNoTracking()
                                 .Where(u => u.Id == userId)
-                                .Select(u => new { u.PasswordChangedAt, u.CreatedAt })
+                                .Select(u => new { u.PasswordChangedAt, u.CreatedAt, u.IsActive })
                                 .FirstOrDefaultAsync(context.HttpContext.RequestAborted);
 
                             if (row == null)
                             {
                                 context.Fail("User not found.");
+                                return;
+                            }
+
+                            if (!row.IsActive)
+                            {
+                                context.Fail("Account is disabled.");
                                 return;
                             }
 

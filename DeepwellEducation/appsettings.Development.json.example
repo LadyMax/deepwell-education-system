@@ -1,19 +1,8 @@
 {
-  "Logging": {
-    "LogLevel": {
-      "Default": "Information",
-      "Microsoft.AspNetCore": "Warning"
-    }
-  },
-  "SeedAdmin": {
-    "Email": "admin@deepwell.se",
-    "Password": "Admin123!"
+  "Jwt": {
+    "Key": "DEVELOPMENT_ONLY_ReplaceWithYourOwnRandom32PlusChars!!"
   },
   "AiClassifier": {
-    "Enabled": true,
-    "BaseUrl": "http://localhost:8000",
-    "ClassifyPath": "/classify",
-    "InternalToken": "dev-internal-token",
-    "TimeoutSeconds": 45
+    "InternalToken": "set-the-same-value-as-your-FastAPI-service-if-used"
   }
 }

@@ -11,6 +11,7 @@
     var statusLabel = S.courseRequestStatusLabel;
     var typeClass = S.courseRequestTypeClass;
     var statusClass = S.courseRequestStatusClass;
+    var escapeHtml = S.escapeHtml;
 
     var A = (w.DeepwellAdmin = w.DeepwellAdmin || {});
     var setInlineStatus = A.setInlineStatus || function (id, message) {
@@ -120,10 +121,10 @@
             if (pending) {
                 actions =
                     '<button type="button" class="btn btn-success btn-sm mr-1 cr-approve" data-id="' +
-                    id +
+                    escapeHtml(String(id)) +
                     '">Approve</button>' +
                     '<button type="button" class="btn btn-outline-danger btn-sm cr-reject" data-id="' +
-                    id +
+                    escapeHtml(String(id)) +
                     '">Reject</button>';
             } else {
                 actions = "—";
@@ -131,15 +132,15 @@
 
             tr.innerHTML =
                 "<td>" +
-                (name || "—") +
+                escapeHtml(String(name || "—")) +
                 '<br><small class="text-muted">' +
-                email +
+                escapeHtml(String(email || "")) +
                 "</small></td>" +
                 "<td>" +
-                (sn || "—") +
+                escapeHtml(String(sn || "—")) +
                 "</td>" +
                 "<td>" +
-                course +
+                escapeHtml(String(course || "")) +
                 "</td>" +
                 '<td><span class="cr-type ' +
                 typeClass(type) +

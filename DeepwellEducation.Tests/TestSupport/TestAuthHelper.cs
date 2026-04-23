@@ -97,7 +97,8 @@ internal static class TestAuthHelper
             LanguageName = languageName,
             Level = level,
             Category = CourseCategory.Language,
-            IsActive = isActive
+            IsActive = isActive,
+            ImageUrl = "images/deepwell-course.jpg"
         };
 
         db.Courses.Add(course);

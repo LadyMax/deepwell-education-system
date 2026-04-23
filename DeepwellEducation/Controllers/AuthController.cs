@@ -36,9 +36,9 @@ public class AuthController : ControllerBase
             return BadRequest("Email and password are required.");
         if (!TryValidateEmail(request.Email, out var emailError))
             return BadRequest(emailError);
-        if (ContainsWhitespace(request.Email))
+        if (ContainsInteriorWhitespace(request.Email))
             return BadRequest("Email must not contain spaces.");
-        if (ContainsWhitespace(request.UserName))
+        if (ContainsInteriorWhitespace(request.UserName))
             return BadRequest("Username must not contain spaces.");
 
         var normalizedEmail = request.Email.Trim().ToLowerInvariant();
@@ -269,8 +269,9 @@ public class AuthController : ControllerBase
     private static string NormalizeUsername(string? raw) =>
         string.IsNullOrWhiteSpace(raw) ? "" : raw.Trim();
 
-    private static bool ContainsWhitespace(string? raw) =>
-        !string.IsNullOrEmpty(raw) && raw.Any(char.IsWhiteSpace);
+    /// <summary>Leading/trailing spaces are trimmed later; only reject whitespace inside the value.</summary>
+    private static bool ContainsInteriorWhitespace(string? raw) =>
+        !string.IsNullOrEmpty(raw) && raw.Trim().Any(char.IsWhiteSpace);
 
     /// <summary>3–20 chars; letters, digits, period, underscore, hyphen.</summary>
     private static bool TryValidateUsername(string normalized, out string? error)

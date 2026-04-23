@@ -97,7 +97,8 @@ public class CoursesController : ControllerBase
             LanguageName = request.LanguageName?.Trim() ?? "",
             Level = request.Level,
             Category = category,
-            IsActive = true
+            IsActive = true,
+            ImageUrl = "images/deepwell-course.jpg"
         };
         _db.Courses.Add(course);
         await _db.SaveChangesAsync(ct);

@@ -43,6 +43,36 @@ async function readJsonOrText(response) {
     }
 }
 
+function apiErrorMessage(body, fallback) {
+    if (!body) return fallback || "Request failed";
+    if (body.text && String(body.text).trim()) return body.text;
+    if (body.json) {
+        if (typeof body.json === "string") return body.json;
+        if (body.json.message) return String(body.json.message);
+        if (body.json.error) return String(body.json.error);
+        if (body.json.title) return String(body.json.title);
+    }
+    return fallback || "Request failed";
+}
+
+async function requestJson(url, options) {
+    try {
+        const response = await fetch(url, options || {});
+        const body = await readJsonOrText(response);
+        if (!response.ok) {
+            return {
+                ok: false,
+                status: response.status,
+                message: apiErrorMessage(body, response.statusText),
+                data: body.json
+            };
+        }
+        return { ok: true, status: response.status, data: body.json || {} };
+    } catch (e) {
+        return { ok: false, status: 0, message: "Server error: " + (e.message || "unknown"), data: null };
+    }
+}
+
 async function register(email, password, userName) {
     try {
         const response = await fetch(`${baseUrl}/Auth/register`, {
@@ -61,19 +91,15 @@ async function register(email, password, userName) {
 }
 
 async function login(email, password) {
-    try {
-        const response = await fetch(`${baseUrl}/Auth/login`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ email, password })
-        });
-        if (!response.ok) return null;
-        const data = await response.json();
-        localStorage.setItem("token", data.token);
-        return data;
-    } catch {
-        return null;
-    }
+    const r = await requestJson(`${baseUrl}/Auth/login`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password })
+    });
+    if (!r.ok) return r;
+    const data = r.data || {};
+    if (data.token) localStorage.setItem("token", data.token);
+    return { ok: true, data };
 }
 
 function logout() {
@@ -81,9 +107,7 @@ function logout() {
 }
 
 async function getMe() {
-    const response = await fetch(`${baseUrl}/Auth/me`, { headers: authHeaders() });
-    if (!response.ok) return null;
-    return response.json();
+    return requestJson(`${baseUrl}/Auth/me`, { headers: authHeaders() });
 }
 
 function evaluatePasswordRules(password) {
@@ -161,9 +185,9 @@ async function updateMyStudentProfile(payload) {
 }
 
 async function getCourses() {
-    const response = await fetch(`${baseUrl}/Courses`);
-    if (!response.ok) return [];
-    return response.json();
+    const r = await requestJson(`${baseUrl}/Courses`);
+    if (!r.ok) return { ok: false, message: r.message, items: [] };
+    return { ok: true, items: Array.isArray(r.data) ? r.data : [] };
 }
 
 async function getAdminCourses(includeInactive) {
@@ -237,9 +261,9 @@ async function deleteCourse(id, permanent = false) {
 }
 
 async function getMyEnrollments() {
-    const response = await fetch(`${baseUrl}/Enrollments/me`, { headers: authHeaders() });
-    if (!response.ok) return [];
-    return response.json();
+    const r = await requestJson(`${baseUrl}/Enrollments/me`, { headers: authHeaders() });
+    if (!r.ok) return { ok: false, message: r.message, items: [] };
+    return { ok: true, items: Array.isArray(r.data) ? r.data : [] };
 }
 
 async function getEnrollmentsByCourse(courseId) {
@@ -253,11 +277,15 @@ async function getEnrollmentsByCourse(courseId) {
 }
 
 async function getInbox(page = 1, pageSize = 20) {
-    const response = await fetch(`${baseUrl}/Messages/inbox?page=${page}&pageSize=${pageSize}`, {
+    const r = await requestJson(`${baseUrl}/Messages/inbox?page=${page}&pageSize=${pageSize}`, {
         headers: authHeaders()
     });
-    if (!response.ok) return { items: [], totalCount: 0 };
-    return response.json();
+    if (!r.ok) return { ok: false, message: r.message, items: [], totalCount: 0 };
+    return {
+        ok: true,
+        items: r.data.items || r.data.Items || [],
+        totalCount: r.data.totalCount ?? r.data.TotalCount ?? 0
+    };
 }
 
 async function getInboxUnreadCount() {
@@ -271,11 +299,15 @@ async function getInboxUnreadCount() {
 }
 
 async function getSent(page = 1, pageSize = 20) {
-    const response = await fetch(`${baseUrl}/Messages/sent?page=${page}&pageSize=${pageSize}`, {
+    const r = await requestJson(`${baseUrl}/Messages/sent?page=${page}&pageSize=${pageSize}`, {
         headers: authHeaders()
     });
-    if (!response.ok) return { items: [], totalCount: 0 };
-    return response.json();
+    if (!r.ok) return { ok: false, message: r.message, items: [], totalCount: 0 };
+    return {
+        ok: true,
+        items: r.data.items || r.data.Items || [],
+        totalCount: r.data.totalCount ?? r.data.TotalCount ?? 0
+    };
 }
 
 async function markMessageRead(id) {
@@ -293,18 +325,13 @@ async function sendMessage(subject, content, receiverUserId, senderSuggestedCate
     if (senderSuggestedCategory != null && senderSuggestedCategory !== "") {
         body.senderSuggestedCategory = Number(senderSuggestedCategory);
     }
-    const response = await fetch(`${baseUrl}/Messages`, {
+    const r = await requestJson(`${baseUrl}/Messages`, {
         method: "POST",
         headers: authHeaders(),
         body: JSON.stringify(body)
     });
-    const text = await response.text();
-    if (!response.ok) throw new Error(text || response.statusText);
-    try {
-        return text ? JSON.parse(text) : {};
-    } catch {
-        return {};
-    }
+    if (!r.ok) return { ok: false, message: r.message };
+    return { ok: true, data: r.data || {} };
 }
 
 async function submitCourseRequest(courseId, type) {

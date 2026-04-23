@@ -47,6 +47,32 @@
         return count + " matching requests";
     }
 
+    function showCourseRequestConfirm(message, title) {
+        return new Promise(function (resolve) {
+            var modalEl = document.getElementById("admin-confirm-modal");
+            var msgEl = document.getElementById("admin-confirm-message");
+            var titleEl = document.getElementById("admin-confirm-title");
+            var okEl = document.getElementById("admin-confirm-ok");
+            if (!modalEl || !msgEl || !titleEl || !okEl || !window.jQuery) {
+                resolve(window.confirm(message || "Confirm action?"));
+                return;
+            }
+            msgEl.textContent = message || "Confirm action?";
+            titleEl.textContent = title || "Please confirm";
+            okEl.onclick = null;
+            okEl.onclick = function () {
+                window.jQuery(modalEl).modal("hide");
+                resolve(true);
+            };
+            window.jQuery(modalEl).off("hidden.bs.modal.courseRequestConfirm");
+            window.jQuery(modalEl).on("hidden.bs.modal.courseRequestConfirm", function () {
+                window.jQuery(modalEl).off("hidden.bs.modal.courseRequestConfirm");
+                resolve(false);
+            });
+            window.jQuery(modalEl).modal("show");
+        });
+    }
+
     A.renderCourseRequests = async function (filters) {
         const table = document.getElementById("cr-table");
         const tbody = document.getElementById("cr-body");
@@ -153,7 +179,8 @@
             btn.addEventListener("click", async function (e) {
                 e.stopPropagation();
                 const id = btn.getAttribute("data-id");
-                if (!confirm("Reject this request?")) return;
+                var confirmed = await showCourseRequestConfirm("Reject this request?", "Reject request");
+                if (!confirmed) return;
                 const r = await w.reviewCourseRequest(id, false);
                 if (!r.ok) {
                     w.showAppFlash("admin-flash", r.message || "Failed to reject.", "danger", 6000);

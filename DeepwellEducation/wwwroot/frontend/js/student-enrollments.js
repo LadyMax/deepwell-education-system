@@ -72,7 +72,8 @@
     };
 
     St.loadEnrollments = async function () {
-        const list = await getMyEnrollments();
+        const listRes = await getMyEnrollments();
+        const list = listRes.items || [];
         St.enrollmentRows = Array.isArray(list) ? list : [];
         document.getElementById("enrollments-loading").classList.add("d-none");
         if (!list || list.length === 0) {
@@ -126,8 +127,8 @@
         }
         const r = await getCourseRequestById(St.lastLeaveRequestId);
         if (!r.ok) {
-            statusEl.textContent = r.message || "Could not load request status.";
-            showAppFlash("student-flash", r.message || "Could not load request status.", "danger", 6000);
+            statusEl.textContent = r.message || "Could not load request status";
+            showAppFlash("student-flash", r.message || "Could not load request status", "danger", 6000);
             St.hideRequestDetailCard();
             St.lastLeaveRequestId = null;
             writeStoredLeaveRequestId(null);
@@ -144,22 +145,22 @@
         const courseId = document.getElementById("leave-course").value;
         const statusEl = document.getElementById("request-status");
         if (!courseId) {
-            statusEl.textContent = "Please select a course first.";
-            showAppFlash("student-flash", "Select an enrolled course before submitting a leave request.", "warning", 4500);
+            statusEl.textContent = "Please select a course first";
+            showAppFlash("student-flash", "Select an enrolled course before submitting a leave request", "warning", 4500);
             return;
         }
         const r = await submitLeaveRequest(courseId);
         if (!r.ok) {
-            statusEl.textContent = r.message || "Failed to submit leave request.";
-            showAppFlash("student-flash", r.message || "Failed to submit leave request.", "danger", 6000);
+            statusEl.textContent = r.message || "Failed to submit leave request";
+            showAppFlash("student-flash", r.message || "Failed to submit leave request", "danger", 6000);
             St.hideRequestDetailCard();
             return;
         }
         const reqId = pick(r.data, "id", "Id");
         St.lastLeaveRequestId = reqId || null;
         writeStoredLeaveRequestId(St.lastLeaveRequestId);
-        statusEl.textContent = "Leave request submitted.";
-        showAppFlash("student-flash", "Leave request submitted.", "success", 4000);
+        statusEl.textContent = "Leave request submitted";
+        showAppFlash("student-flash", "Leave request submitted", "success", 4000);
         if (r.data) St.renderRequestDetailCard(r.data);
         St.setLeaveRefreshVisible(!!St.lastLeaveRequestId);
     };

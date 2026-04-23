@@ -6,6 +6,11 @@
         console.error("Missing shared-dashboard.js (load before student-profile.js).");
         return;
     }
+    var Pcfg = w.DeepwellPhoneCountryConfig;
+    if (!Pcfg) {
+        console.error("Missing phone-country-config.js (load before student-profile.js).");
+        return;
+    }
 
     var St = (w.DeepwellStudent = w.DeepwellStudent || {});
 
@@ -26,36 +31,6 @@
 
     var usernamePattern = /^[A-Za-z0-9._-]+$/;
     var personNamePattern = /^[A-Za-zÅÄÖåäö]+$/;
-    var PHONE_COUNTRIES = [
-        { code: "+966", name: "Saudi Arabia", flag: "saudi-arabia.png" },
-        { code: "+86", name: "China", flag: "china.png" },
-        { code: "+44", name: "United Kingdom", flag: "united-kingdom.png" },
-        { code: "+33", name: "France", flag: "france.png" },
-        { code: "+46", name: "Sweden", flag: "sweden.png" },
-        { code: "+39", name: "Italy", flag: "italy.png" },
-        { code: "+81", name: "Japan", flag: "japan.png" },
-        { code: "+34", name: "Spain", flag: "spain.png" },
-        { code: "+49", name: "Germany", flag: "germany.png" },
-        { code: "+45", name: "Denmark", flag: "denmark.png" },
-        { code: "+31", name: "Netherlands", flag: "netherlands.png" },
-        { code: "+358", name: "Finland", flag: "finland.png" },
-        { code: "+30", name: "Greece", flag: "greece.png" },
-        { code: "+972", name: "Israel", flag: "israel.png" },
-        { code: "+354", name: "Iceland", flag: "iceland.png" },
-        { code: "+82", name: "South Korea", flag: "south-korea.png" },
-        { code: "+47", name: "Norway", flag: "norway.png" },
-        { code: "+98", name: "Iran", flag: "iran.png" },
-        { code: "+48", name: "Poland", flag: "poland.png" },
-        { code: "+351", name: "Portugal", flag: "portugal.png" },
-        { code: "+7", name: "Russia", flag: "russia.png" },
-        { code: "+66", name: "Thailand", flag: "thailand.png" },
-        { code: "+90", name: "Turkey", flag: "turkey.png" },
-        { code: "+84", name: "Vietnam", flag: "vietnam.png" }
-    ];
-    var phoneCountryCodes = PHONE_COUNTRIES
-        .map(function (c) { return c.code; })
-        .sort(function (a, b) { return b.length - a.length; });
-
     function normalizePersonName(raw) {
         var s = String(raw || "").trim();
         if (!s) return "";
@@ -63,66 +38,72 @@
         return lower.charAt(0).toLocaleUpperCase() + lower.slice(1);
     }
 
-    function parseStoredPhone(phoneRaw) {
-        var raw = String(phoneRaw || "").trim();
-        if (!raw) return { countryCode: "+46", local: "", customCountryCode: "" };
-        var compact = raw.replace(/\s+/g, "");
-        for (var i = 0; i < phoneCountryCodes.length; i++) {
-            var code = phoneCountryCodes[i];
-            if (compact.indexOf(code) === 0) {
-                return {
-                    countryCode: code,
-                    local: compact.slice(code.length).replace(/[^\d]/g, ""),
-                    customCountryCode: ""
-                };
-            }
-        }
-        if (compact.indexOf("+") === 0) {
-            var digits = compact.slice(1).replace(/[^\d]/g, "");
-            var codeLen = Math.min(3, digits.length);
-            var customCode = codeLen > 0 ? "+" + digits.slice(0, codeLen) : "";
-            return {
-                countryCode: "",
-                customCountryCode: customCode,
-                local: digits.slice(codeLen)
-            };
-        }
-        return { countryCode: "", local: compact.replace(/[^\d]/g, ""), customCountryCode: "" };
-    }
-
     function composePhoneForSave() {
         var localEl = document.getElementById("profile-phone");
         var countryEl = document.getElementById("profile-phone-country");
         var customCountryEl = document.getElementById("profile-phone-custom-country");
-        var localDigits = (localEl && localEl.value ? localEl.value : "").replace(/[^\d]/g, "");
         var countryCode = countryEl ? String(countryEl.value || "").trim() : "";
-        var customCountryCode = customCountryEl ? String(customCountryEl.value || "").trim() : "";
-        customCountryCode = customCountryCode.replace(/[^\d+]/g, "");
-        if (customCountryCode && customCountryCode.charAt(0) !== "+") {
-            customCountryCode = "+" + customCountryCode.replace(/[^\d]/g, "");
-        } else if (customCountryCode) {
-            customCountryCode = "+" + customCountryCode.slice(1).replace(/[^\d]/g, "");
-        }
-        if (!localDigits) return "";
-        if (!countryCode) {
-            if (customCountryCode) return customCountryCode + localDigits;
-            return localDigits;
-        }
-        return countryCode + localDigits;
+        var customCountryCode = customCountryEl ? String(customCountryEl.value || "") : "";
+        var local = localEl ? String(localEl.value || "") : "";
+        return Pcfg.composePhoneForSave(countryCode, customCountryCode, local);
     }
 
-    function phoneCountryByCode(code) {
-        var normalized = String(code || "").trim();
-        for (var i = 0; i < PHONE_COUNTRIES.length; i++) {
-            if (PHONE_COUNTRIES[i].code === normalized) return PHONE_COUNTRIES[i];
-        }
-        return null;
+    function isProfileCompletionMissing(p) {
+        var firstName = String(pick(p, "firstName", "FirstName") || "").trim();
+        var lastName = String(pick(p, "lastName", "LastName") || "").trim();
+        var phone = String(pick(p, "phone", "Phone") || "").trim();
+        return !firstName || !lastName || !phone;
     }
 
-    function flagImageForCountryCode(code) {
-        var c = phoneCountryByCode(code);
-        if (!c) return { src: "images/flags-global/international.png", alt: "International flag" };
-        return { src: "images/flags-course/" + c.flag, alt: c.name + " flag" };
+    function profileValueOrEmpty(v) {
+        return v == null ? "" : String(v).trim();
+    }
+
+    function hasProfileDetailsChanges(payload, lastSavedProfile) {
+        var lastSaved = lastSavedProfile || {};
+        var lastSavedDob = profileValueOrEmpty(lastSaved.dateOfBirth);
+        var payloadDob = profileValueOrEmpty(payload.dateOfBirth);
+        return (
+            profileValueOrEmpty(payload.firstName) !== profileValueOrEmpty(lastSaved.firstName) ||
+            profileValueOrEmpty(payload.lastName) !== profileValueOrEmpty(lastSaved.lastName) ||
+            profileValueOrEmpty(payload.phone) !== profileValueOrEmpty(lastSaved.phone) ||
+            payloadDob !== lastSavedDob ||
+            profileValueOrEmpty(payload.city) !== profileValueOrEmpty(lastSaved.city) ||
+            profileValueOrEmpty(payload.address) !== profileValueOrEmpty(lastSaved.address)
+        );
+    }
+
+    function buildProfilePayloadFromForm() {
+        var firstNameRaw = normalizePersonName(document.getElementById("profile-first-name").value);
+        var lastNameRaw = normalizePersonName(document.getElementById("profile-last-name").value);
+        var cityRaw = (function () {
+            var el = document.getElementById("profile-city");
+            return el ? el.value.trim() : "";
+        })();
+        return {
+            firstName: firstNameRaw,
+            lastName: lastNameRaw,
+            phone: composePhoneForSave(),
+            dateOfBirth: document.getElementById("profile-dob").value || null,
+            city: cityRaw,
+            address: document.getElementById("profile-address").value.trim()
+        };
+    }
+
+    function initPhoneCountryOptions() {
+        var sel = document.getElementById("profile-phone-country");
+        if (!sel) return;
+        sel.innerHTML = "";
+        Pcfg.countries.forEach(function (c) {
+            var opt = document.createElement("option");
+            opt.value = c.code;
+            opt.textContent = c.name + " (" + c.code + ")";
+            sel.appendChild(opt);
+        });
+        var other = document.createElement("option");
+        other.value = "";
+        other.textContent = "Other";
+        sel.appendChild(other);
     }
 
     St.updatePhoneCountryFlag = function () {
@@ -133,20 +114,14 @@
         var flagImgEl = document.getElementById("profile-phone-flag-img");
         var flagFallbackEl = document.getElementById("profile-phone-flag-fallback");
         if (!localEl) return;
-        localEl.value = String(localEl.value || "").replace(/[^\d]/g, "");
+        localEl.value = Pcfg.sanitizeDigits(localEl.value || "");
         var code = countryEl ? String(countryEl.value || "") : "";
         if (customWrapEl) customWrapEl.classList.toggle("d-none", !!code);
         if (customCountryEl) {
-            var cleanCustom = String(customCountryEl.value || "").replace(/[^\d+]/g, "");
-            if (cleanCustom && cleanCustom.charAt(0) !== "+") {
-                cleanCustom = "+" + cleanCustom.replace(/[^\d]/g, "");
-            } else if (cleanCustom) {
-                cleanCustom = "+" + cleanCustom.slice(1).replace(/[^\d]/g, "");
-            }
-            customCountryEl.value = cleanCustom;
+            customCountryEl.value = Pcfg.sanitizeCustomCode(customCountryEl.value || "");
         }
         if (flagImgEl) {
-            var flag = flagImageForCountryCode(code);
+            var flag = Pcfg.getFlagImageForCode(code);
             if (flag) {
                 flagImgEl.src = flag.src;
                 flagImgEl.alt = flag.alt;
@@ -260,13 +235,17 @@
         );
     };
 
-    St.setProfileDetailsSectionVisible = function (showSection, noteText) {
+    St.setProfileDetailsSectionVisible = function (showSection, noteText, noteVariant) {
         const section = document.getElementById("profile-details-section");
         const note = document.getElementById("profile-details-note");
         if (section) section.classList.toggle("d-none", !showSection);
         if (note) {
             note.textContent = noteText || "";
             note.classList.toggle("d-none", !noteText);
+            note.classList.remove("profile-note--info", "profile-note--warning");
+            if (noteText) {
+                note.classList.add(noteVariant === "warning" ? "profile-note--warning" : "profile-note--info");
+            }
         }
     };
 
@@ -279,7 +258,7 @@
         var address = pick(p, "address", "Address") || "";
         document.getElementById("profile-first-name").value = firstName;
         document.getElementById("profile-last-name").value = lastName;
-        var parsedPhone = parseStoredPhone(phone);
+        var parsedPhone = Pcfg.parseStoredPhone(phone, "+46");
         var countryEl = document.getElementById("profile-phone-country");
         if (countryEl) countryEl.value = parsedPhone.countryCode;
         var customCountryEl = document.getElementById("profile-phone-custom-country");
@@ -300,9 +279,15 @@
         };
     };
 
+    initPhoneCountryOptions();
+
     St.onCancelProfileDetailsClick = function () {
         if (!St._lastSavedStudentProfile) return;
         St.fillStudentProfileForm(St._lastSavedStudentProfile);
+    };
+
+    St.hasUnsavedProfileDetailsChanges = function () {
+        return hasProfileDetailsChanges(buildProfilePayloadFromForm(), St._lastSavedStudentProfile);
     };
 
     St.loadStudentProfileDetails = async function (roleRaw) {
@@ -312,25 +297,40 @@
             return;
         }
         if (typeof getMyStudentProfile !== "function") {
-            St.setProfileDetailsSectionVisible(false, "Student profile service is not available.");
+            St.setProfileDetailsSectionVisible(false, "Student profile service is not available", "info");
             return;
         }
         const r = await getMyStudentProfile();
         if (!r.ok) {
             const msg = r.notFound
-                ? "Student profile is not ready yet. Please contact staff if this persists."
-                : r.message || "Could not load student profile.";
-            St.setProfileDetailsSectionVisible(false, msg);
+                ? "Student profile is not ready yet. Please contact staff if this persists"
+                : r.message || "Could not load student profile";
+            St.setProfileDetailsSectionVisible(false, msg, "info");
             return;
         }
-        St.fillStudentProfileForm(r.data || {});
-        St.setProfileDetailsSectionVisible(true, "");
+        var profileData = r.data || {};
+        St.fillStudentProfileForm(profileData);
+        var needsCompletion = isProfileCompletionMissing(profileData);
+        St.setProfileDetailsSectionVisible(
+            true,
+            needsCompletion ? "Please complete your student profile" : "",
+            needsCompletion ? "warning" : "info"
+        );
+        if (needsCompletion) {
+            showAppFlash(
+                "student-flash",
+                "Please complete your student profile",
+                "warning",
+                9000
+            );
+        }
     };
 
     St.loadProfile = async function () {
-        const me = await getMe();
+        const meRes = await getMe();
         document.getElementById("profile-loading").classList.add("d-none");
-        if (!me) return;
+        if (!meRes.ok) return;
+        const me = meRes.data || {};
         St.applyUsernameToUi(pick(me, "userName", "UserName") || pick(me, "fullName", "FullName"));
         document.getElementById("profile-email").textContent = pick(me, "email", "Email") || "—";
         const sn = pick(me, "studentNumber", "StudentNumber");
@@ -375,24 +375,24 @@
         const currentEl = document.getElementById("profile-username-display");
         const current = currentEl && currentEl.textContent !== "—" ? currentEl.textContent.trim() : "";
         if (current && current.toLowerCase() === next.trim().toLowerCase()) {
-            St.showUsernameFlash("That is already your username.", "info");
+            St.showUsernameFlash("That is already your username", "info");
             return;
         }
         if (typeof changeMyUsername !== "function") {
-            St.showUsernameFlash("Username update is not available.", "danger");
+            St.showUsernameFlash("Username update is not available", "danger");
             return;
         }
         btn.disabled = true;
         const r = await changeMyUsername(next);
         btn.disabled = false;
         if (!r.ok) {
-            St.showUsernameFlash(r.message || "Could not update username.", "danger");
+            St.showUsernameFlash(r.message || "Could not update username", "danger");
             return;
         }
         const updated = pick(r.data, "userName", "UserName") || pick(r.data, "fullName", "FullName");
         St.applyUsernameToUi(updated);
         St.setUsernameEditorVisible(false);
-        showAppFlash("student-flash", "Username updated.", "success", 3500);
+        showAppFlash("student-flash", "Username updated", "success", 3500);
         if (typeof window.deepwellRefreshAuthNav === "function") {
             window.deepwellRefreshAuthNav();
         }
@@ -402,10 +402,18 @@
         const btn = document.getElementById("btn-save-profile-details");
         var firstNameRaw = normalizePersonName(document.getElementById("profile-first-name").value);
         var lastNameRaw = normalizePersonName(document.getElementById("profile-last-name").value);
+        if (!firstNameRaw) {
+            showAppFlash("student-flash", "First name is required", "warning", 5000);
+            return;
+        }
+        if (!lastNameRaw) {
+            showAppFlash("student-flash", "Last name is required", "warning", 5000);
+            return;
+        }
         if (firstNameRaw && !personNamePattern.test(firstNameRaw)) {
             showAppFlash(
                 "student-flash",
-                "First name may only contain letters (A-Z, plus Swedish letters å/ä/ö; no spaces, digits, or special characters).",
+                "First name may only contain letters (no spaces, digits, or special characters)",
                 "warning",
                 6000
             );
@@ -414,7 +422,7 @@
         if (lastNameRaw && !personNamePattern.test(lastNameRaw)) {
             showAppFlash(
                 "student-flash",
-                "Last name may only contain letters (A-Z, plus Swedish letters å/ä/ö; no spaces, digits, or special characters).",
+                "Last name may only contain letters (no spaces, digits, or special characters)",
                 "warning",
                 6000
             );
@@ -427,7 +435,7 @@
         if (cityRaw && !personNamePattern.test(cityRaw)) {
             showAppFlash(
                 "student-flash",
-                "City may only contain letters (A-Z, plus Swedish letters å/ä/ö; no spaces, digits, or special characters).",
+                "City may only contain letters (no spaces, digits, or special characters)",
                 "warning",
                 6000
             );
@@ -437,23 +445,32 @@
         document.getElementById("profile-last-name").value = lastNameRaw;
         var cityEl = document.getElementById("profile-city");
         if (cityEl) cityEl.value = cityRaw;
-        const payload = {
-            firstName: firstNameRaw,
-            lastName: lastNameRaw,
-            phone: composePhoneForSave(),
-            dateOfBirth: document.getElementById("profile-dob").value || null,
-            city: cityRaw,
-            address: document.getElementById("profile-address").value.trim()
-        };
+        const payload = buildProfilePayloadFromForm();
+        if (!payload.phone) {
+            showAppFlash("student-flash", "Phone is required", "warning", 5000);
+            return;
+        }
+        if (payload.phone.length > 20) {
+            showAppFlash("student-flash", "Phone must be 20 characters or fewer", "warning", 5000);
+            return;
+        }
+        if (!hasProfileDetailsChanges(payload, St._lastSavedStudentProfile)) {
+            showAppFlash("profile-details-flash", "No changes to save", "info", 2500);
+            return;
+        }
+        showAppFlash("profile-details-flash", "", "info", 0);
         btn.disabled = true;
         const r = await updateMyStudentProfile(payload);
         btn.disabled = false;
         if (!r.ok) {
-            showAppFlash("student-flash", r.message || "Failed to save student profile.", "danger", 6000);
+            showAppFlash("student-flash", r.message || "Failed to save student profile", "danger", 6000);
             return;
         }
         St.fillStudentProfileForm(r.data || payload);
-        showAppFlash("student-flash", "Student profile saved.", "success", 3500);
+        showAppFlash("student-flash", "Student profile saved", "success", 3500);
+        if (window.jQuery) {
+            jQuery("#collapse-profile-details").collapse("hide");
+        }
     };
 })(typeof window !== "undefined" ? window : this);
 

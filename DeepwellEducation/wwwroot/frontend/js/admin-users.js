@@ -8,6 +8,7 @@
     }
 
     var escapeHtml = S.escapeHtml;
+    var Pcfg = w.DeepwellPhoneCountryConfig || null;
     var A = (w.DeepwellAdmin = w.DeepwellAdmin || {});
     var setInlineStatus = A.setInlineStatus || function (id, message) {
         var el = document.getElementById(id);
@@ -43,6 +44,27 @@
         }
     }
 
+    function renderPhoneWithFlagHtml(phoneRaw) {
+        var raw = String(phoneRaw || "").trim();
+        if (!raw) return "—";
+        if (!Pcfg) return escapeHtml(raw);
+        var parsed = Pcfg.getDisplayPhone(raw);
+        var code = parsed.countryCode || parsed.customCountryCode || "";
+        var local = parsed.local ? " " + parsed.local : "";
+        return (
+            '<span class="d-inline-flex align-items-center">' +
+            '<img src="' +
+            escapeHtml(parsed.flagSrc) +
+            '" alt="' +
+            escapeHtml(parsed.flagAlt) +
+            '" style="width:20px;height:14px;display:inline-block;margin-right:6px;">' +
+            '<span>' +
+            escapeHtml((code + local).trim() || raw) +
+            "</span>" +
+            "</span>"
+        );
+    }
+
     function renderAdminUserDetailHtml(d) {
         var email = pick(d, "email", "Email") || "—";
         var userName = pick(d, "userName", "UserName") || "—";
@@ -55,7 +77,7 @@
             var fn = pick(sp, "firstName", "FirstName") || "";
             var ln = pick(sp, "lastName", "LastName") || "";
             var sn = pick(sp, "studentNumber", "StudentNumber") || "—";
-            var phone = pick(sp, "phone", "Phone") || "—";
+            var phone = pick(sp, "phone", "Phone") || "";
             var city = pick(sp, "city", "City") || "—";
             var addr = pick(sp, "address", "Address") || "—";
             var dob = pick(sp, "dateOfBirth", "DateOfBirth");
@@ -70,7 +92,7 @@
                 escapeHtml((fn + " " + ln).trim() || "—") +
                 "</dd>" +
                 '<dt class="col-sm-4">Phone</dt><dd class="col-sm-8">' +
-                escapeHtml(phone) +
+                renderPhoneWithFlagHtml(phone) +
                 "</dd>" +
                 '<dt class="col-sm-4">Date of birth</dt><dd class="col-sm-8">' +
                 escapeHtml(dobStr) +
@@ -238,7 +260,7 @@
                 "<td>" +
                 escapeHtml(createdStr) +
                 "</td>" +
-                '<td><button type="button" class="btn btn-link btn-sm p-0 admin-users-open-profile" data-user-id="' +
+                '<td><button type="button" class="btn btn-outline-secondary btn-sm admin-users-open-profile" data-user-id="' +
                 escapeHtml(String(id)) +
                 '">View</button></td>';
             tbody.appendChild(tr);

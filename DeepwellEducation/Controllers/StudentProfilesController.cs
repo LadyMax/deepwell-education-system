@@ -66,8 +66,14 @@ public class StudentProfilesController : ControllerBase
         var city = (body.City ?? string.Empty).Trim();
         var address = (body.Address ?? string.Empty).Trim();
 
-        if (firstName.Length > 20 || lastName.Length > 20 || phone.Length > 15 || city.Length > 20 || address.Length > 40)
+        if (firstName.Length > 20 || lastName.Length > 20 || phone.Length > 20 || city.Length > 20 || address.Length > 40)
             return BadRequest("One or more fields exceed the allowed length.");
+        if (string.IsNullOrWhiteSpace(firstName))
+            return BadRequest("First name is required.");
+        if (string.IsNullOrWhiteSpace(lastName))
+            return BadRequest("Last name is required.");
+        if (string.IsNullOrWhiteSpace(phone))
+            return BadRequest("Phone is required.");
         if (!IsLettersOnlyOrEmpty(firstName))
             return BadRequest("First name may only contain letters");
         if (!IsLettersOnlyOrEmpty(lastName))

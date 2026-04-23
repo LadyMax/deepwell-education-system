@@ -112,7 +112,7 @@
             const senderUserName = (pick(m, "senderUserName", "SenderUserName") || "").trim();
             const senderLabel = senderUserName || "—";
             const fromCell = senderUserId
-                ? '<button type="button" class="btn btn-link btn-sm p-0 text-left admin-msg-sender-profile" data-user-id="' +
+                ? '<button type="button" class="btn btn-outline-secondary btn-sm admin-msg-sender-profile" data-user-id="' +
                   escapeHtml(String(senderUserId)) +
                   '" title="Open their account record" aria-label="View sender account">' +
                   escapeHtml(senderLabel) +

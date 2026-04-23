@@ -32,10 +32,10 @@
 
     function validateUsername(raw) {
         const s = (raw || "");
-        if (!s) return "Username is required.";
-        if (/\s/.test(s)) return "Username must not contain spaces.";
-        if (s.length < 3 || s.length > 32)
-            return "Username must be 3–32 characters.";
+        if (!s) return "Username is required";
+        if (/\s/.test(s)) return "Username must not contain spaces";
+        if (s.length < 3 || s.length > 20)
+            return "Username must be 3–20 characters";
         if (!usernamePattern.test(s))
             return "Username may only contain letters, digits, and . _ -";
         return "";
@@ -100,11 +100,16 @@
             flash("", "info");
             const email = document.getElementById("login-email").value.trim();
             const password = document.getElementById("login-password").value;
-            const data = await login(email, password);
-            if (!data) {
-                flash("Invalid email or password.", "danger");
+            if (email.length > 50) {
+                flash("Email must be 50 characters or fewer", "warning");
                 return;
             }
+            const res = await login(email, password);
+            if (!res.ok) {
+                flash(res.message || "Invalid email or password", "danger");
+                return;
+            }
+            const data = res.data || {};
             const role =
                 data.user &&
                 (data.user.role !== undefined
@@ -135,12 +140,16 @@
                 return;
             }
             if (/\s/.test(email || "")) {
-                flash("Email must not contain spaces.", "warning");
+                flash("Email must not contain spaces", "warning");
+                return;
+            }
+            if ((email || "").trim().length > 50) {
+                flash("Email must be 50 characters or fewer", "warning");
                 return;
             }
 
             if (password !== confirm) {
-                flash("Passwords do not match.", "warning");
+                flash("Passwords do not match", "warning");
                 return;
             }
 
@@ -159,7 +168,7 @@
                 document.getElementById("login-email").value = email;
                 document.getElementById("login-password").focus();
             } else {
-                flash(result.message || "Registration failed.", "danger");
+                flash(result.message || "Registration failed", "danger");
             }
         });
 })();

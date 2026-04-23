@@ -79,6 +79,26 @@ body.page-admin .btn-outline-secondary:focus-visible {
   box-shadow: 0 0 0 0.15rem rgba(0, 181, 184, 0.2);
 }
 
+/* Clear filters buttons: keep classic neutral gray style like student Close. */
+body.page-admin #btn-admin-users-reset,
+body.page-admin #btn-cr-reset-filters {
+  color: #6c757d;
+  border-color: #6c757d;
+  background-color: #fff;
+}
+
+body.page-admin #btn-admin-users-reset:hover,
+body.page-admin #btn-admin-users-reset:focus,
+body.page-admin #btn-admin-users-reset:focus-visible,
+body.page-admin #btn-cr-reset-filters:hover,
+body.page-admin #btn-cr-reset-filters:focus,
+body.page-admin #btn-cr-reset-filters:focus-visible {
+  color: #fff;
+  border-color: #6c757d;
+  background-color: #6c757d;
+  box-shadow: 0 0 0 0.15rem rgba(108, 117, 125, 0.2);
+}
+
 /* Active Enrollments: keep course select + Confirm on one row (long course names shrink the select). */
 body.page-admin .admin-select-apply.admin-select-apply--enroll-toolbar {
   flex-wrap: nowrap;
@@ -170,9 +190,8 @@ body.page-admin #msg-table td:nth-child(1) {
 }
 
 body.page-admin #msg-table .admin-msg-sender-profile {
-  font-weight: 500;
+  font-weight: 400;
   max-width: 100%;
-  text-decoration: none;
   display: inline-block;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -182,7 +201,7 @@ body.page-admin #msg-table .admin-msg-sender-profile {
 
 body.page-admin #msg-table .admin-msg-sender-profile:hover,
 body.page-admin #msg-table .admin-msg-sender-profile:focus {
-  text-decoration: underline;
+  text-decoration: none;
 }
 
 body.page-admin #msg-table thead th {
@@ -492,6 +511,33 @@ body.page-admin .admin-pane-nav .btn-outline-primary.active .inbox-unread-badge-
 
 .student-dashboard-tab-content {
   padding: 1.25rem 0 0.25rem;
+}
+
+body.page-student #profile-details-note {
+  margin-top: 0.75rem !important;
+  margin-bottom: 0.25rem !important;
+  padding: 0.6rem 0.8rem;
+  border-radius: 0.45rem;
+  border: 1px solid transparent;
+  font-size: 0.84rem;
+  line-height: 1.35;
+}
+
+body.page-student #profile-details-note.profile-note--info {
+  color: #2f5b61;
+  background: rgba(0, 181, 184, 0.1);
+  border-color: rgba(0, 181, 184, 0.28);
+}
+
+body.page-student #profile-details-note.profile-note--warning {
+  color: #7a4d00;
+  background: rgba(255, 193, 7, 0.15);
+  border-color: rgba(255, 193, 7, 0.45);
+  font-weight: 500;
+}
+
+body.page-student #profile-details-flash {
+  margin-top: 0.7rem !important;
 }
 
 .student-msg-subnav .nav-link {

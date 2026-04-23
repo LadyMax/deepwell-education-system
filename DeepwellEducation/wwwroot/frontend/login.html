@@ -46,7 +46,7 @@
                     <form id="login-form" novalidate>
                         <div class="form-group">
                             <label for="login-email">Email</label>
-                            <input type="email" id="login-email" class="form-control border-0 p-4" required autocomplete="username" placeholder="name@example.com">
+                            <input type="email" id="login-email" class="form-control border-0 p-4" required maxlength="50" autocomplete="username" placeholder="name@example.com">
                         </div>
                         <div class="form-group">
                             <label for="login-password">Password</label>
@@ -67,12 +67,12 @@
                     <form id="register-form" novalidate>
                         <div class="form-group">
                             <label for="register-username">Username</label>
-                            <input type="text" id="register-username" class="form-control border-0 p-4" required maxlength="32" autocomplete="username" placeholder="e.g. anna_lee" aria-describedby="register-username-hint">
-                            <small id="register-username-hint" class="form-text text-muted">3–32 characters, unique across all users: letters, digits, and . _ -</small>
+                            <input type="text" id="register-username" class="form-control border-0 p-4" required maxlength="20" autocomplete="username" placeholder="e.g. anna_lee" aria-describedby="register-username-hint">
+                            <small id="register-username-hint" class="form-text text-muted">3–20 characters, unique across all users: letters, digits, and . _ -</small>
                         </div>
                         <div class="form-group">
                             <label for="register-email">Email</label>
-                            <input type="email" id="register-email" class="form-control border-0 p-4" required placeholder="name@example.com">
+                            <input type="email" id="register-email" class="form-control border-0 p-4" required maxlength="50" placeholder="name@example.com">
                         </div>
                         <div class="form-group">
                             <label for="register-password">Password</label>
@@ -80,7 +80,7 @@
                                 <input type="password" id="register-password" class="form-control border-0 p-4 app-password-input" required autocomplete="new-password" placeholder="******" aria-describedby="register-pw-rules">
                                 <button type="button" class="app-password-toggle" data-password-toggle="register-password" aria-label="Show password" aria-pressed="false"><i class="fa fa-eye"></i></button>
                             </div>
-                            <small class="form-text text-muted d-block mt-1">At least 8 characters with upper &amp; lower case, a number, and a symbol.</small>
+                            <small class="form-text text-muted d-block mt-1">At least 8 characters with upper &amp; lower case, a number, and a symbol</small>
                             <ul id="register-pw-rules" class="app-password-rules mt-2 mb-0" aria-live="polite">
                                 <li id="register-pw-rule-len" class="bad">8+ characters</li>
                                 <li id="register-pw-rule-upper" class="bad">One uppercase letter</li>
@@ -112,9 +112,9 @@
     <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.bundle.min.js"></script>
     <script src="js/main.js"></script>
-    <script src="js/api.js?v=20260415c"></script>
+    <script src="js/api.js?v=20260423a"></script>
     <script src="js/shared-password-ui.js?v=20260422a"></script>
-    <script src="js/login.js?v=20260423a"></script>
+    <script src="js/login.js?v=20260423d"></script>
 </body>
 
 </html>

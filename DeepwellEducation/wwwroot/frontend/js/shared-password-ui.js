@@ -33,23 +33,23 @@
             var conf = confEl.value.trim();
             cfg.flash("", "info");
             if (!cur) {
-                cfg.flash("Enter your current password.", "warning");
+                cfg.flash("Enter your current password", "warning");
                 return;
             }
             if (!next || !conf) {
                 if (typeof w.verifyCurrentPassword !== "function") {
-                    cfg.flash("Enter your new password.", "warning");
+                    cfg.flash("Enter your new password", "warning");
                     return;
                 }
                 btn.disabled = true;
                 var vr = await w.verifyCurrentPassword(cur);
                 btn.disabled = false;
                 if (!vr.ok) {
-                    cfg.flash(vr.message || "Current password is incorrect.", "danger");
+                    cfg.flash(vr.message || "Current password is incorrect", "danger");
                     return;
                 }
                 if (!next) {
-                    cfg.flash("Enter your new password.", "warning");
+                    cfg.flash("Enter your new password", "warning");
                     return;
                 }
                 var perrPartial =
@@ -59,12 +59,12 @@
                     return;
                 }
                 if (!conf) {
-                    cfg.flash("Enter your new password again to confirm.", "warning");
+                    cfg.flash("Enter your new password again to confirm", "warning");
                     return;
                 }
             }
             if (next !== conf) {
-                cfg.flash("New password and confirmation do not match.", "warning");
+                cfg.flash("New password and confirmation do not match", "warning");
                 return;
             }
             var perr = typeof w.validatePasswordPolicy === "function" ? w.validatePasswordPolicy(next) : "";
@@ -73,14 +73,14 @@
                 return;
             }
             if (typeof w.changeMyPassword !== "function") {
-                cfg.flash("Password update is not available.", "danger");
+                cfg.flash("Password update is not available", "danger");
                 return;
             }
             btn.disabled = true;
             var r = await w.changeMyPassword(cur, next);
             btn.disabled = false;
             if (!r.ok) {
-                cfg.flash(r.message || "Could not change password.", "danger");
+                cfg.flash(r.message || "Could not change password", "danger");
                 return;
             }
             curEl.value = "";

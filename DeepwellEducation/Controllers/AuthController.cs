@@ -34,6 +34,8 @@ public class AuthController : ControllerBase
     {
         if (string.IsNullOrWhiteSpace(request.Email) || string.IsNullOrWhiteSpace(request.Password))
             return BadRequest("Email and password are required.");
+        if (!TryValidateEmail(request.Email, out var emailError))
+            return BadRequest(emailError);
         if (ContainsWhitespace(request.Email))
             return BadRequest("Email must not contain spaces.");
         if (ContainsWhitespace(request.UserName))
@@ -78,6 +80,8 @@ public class AuthController : ControllerBase
     {
         if (string.IsNullOrWhiteSpace(request.Email) || string.IsNullOrWhiteSpace(request.Password))
             return BadRequest("Email and password are required.");
+        if (!TryValidateEmail(request.Email, out var emailError))
+            return BadRequest(emailError);
 
         var normalizedEmail = request.Email.Trim().ToLowerInvariant();
         var user = await _db.Users.FirstOrDefaultAsync(u => u.Email == normalizedEmail, ct);
@@ -245,13 +249,30 @@ public class AuthController : ControllerBase
         return true;
     }
 
+    private static bool TryValidateEmail(string? email, out string? error)
+    {
+        error = null;
+        var normalized = (email ?? "").Trim();
+        if (string.IsNullOrEmpty(normalized))
+        {
+            error = "Email is required.";
+            return false;
+        }
+        if (normalized.Length > 50)
+        {
+            error = "Email must be 50 characters or fewer.";
+            return false;
+        }
+        return true;
+    }
+
     private static string NormalizeUsername(string? raw) =>
         string.IsNullOrWhiteSpace(raw) ? "" : raw.Trim();
 
     private static bool ContainsWhitespace(string? raw) =>
         !string.IsNullOrEmpty(raw) && raw.Any(char.IsWhiteSpace);
 
-    /// <summary>3–32 chars; letters, digits, period, underscore, hyphen.</summary>
+    /// <summary>3–20 chars; letters, digits, period, underscore, hyphen.</summary>
     private static bool TryValidateUsername(string normalized, out string? error)
     {
         error = null;
@@ -261,9 +282,9 @@ public class AuthController : ControllerBase
             return false;
         }
 
-        if (normalized.Length is < 3 or > 32)
+        if (normalized.Length is < 3 or > 20)
         {
-            error = "Username must be 3–32 characters.";
+            error = "Username must be 3–20 characters.";
             return false;
         }
 

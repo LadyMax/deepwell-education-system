@@ -166,4 +166,83 @@ public class StudentProfilesControllerIntegrationTests
 
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
     }
+
+    [Fact]
+    public async Task UpdateMyProfile_WithPhoneCityAndNameRules_EnforcesValidation()
+    {
+        await using var factory = new TestWebApplicationFactory();
+        using var client = factory.CreateClient();
+
+        var email = $"{Guid.NewGuid():N}@example.com";
+        var password = "ProfilePassword!123";
+        var user = await factory.SeedUserAsync(email, password, UserRole.Student);
+        await factory.SeedStudentProfileAsync(user.Id, studentNumber: "S-555123");
+        var token = await TestAuthHelper.LoginAndGetTokenAsync(client, email, password);
+        client.SetBearerToken(token);
+
+        var valid = await client.PutAsJsonAsync("/api/studentprofiles/me", new UpdateStudentProfileRequest
+        {
+            FirstName = "Åsa",
+            LastName = "Öberg",
+            City = "Malmö",
+            Phone = "+46701234567"
+        });
+        Assert.Equal(HttpStatusCode.OK, valid.StatusCode);
+
+        var invalidCity = await client.PutAsJsonAsync("/api/studentprofiles/me", new UpdateStudentProfileRequest
+        {
+            City = "Stockholm1"
+        });
+        Assert.Equal(HttpStatusCode.BadRequest, invalidCity.StatusCode);
+
+        var invalidName = await client.PutAsJsonAsync("/api/studentprofiles/me", new UpdateStudentProfileRequest
+        {
+            FirstName = "Anna Lee"
+        });
+        Assert.Equal(HttpStatusCode.BadRequest, invalidName.StatusCode);
+
+        var invalidPhone = await client.PutAsJsonAsync("/api/studentprofiles/me", new UpdateStudentProfileRequest
+        {
+            Phone = "+46-701234567"
+        });
+        Assert.Equal(HttpStatusCode.BadRequest, invalidPhone.StatusCode);
+    }
+
+    [Fact]
+    public async Task UpdateMyProfile_MissingRequiredNameOrPhone_ReturnsBadRequest()
+    {
+        await using var factory = new TestWebApplicationFactory();
+        using var client = factory.CreateClient();
+
+        var email = $"{Guid.NewGuid():N}@example.com";
+        var password = "ProfilePassword!123";
+        var user = await factory.SeedUserAsync(email, password, UserRole.Student);
+        await factory.SeedStudentProfileAsync(user.Id, studentNumber: "S-911911");
+        var token = await TestAuthHelper.LoginAndGetTokenAsync(client, email, password);
+        client.SetBearerToken(token);
+
+        var missingFirstName = await client.PutAsJsonAsync("/api/studentprofiles/me", new UpdateStudentProfileRequest
+        {
+            FirstName = "",
+            LastName = "Andersson",
+            Phone = "+46701234567"
+        });
+        Assert.Equal(HttpStatusCode.BadRequest, missingFirstName.StatusCode);
+
+        var missingLastName = await client.PutAsJsonAsync("/api/studentprofiles/me", new UpdateStudentProfileRequest
+        {
+            FirstName = "Anna",
+            LastName = "",
+            Phone = "+46701234567"
+        });
+        Assert.Equal(HttpStatusCode.BadRequest, missingLastName.StatusCode);
+
+        var missingPhone = await client.PutAsJsonAsync("/api/studentprofiles/me", new UpdateStudentProfileRequest
+        {
+            FirstName = "Anna",
+            LastName = "Andersson",
+            Phone = ""
+        });
+        Assert.Equal(HttpStatusCode.BadRequest, missingPhone.StatusCode);
+    }
 }

@@ -39,6 +39,7 @@
         typeof St.onSaveUsernameClick !== "function" ||
         typeof St.onSaveProfileDetailsClick !== "function" ||
         typeof St.onCancelProfileDetailsClick !== "function" ||
+        typeof St.hasUnsavedProfileDetailsChanges !== "function" ||
         typeof St.updatePhoneCountryFlag !== "function" ||
         typeof St.initStudentPasswordCollapse !== "function" ||
         typeof St.initStudentProfileDetailsCollapse !== "function" ||
@@ -49,6 +50,44 @@
             "Missing student module scripts (load student-enrollments.js, student-messages.js, student-profile.js before student.js)."
         );
         return;
+    }
+
+    function showStudentConfirm(message) {
+        if (typeof jQuery === "undefined") return Promise.resolve(window.confirm(message));
+        return new Promise(function (resolve) {
+            var $m = jQuery("#student-confirm-modal");
+            var okBtn = document.getElementById("student-confirm-ok");
+            var cancelBtn = document.getElementById("student-confirm-cancel");
+            var msgEl = document.getElementById("student-confirm-message");
+            if (!$m.length || !okBtn || !cancelBtn || !msgEl) {
+                resolve(window.confirm(message));
+                return;
+            }
+            msgEl.textContent = message || "Please confirm.";
+            var done = false;
+            function finalize(v) {
+                if (done) return;
+                done = true;
+                okBtn.removeEventListener("click", onOk);
+                cancelBtn.removeEventListener("click", onCancel);
+                $m.off("hidden.bs.modal", onHidden);
+                resolve(v);
+            }
+            function onOk() {
+                finalize(true);
+                $m.modal("hide");
+            }
+            function onCancel() {
+                finalize(false);
+            }
+            function onHidden() {
+                finalize(false);
+            }
+            okBtn.addEventListener("click", onOk);
+            cancelBtn.addEventListener("click", onCancel);
+            $m.on("hidden.bs.modal", onHidden);
+            $m.modal("show");
+        });
     }
 
     document.getElementById("btn-leave").addEventListener("click", function () {
@@ -74,13 +113,29 @@
     document.getElementById("btn-save-username").addEventListener("click", function () {
         St.onSaveUsernameClick();
     });
+    var btnClosePassword = document.getElementById("btn-close-password-settings");
+    if (btnClosePassword && typeof jQuery !== "undefined") {
+        btnClosePassword.addEventListener("click", function () {
+            jQuery("#collapse-password-settings").collapse("hide");
+        });
+    }
 
     document.getElementById("btn-save-profile-details").addEventListener("click", function () {
         St.onSaveProfileDetailsClick();
     });
-    document.getElementById("btn-cancel-profile-details").addEventListener("click", function () {
-        St.onCancelProfileDetailsClick();
-    });
+    var btnCloseProfile = document.getElementById("btn-close-profile-details");
+    if (btnCloseProfile && typeof jQuery !== "undefined") {
+        btnCloseProfile.addEventListener("click", async function () {
+            if (typeof St.hasUnsavedProfileDetailsChanges === "function" && St.hasUnsavedProfileDetailsChanges()) {
+                var ok = await showStudentConfirm("Discard unsaved changes?");
+                if (!ok) return;
+                if (typeof St.onCancelProfileDetailsClick === "function") {
+                    St.onCancelProfileDetailsClick();
+                }
+            }
+            jQuery("#collapse-profile-details").collapse("hide");
+        });
+    }
     var profilePhone = document.getElementById("profile-phone");
     if (profilePhone) {
         profilePhone.addEventListener("input", St.updatePhoneCountryFlag);
@@ -113,8 +168,8 @@
         flash: St.showPasswordChangeFlash,
         onSuccess: function () {
             St.updateStudentPasswordChecklist();
-            St.showPasswordChangeFlash("Your password has been updated.", "success");
-            showAppFlash("student-flash", "Your password has been updated.", "success", 5000);
+            St.showPasswordChangeFlash("Your password has been updated", "success");
+            showAppFlash("student-flash", "Your password has been updated", "success", 5000);
             if (typeof window.deepwellRefreshAuthNav === "function") {
                 window.deepwellRefreshAuthNav();
             }
@@ -139,6 +194,11 @@
             var href = e.target && e.target.getAttribute("href");
             if (href === "#sc-pane-messages") {
                 dismissFlashByKind("student-flash", "inbox-unread");
+            } else if (href === "#sc-pane-account") {
+                // Re-entering account tab should restore last saved profile state.
+                if (typeof St.onCancelProfileDetailsClick === "function") {
+                    St.onCancelProfileDetailsClick();
+                }
             }
         });
     }

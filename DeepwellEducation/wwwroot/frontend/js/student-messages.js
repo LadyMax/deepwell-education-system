@@ -31,8 +31,8 @@
             if (showIntroFlash && count > 0) {
                 const msg =
                     count === 1
-                        ? "You have 1 unread message in your inbox."
-                        : "You have " + count + " unread messages in your inbox.";
+                        ? "You have 1 unread message in your inbox"
+                        : "You have " + count + " unread messages in your inbox";
                 showAppFlash("student-flash", msg, "inbox", undefined, "inbox-unread");
             }
         } catch (_) {}
@@ -40,6 +40,9 @@
 
     St.loadInbox = async function () {
         const page = await getInbox(1, 50);
+        if (!page.ok) {
+            showAppFlash("student-flash", page.message || "Failed to load inbox", "danger", 5000);
+        }
         document.getElementById("inbox-loading").classList.add("d-none");
         const items = page.items || page.Items || [];
         if (items.length === 0) {
@@ -82,7 +85,7 @@
                 const id = btn.getAttribute("data-id");
                 const r = await markMessageRead(id);
                 if (!r.ok) {
-                    alert(r.message || "Failed to mark as read.");
+                    showAppFlash("student-flash", r.message || "Failed to mark as read", "danger", 5000);
                     return;
                 }
                 await St.loadInbox();
@@ -95,6 +98,9 @@
 
     St.loadSent = async function () {
         const page = await getSent(1, 50);
+        if (!page.ok) {
+            showAppFlash("student-flash", page.message || "Failed to load sent messages", "danger", 5000);
+        }
         document.getElementById("sent-loading").classList.add("d-none");
         const items = page.items || page.Items || [];
         if (!items.length) {
@@ -138,20 +144,20 @@
         const topicSel = document.getElementById("msg-topic");
         const topic = topicSel ? topicSel.value : "";
         if (!subject || !content) {
-            showAppFlash("student-flash", "Subject and message content are required.", "warning", 4500);
+            showAppFlash("student-flash", "Subject and message content are required", "warning", 4500);
             return;
         }
-        try {
-            await sendMessage(subject, content, null, topic || undefined);
-            showAppFlash("student-flash", "Message sent.", "success", 3500);
-            document.getElementById("msg-subject").value = "";
-            document.getElementById("msg-content").value = "";
-            if (topicSel) topicSel.value = "";
-            await St.loadInbox();
-            await St.loadSent();
-            St.showMessagesTabAndSent();
-        } catch (err) {
-            showAppFlash("student-flash", err.message || "Failed to send message.", "danger", 6000);
+        var sendRes = await sendMessage(subject, content, null, topic || undefined);
+        if (!sendRes.ok) {
+            showAppFlash("student-flash", sendRes.message || "Failed to send message", "danger", 6000);
+            return;
         }
+        showAppFlash("student-flash", "Message sent", "success", 3500);
+        document.getElementById("msg-subject").value = "";
+        document.getElementById("msg-content").value = "";
+        if (topicSel) topicSel.value = "";
+        await St.loadInbox();
+        await St.loadSent();
+        St.showMessagesTabAndSent();
     };
 })(typeof window !== "undefined" ? window : this);

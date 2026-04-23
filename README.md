@@ -1,59 +1,42 @@
 # DeepwellEducation
 
-Role-based language school management system built with ASP.NET Core Web API, EF Core, and a static HTML/CSS/JS frontend.
+Role-based language school management: ASP.NET Core 8 Web API, EF Core + SQLite, and a static HTML/CSS/JS frontend served from `wwwroot/frontend/`.
 
-## Tech Stack
-- ASP.NET Core Web API (.NET 8)
-- EF Core + SQLite
-- HTML/CSS/JS frontend (server-hosted static files)
+## Stack and features
 
-## Core Features
-- Role-based access (Visitor / Student / Admin)
-- Course request workflow with approval
-- Messaging workflow with category support
-- Student profile and enrollment management
+- **Backend**: .NET 8, EF Core, SQLite, JWT auth  
+- **Frontend**: server-hosted static assets under `wwwroot/frontend/`  
+- **Domain**: Visitor / Student / Admin; course join/leave requests and approval; messaging with categories; student profile and enrollments  
+- **Optional**: `ai-service/` for message classification (pytest runs in CI)
 
-## Repository Structure
-- `DeepwellEducation/` - Web API project and static frontend resources
-- `DeepwellEducation.Tests/` - Automated tests
-  - `Integration/` - Controller/integration tests
-  - `Unit/` - Service-level unit tests
-  - `TestSupport/` - Shared test factory/auth helpers
-- `scripts/dev/` - Developer utility scripts used during normal development
-- `scripts/legacy/` - Historical migration helpers kept for reference only
-- `docs/` - Project documentation and maintenance conventions
-  - `docs/licenses/` - Third-party template/vendor license texts
+## Repository layout
 
-See `docs/repo-structure.md` for detailed file placement rules.
-See `docs/frontend-pages.md` for frontend page-level inventory.
+| Path | Purpose |
+|------|---------|
+| `DeepwellEducation/` | Web app and static frontend |
+| `DeepwellEducation.Tests/` | Unit and integration tests |
+| `scripts/dev/` | Day-to-day dev scripts |
+| `docs/` | Conventions and notes (`repo-structure.md`, `frontend-pages.md`, etc.) |
 
-## Local Development
-1. Restore/build:
-   - `dotnet restore`
-   - `dotnet build`
-2. Run tests:
-   - `dotnet test "DeepwellEducation.Tests/DeepwellEducation.Tests.csproj"`
-   - Python classifier (from `ai-service/`): `pip install -r requirements.txt -r requirements-dev.txt` then `pytest tests/ -v`
-3. Continuous integration: on GitHub, pushes and pull requests run `.github/workflows/ci.yml` (dotnet test + ai-service pytest).
-4. Run app:
-   - `dotnet run --project "DeepwellEducation/DeepwellEducation.csproj"`
+## Local run
 
-## Configuration Notes
-- Main local DB connection is configured in `DeepwellEducation/appsettings.json`:
-  - `Data Source=Data/DeepwellEducation.db`
-- Environment-specific secrets should stay out of source control.
-- `DeepwellEducation/appsettings.Development.json` is ignored; use
-  `DeepwellEducation/appsettings.Development.json.example` as a template.
+```bash
+dotnet restore
+dotnet build
+dotnet test "DeepwellEducation.Tests/DeepwellEducation.Tests.csproj"
+dotnet run --project "DeepwellEducation/DeepwellEducation.csproj"
+```
 
-## Frontend CSS Guard
-Use the dev script to detect accidental `app.css` header/import duplication:
+Pushes and pull requests on GitHub run `.github/workflows/ci.yml` (dotnet test + ai-service tests).
 
-- `powershell -ExecutionPolicy Bypass -File ".\\scripts\\dev\\check-app-css-header.ps1"`
+## Configuration
 
-## Migrations Maintenance
-- Keep migration history under `DeepwellEducation/Migrations/`.
-- Do not rename or delete already-applied migrations.
-- Add focused migration names that describe intent (for example, `AddStudentProfileDetails`).
-- Verify with:
-  - `dotnet ef database update`
-  - `dotnet test`
+- **Database**: `ConnectionStrings:DefaultConnection` in `DeepwellEducation/appsettings.json` points at SQLite, default file `Data/DeepwellEducation.db`.  
+- **Local overrides**: copy `appsettings.Development.json.example` to `appsettings.Development.json` (usually gitignored).  
+- **JWT**: `Jwt:Key` in `appsettings.json` is a **development/demo placeholder** (meets the 32+ character check so the app runs after clone). For **production or any public host**, set a strong random key (e.g. environment variable `Jwt__Key`); never use the repo default.
+
+## More
+
+- EF migrations live under `DeepwellEducation/Migrations/`; do not rename or delete migrations that may already be applied. Apply: `dotnet ef database update`.  
+- Guard against duplicate `app.css` headers: `powershell -ExecutionPolicy Bypass -File ".\scripts\dev\check-app-css-header.ps1"`  
+- AI classifier: see `ai-service/README` for install, run, and tests.

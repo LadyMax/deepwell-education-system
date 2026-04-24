@@ -40,7 +40,117 @@
         return count + " messages";
     }
 
+    /** Subject column: show styled flyout only when one-line text is truncated (not native title). */
+    function syncMsgSubjectTruncationForRow(tr) {
+        if (!tr) return;
+        var stack = tr.querySelector(".msg-subject-stack");
+        var el = tr.querySelector(".msg-subject-truncate");
+        var fly = tr.querySelector(".msg-subject-flyout");
+        if (!stack || !el || !fly) return;
+        stack.classList.remove("msg-subject-stack--trunc");
+        fly.textContent = "";
+        fly.setAttribute("aria-hidden", "true");
+        stack.removeAttribute("tabindex");
+        stack.removeAttribute("aria-label");
+        var raw = stack.dataset.subjectFull || "";
+        if (!String(raw).trim()) return;
+        if (el.scrollWidth > el.clientWidth + 1) {
+            stack.classList.add("msg-subject-stack--trunc");
+            fly.textContent = raw;
+            stack.setAttribute("tabindex", "0");
+            stack.setAttribute("aria-label", "Subject: " + raw);
+        }
+    }
+
+    function syncMsgSubjectTruncationAll(tbody) {
+        if (!tbody) return;
+        tbody.querySelectorAll("tr").forEach(syncMsgSubjectTruncationForRow);
+    }
+
+    function buildAdminReplySubject(base) {
+        var s = (base || "").trim();
+        if (!s) return "Re: Your message";
+        if (/^re:\s*/i.test(s)) {
+            return s.length > 200 ? s.slice(0, 200) : s;
+        }
+        var r = "Re: " + s;
+        return r.length > 200 ? r.slice(0, 200) : r;
+    }
+
     A.renderMessages = async function (options) {
+        A._lastMessagesListOptions = options || {};
+        if (!A._adminDraftReplyDelegationBound) {
+            var msgBodyEl = document.getElementById("msg-body");
+            if (msgBodyEl) {
+                A._adminDraftReplyDelegationBound = true;
+                msgBodyEl.addEventListener("click", async function (ev) {
+                    var sendBtn = ev.target.closest && ev.target.closest(".admin-ai-draft-send");
+                    var cancelBtn = ev.target.closest && ev.target.closest(".admin-ai-draft-cancel");
+                    if (sendBtn) {
+                        ev.preventDefault();
+                        var wrap = sendBtn.closest(".admin-ai-draft-compose");
+                        if (!wrap) return;
+                        var ta = wrap.querySelector(".admin-ai-draft-input");
+                        if (!ta) return;
+                        var rid = wrap.getAttribute("data-receiver-user-id");
+                        if (!rid) {
+                            w.showAppFlash("admin-flash", "Missing recipient for this message.", "danger", 5000);
+                            return;
+                        }
+                        var enc = wrap.getAttribute("data-reply-subject-enc") || "";
+                        var base = "";
+                        try {
+                            base = decodeURIComponent(enc);
+                        } catch {
+                            base = "";
+                        }
+                        var subj = buildAdminReplySubject(base);
+                        var body = (ta.value || "").trim();
+                        if (!body) {
+                            w.showAppFlash("admin-flash", "Draft is empty.", "warning", 4000);
+                            return;
+                        }
+                        sendBtn.disabled = true;
+                        var cancel = wrap.querySelector(".admin-ai-draft-cancel");
+                        if (cancel) cancel.disabled = true;
+                        try {
+                            var res = await sendMessage(subj, body, rid, null);
+                            if (!res.ok) {
+                                w.showAppFlash(
+                                    "admin-flash",
+                                    res.message || "Send failed.",
+                                    "danger",
+                                    7000
+                                );
+                                return;
+                            }
+                            w.showAppFlash("admin-flash", "Reply sent.", "success", 3500);
+                            var opts = A._lastMessagesListOptions || { page: 1, pageSize: 50 };
+                            await A.renderMessages(opts);
+                            if (typeof A.refreshAdminInboxUnreadUi === "function") {
+                                await A.refreshAdminInboxUnreadUi(false);
+                            }
+                        } finally {
+                            sendBtn.disabled = false;
+                            if (cancel) cancel.disabled = false;
+                        }
+                        return;
+                    }
+                    if (cancelBtn) {
+                        ev.preventDefault();
+                        var wrapC = cancelBtn.closest(".admin-ai-draft-compose");
+                        if (!wrapC) return;
+                        var taC = wrapC.querySelector(".admin-ai-draft-input");
+                        if (!taC) return;
+                        var orig = taC.dataset.originalDraft;
+                        if (orig === undefined) orig = "";
+                        taC.value = orig;
+                        var det = wrapC.closest("details");
+                        if (det) det.open = false;
+                    }
+                });
+            }
+        }
         const msgTable = document.getElementById("msg-table");
         const tbody = document.getElementById("msg-body");
         setInlineStatus("status", "Loading…", "info");
@@ -86,12 +196,16 @@
             const isRead = !!readAt;
             const contentRaw = pick(m, "content", "Content") || "";
             const preview =
-                '<details class="admin-msg-details"><summary class="small">Show</summary><pre class="admin-msg-pre small mb-0 mt-1">' +
+                '<details class="admin-msg-details"><summary class="small">Show</summary>' +
+                '<div class="admin-staff-read-panel mt-1">' +
+                '<pre class="admin-msg-pre small mb-0">' +
                 escapeHtml(contentRaw) +
-                "</pre></details>";
+                "</pre></div></details>";
             const senderTopic = messageCategoryHuman(
                 pick(m, "senderSuggestedCategory", "SenderSuggestedCategory")
             );
+            const senderUserId = pick(m, "senderUserId", "SenderUserId");
+            const subjectRawForReply = pick(m, "subject", "Subject") || "";
             const aiCatRaw = pick(m, "aiSuggestedCategory", "AiSuggestedCategory");
             const aiCell = A.formatAiAssistCell(
                 aiCatRaw,
@@ -100,15 +214,25 @@
                 pick(m, "aiSummary", "AiSummary"),
                 pick(m, "aiSuggestedReplyDraft", "AiSuggestedReplyDraft"),
                 pick(m, "aiExtractedJson", "AiExtractedJson"),
-                pick(m, "aiModelVersion", "AiModelVersion")
+                pick(m, "aiModelVersion", "AiModelVersion"),
+                {
+                    receiverUserId: senderUserId,
+                    replySubjectBase: subjectRawForReply
+                }
             );
             const needsReassist = aiCatRaw == null || String(aiCatRaw).trim() === "";
-            const reassistBlock = needsReassist
-                ? '<div class="mt-1"><button type="button" class="btn btn-link btn-sm p-0 msg-reassist-ai" data-id="' +
-                  escapeHtml(String(id)) +
-                  '">Get AI assist</button><div class="text-muted small">Use if this message was sent without hints.</div></div>'
-                : "";
-            const senderUserId = pick(m, "senderUserId", "SenderUserId");
+            var reassistLabel = needsReassist ? "Get AI assist" : "Re-run AI";
+            var reassistHint = needsReassist ? "Use if this message was sent without hints." : "";
+            const reassistBlock =
+                '<div class="mt-1"><button type="button" class="btn btn-outline-secondary btn-sm msg-reassist-ai" data-id="' +
+                escapeHtml(String(id)) +
+                '">' +
+                escapeHtml(reassistLabel) +
+                "</button>" +
+                (reassistHint
+                    ? '<div class="text-muted small">' + escapeHtml(reassistHint) + "</div>"
+                    : "") +
+                "</div>";
             const senderUserName = (pick(m, "senderUserName", "SenderUserName") || "").trim();
             const senderLabel = senderUserName || "—";
             const fromCell = senderUserId
@@ -118,18 +242,19 @@
                   escapeHtml(senderLabel) +
                   "</button>"
                 : "<span>" + escapeHtml(senderLabel) + "</span>";
-            const subjectRaw = pick(m, "subject", "Subject") || "";
+            const subjectRaw = subjectRawForReply;
             const subjectEsc = escapeHtml(subjectRaw);
-            const subjectTitleAttr =
-                subjectRaw.trim() !== "" ? ' title="' + escapeHtml(subjectRaw) + '"' : "";
             tr.innerHTML =
                 "<td>" +
                 fromCell +
                 "</td>" +
-                "<td" +
-                subjectTitleAttr +
-                ">" +
+                '<td class="msg-subject-cell">' +
+                '<span class="msg-subject-stack">' +
+                '<span class="msg-subject-truncate">' +
                 subjectEsc +
+                "</span>" +
+                '<span class="msg-subject-flyout" aria-hidden="true"></span>' +
+                "</span>" +
                 "</td>" +
                 "<td>" +
                 preview +
@@ -157,9 +282,11 @@
                 '<option value="0">Course inquiry</option>' +
                 '<option value="1">Complaint</option>' +
                 '<option value="2">Feedback</option>' +
+                '<option value="4">Technical support</option>' +
+                '<option value="5">General question</option>' +
                 '<option value="3">Other</option>' +
                 "</select>" +
-                '<button type="button" class="btn btn-outline-secondary btn-sm btn-admin-confirm msg-cat-confirm" data-id="' +
+                '<button type="button" class="btn btn-outline-primary btn-sm btn-admin-confirm msg-cat-confirm" data-id="' +
                 escapeHtml(String(id)) +
                 '" disabled>Confirm</button>' +
                 "</div></td>";
@@ -176,6 +303,8 @@
                 if (msgColLabels[idx]) td.setAttribute("data-label", msgColLabels[idx]);
             });
             tbody.appendChild(tr);
+            var subjStack = tr.querySelector(".msg-subject-stack");
+            if (subjStack) subjStack.dataset.subjectFull = subjectRaw;
             const sel = tr.querySelector(".msg-cat");
             if (sel) {
                 var prevVal = finalCat != null && finalCat !== "" ? String(finalCat) : "";
@@ -184,6 +313,11 @@
                 sel.setAttribute("data-prev-final", prevVal);
             }
             syncMsgCatConfirmState(tr);
+            var draftWrap = tr.querySelector(".admin-ai-draft-compose");
+            if (draftWrap) {
+                var draftTa = draftWrap.querySelector(".admin-ai-draft-input");
+                if (draftTa) draftTa.dataset.originalDraft = draftTa.value;
+            }
         });
 
         tbody.querySelectorAll(".msg-cat").forEach(function (sel) {
@@ -237,6 +371,26 @@
             });
         });
 
+        if (!A._msgSubjectResizeBound) {
+            A._msgSubjectResizeBound = true;
+            var deb;
+            w.addEventListener("resize", function () {
+                clearTimeout(deb);
+                deb = setTimeout(function () {
+                    syncMsgSubjectTruncationAll(document.getElementById("msg-body"));
+                }, 150);
+            });
+        }
+
+        if (items.length) {
+            msgTable.classList.remove("d-none");
+            w.requestAnimationFrame(function () {
+                w.requestAnimationFrame(function () {
+                    syncMsgSubjectTruncationAll(tbody);
+                });
+            });
+        }
+
         tbody.querySelectorAll(".msg-reassist-ai").forEach(function (btn) {
             btn.addEventListener("click", async function () {
                 const id = btn.getAttribute("data-id");
@@ -258,6 +412,5 @@
             });
         });
 
-        if (items.length) msgTable.classList.remove("d-none");
     };
 })(typeof window !== "undefined" ? window : this);

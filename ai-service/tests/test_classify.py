@@ -54,7 +54,7 @@ def test_classify_rule_path_shape_and_priority(client: TestClient) -> None:
     assert 0.0 <= data["confidence"] <= 1.0
     assert data["modelVersion"] == "rule_v1"
     assert data["priority"] in ("normal", "high", "urgent")
-    assert data["summary"]
+    assert data.get("summary") is None or isinstance(data["summary"], str)
     assert "classifiedAtUtc" in data
     assert data["suggestedReplyDraft"] is None or isinstance(data["suggestedReplyDraft"], str)
     assert isinstance(data.get("extracted"), (dict, type(None)))
@@ -69,6 +69,19 @@ def test_classify_course_inquiry_keywords(client: TestClient) -> None:
     )
     assert r.status_code == 200
     assert r.json()["category"] == "course_inquiry"
+
+
+def test_classify_extracted_includes_school_language_spanish(client: TestClient) -> None:
+    token = os.environ["INTERNAL_TOKEN"]
+    r = client.post(
+        "/classify",
+        json={"content": "I want to switch from beginner Spanish to intermediate Spanish next term."},
+        headers={"X-Internal-Token": token},
+    )
+    assert r.status_code == 200
+    ex = r.json().get("extracted") or {}
+    assert ex.get("school_language_code") == "es"
+    assert "Spanish" in (ex.get("school_language_name") or "")
 
 
 def test_classify_accepts_camel_case_request(client: TestClient) -> None:

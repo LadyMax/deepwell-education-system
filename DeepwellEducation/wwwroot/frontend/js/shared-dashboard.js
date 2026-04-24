@@ -49,6 +49,8 @@
         if (v === 1 || v === "Complaint") return "Complaint";
         if (v === 2 || v === "Feedback") return "Feedback";
         if (v === 3 || v === "Other") return "Other";
+        if (v === 4 || v === "TechnicalSupport") return "Technical support";
+        if (v === 5 || v === "GeneralQuestion") return "General question";
         return "—";
     };
 

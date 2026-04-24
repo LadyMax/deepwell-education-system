@@ -138,6 +138,106 @@
             '</div>';
     }
 
+    function pickCourseField(c, a, b) {
+        if (!c) return "";
+        return c[a] !== undefined ? c[a] : c[b];
+    }
+
+    function escapeAttr(text) {
+        return escapeHtml(text).replace(/"/g, "&quot;");
+    }
+
+    function navFlagSrcByLanguageCode(codeRaw) {
+        var code = String(codeRaw || "")
+            .toLowerCase()
+            .trim();
+        if (!code) return "";
+        var map = {
+            ar: "saudi-arabia.png",
+            zh: "china.png",
+            en: "united-kingdom.png",
+            fr: "france.png",
+            sv: "sweden.png",
+            it: "italy.png",
+            ja: "japan.png",
+            es: "spain.png",
+            de: "germany.png",
+            da: "denmark.png",
+            nl: "netherlands.png",
+            fi: "finland.png",
+            el: "greece.png",
+            he: "israel.png",
+            is: "iceland.png",
+            ko: "south-korea.png",
+            no: "norway.png",
+            fa: "iran.png",
+            pl: "poland.png",
+            pt: "portugal.png",
+            ru: "russia.png",
+            th: "thailand.png",
+            tr: "turkey.png",
+            vi: "vietnam.png"
+        };
+        var file = map[code] || (code + ".png");
+        return "images/flags-course/" + file;
+    }
+
+    async function renderNavLanguageList() {
+        var host = document.getElementById("nav-language-list");
+        if (!host) return;
+        try {
+            var res = await fetch(window.location.origin + "/api/Courses", {
+                headers: { Accept: "application/json" }
+            });
+            if (!res.ok) return;
+            var courses = await res.json();
+            var byCode = {};
+            (Array.isArray(courses) ? courses : []).forEach(function (c) {
+                var code = String(
+                    pickCourseField(c, "languageCode", "subjectCode") || ""
+                )
+                    .toLowerCase()
+                    .trim();
+                if (!code) return;
+                if (!byCode[code]) {
+                    var name =
+                        String(
+                            pickCourseField(c, "languageName", "subjectName") || ""
+                        ).trim() || code.toUpperCase();
+                    byCode[code] = {
+                        code: code,
+                        name: name
+                    };
+                }
+            });
+            var list = Object.keys(byCode)
+                .map(function (k) {
+                    return byCode[k];
+                })
+                .sort(function (a, b) {
+                    return a.name.localeCompare(b.name);
+                });
+            if (!list.length) return;
+            var html = "";
+            list.forEach(function (item) {
+                var flagSrc = navFlagSrcByLanguageCode(item.code);
+                html +=
+                    '<a href="language-detail.html?lang=' +
+                    encodeURIComponent(item.code) +
+                    '" class="nav-item nav-link app-nav-lang-link">' +
+                    '<img class="app-lang-flag app-lang-flag--nav" src="' +
+                    escapeAttr(flagSrc) +
+                    '" alt="" aria-hidden="true" onerror="this.style.display=\'none\'">' +
+                    "<span>" +
+                    escapeHtml(item.name) +
+                    "</span></a>";
+            });
+            html +=
+                '<a href="course.html" class="nav-item nav-link border-top mt-1 pt-2">All courses</a>';
+            host.innerHTML = html;
+        } catch (_) {}
+    }
+
     async function init() {
         const headerHost = document.getElementById('site-header');
         const footerHost = document.getElementById('site-footer');
@@ -173,6 +273,7 @@
 
         const navRoot = document.querySelector('[data-site-nav]');
         const authSlot = document.getElementById('auth-nav-slot');
+        await renderNavLanguageList();
         let me = null;
         const token = getToken();
         if (token) {

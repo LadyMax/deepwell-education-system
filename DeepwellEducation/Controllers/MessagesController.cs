@@ -137,12 +137,13 @@ public class MessagesController : ControllerBase
         return Ok(new MessageReadResponse(m.Id, m.ReadAt!.Value));
     }
 
-    /// <summary>Admin: list all messages. Use <paramref name="uncategorizedOnly"/> or <paramref name="finalCategory"/>, not both.</summary>
+    /// <summary>Admin: list messages by direction. Use <paramref name="uncategorizedOnly"/> or <paramref name="finalCategory"/>, not both.</summary>
     [Authorize(Roles = "Admin")]
     [HttpGet("admin")]
     [ProducesResponseType(typeof(PagedResult<MessageAdminItemDto>), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<ActionResult<PagedResult<MessageAdminItemDto>>> AdminList(
+        [FromQuery] AdminMessageDirection direction = AdminMessageDirection.All,
         [FromQuery] bool uncategorizedOnly = false,
         [FromQuery] bool unreadOnly = false,
         [FromQuery] MessageCategory? finalCategory = null,
@@ -153,7 +154,11 @@ public class MessagesController : ControllerBase
         if (uncategorizedOnly && finalCategory.HasValue)
             return BadRequest("Use either uncategorizedOnly or finalCategory, not both.");
 
-        var result = await _messageService.GetAllForAdminAsync(uncategorizedOnly, unreadOnly, finalCategory, page, pageSize, ct);
+        var adminId = GetCurrentUserId();
+        if (adminId == null)
+            return Unauthorized();
+
+        var result = await _messageService.GetAllForAdminAsync(adminId.Value, direction, uncategorizedOnly, unreadOnly, finalCategory, page, pageSize, ct);
         return Ok(result);
     }
 

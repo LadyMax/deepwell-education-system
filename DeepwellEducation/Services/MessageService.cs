@@ -266,6 +266,8 @@ public class MessageService : IMessageService
     }
 
     public async Task<PagedResult<MessageAdminItemDto>> GetAllForAdminAsync(
+        Guid adminUserId,
+        AdminMessageDirection direction,
         bool uncategorizedOnly,
         bool unreadOnly,
         MessageCategory? category,
@@ -280,6 +282,11 @@ public class MessageService : IMessageService
             join s in _db.Users.AsNoTracking() on m.SenderUserId equals s.Id
             join r in _db.Users.AsNoTracking() on m.ReceiverUserId equals r.Id
             select new { m, s, r };
+
+        if (direction == AdminMessageDirection.Inbox)
+            query = query.Where(x => x.m.ReceiverUserId == adminUserId);
+        else if (direction == AdminMessageDirection.Sent)
+            query = query.Where(x => x.m.SenderUserId == adminUserId);
 
         if (uncategorizedOnly)
             query = query.Where(x => x.m.FinalCategory == null);

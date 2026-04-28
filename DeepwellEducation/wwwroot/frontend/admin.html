@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Staff dashboard — Deepwell Education</title>
+  <title>Administrator dashboard — Deepwell Education</title>
   <link rel="icon" href="images/deepwell-icon.png" type="image/png">
   <link rel="preconnect" href="https://fonts.gstatic.com">
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -18,10 +18,10 @@
     <div id="content-wrap">
       <div class="panel container admin-dashboard-panel">
         <header class="admin-dashboard-hero mb-3">
-          <h1 class="admin-dashboard-title h3 mb-0">Staff dashboard</h1>
+          <h1 class="admin-dashboard-title h3 mb-0">Administrator dashboard</h1>
         </header>
         <div id="admin-flash" class="app-flash d-none" role="status" aria-live="polite"></div>
-        <nav class="d-flex flex-wrap gap-2 mb-3 admin-pane-nav" role="tablist" aria-label="Staff dashboard sections">
+        <nav class="d-flex flex-wrap gap-2 mb-3 admin-pane-nav" role="tablist" aria-label="Administrator dashboard sections">
           <button type="button" class="btn btn-outline-primary active" data-admin-pane-btn="requests">Enrollment Queue</button>
           <button type="button" class="btn btn-outline-primary" data-admin-pane-btn="messages">Messages <span id="admin-msg-unread-badge" class="inbox-unread-badge inbox-unread-badge--admin d-none" aria-label="Unread inbox"></span></button>
           <button type="button" class="btn btn-outline-primary" data-admin-pane-btn="courses">Courses</button>
@@ -104,8 +104,9 @@
         <section class="admin-section d-none" data-admin-pane-id="messages" aria-labelledby="admin-msg-heading">
         <h2 class="h5 mb-3" id="admin-msg-heading">Messages</h2>
         <div class="d-flex flex-wrap gap-2 align-items-center mb-2">
-          <button type="button" class="btn btn-primary btn-sm" id="btn-load-msg-all">All messages</button>
-          <button type="button" class="btn btn-outline-primary btn-sm" id="btn-load-msg-new">New messages</button>
+          <button type="button" class="btn btn-primary btn-sm" id="btn-load-msg-inbox">Inbox</button>
+          <button type="button" class="btn btn-outline-primary btn-sm" id="btn-load-msg-sent">Sent</button>
+          <button type="button" class="btn btn-outline-primary btn-sm" id="btn-load-msg-all">All messages</button>
           <button type="button" class="btn btn-outline-primary btn-sm" id="btn-load-msg-uncat">Needs category</button>
           <select id="msg-final-filter" class="custom-select custom-select-sm" aria-label="Filter messages by final category">
             <option value="">Browse by category</option>
@@ -122,7 +123,7 @@
           <table class="table table-sm table-striped table-bordered d-none" id="msg-table">
             <thead class="table-light">
               <tr>
-                <th>From</th><th>Subject</th><th>Message</th><th>Topic</th><th title="Suggested triage only: queue hint, topic guess, short recap, optional draft. You always choose the final category and what gets sent.">AI assist</th><th>Read</th><th>Final category</th>
+                <th id="admin-msg-party-heading">From</th><th>Subject</th><th>Message</th><th>Topic</th><th title="Suggested triage only: queue hint, topic guess, short recap, optional draft. You always choose the final category and what gets sent.">AI assist</th><th>Read</th><th>Final category</th>
               </tr>
             </thead>
             <tbody id="msg-body"></tbody>

@@ -15,6 +15,16 @@
         }
         toggleNavbarMethod();
         $(window).resize(toggleNavbarMethod);
+
+        // Close the left language collapse when clicking outside.
+        $(document).on('click', function (e) {
+            var $vertical = $('#navbar-vertical');
+            if (!$vertical.length || !$vertical.hasClass('show')) return;
+            var $target = $(e.target);
+            if ($target.closest('#navbar-vertical').length) return;
+            if ($target.closest('.app-vertical-toggle').length) return;
+            $vertical.collapse('hide');
+        });
     });
 
     $(window).scroll(function () {

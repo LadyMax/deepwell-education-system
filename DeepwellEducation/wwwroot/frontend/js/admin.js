@@ -111,8 +111,9 @@
 
     function setActiveMessageQuickFilter(mode) {
         var buttons = [
+            { id: "btn-load-msg-inbox", mode: "inbox" },
+            { id: "btn-load-msg-sent", mode: "sent" },
             { id: "btn-load-msg-all", mode: "all" },
-            { id: "btn-load-msg-new", mode: "new" },
             { id: "btn-load-msg-uncat", mode: "uncat" }
         ];
         buttons.forEach(function (entry) {
@@ -223,29 +224,34 @@
         );
     });
 
+    document.getElementById("btn-load-msg-inbox").addEventListener("click", function () {
+        document.getElementById("msg-final-filter").value = "";
+        setActiveMessageQuickFilter("inbox");
+        A.renderMessages({ direction: "Inbox", page: 1, pageSize: 50 });
+    });
+    document.getElementById("btn-load-msg-sent").addEventListener("click", function () {
+        document.getElementById("msg-final-filter").value = "";
+        setActiveMessageQuickFilter("sent");
+        A.renderMessages({ direction: "Sent", page: 1, pageSize: 50 });
+    });
     document.getElementById("btn-load-msg-all").addEventListener("click", function () {
         document.getElementById("msg-final-filter").value = "";
         setActiveMessageQuickFilter("all");
-        A.renderMessages({ page: 1, pageSize: 50 });
-    });
-    document.getElementById("btn-load-msg-new").addEventListener("click", function () {
-        document.getElementById("msg-final-filter").value = "";
-        setActiveMessageQuickFilter("new");
-        A.renderMessages({ unreadOnly: true, page: 1, pageSize: 50 });
+        A.renderMessages({ direction: "All", page: 1, pageSize: 50 });
     });
     document.getElementById("btn-load-msg-uncat").addEventListener("click", function () {
         document.getElementById("msg-final-filter").value = "";
         setActiveMessageQuickFilter("uncat");
-        A.renderMessages({ uncategorizedOnly: true, page: 1, pageSize: 50 });
+        A.renderMessages({ direction: "Inbox", uncategorizedOnly: true, page: 1, pageSize: 50 });
     });
     document.getElementById("msg-final-filter").addEventListener("change", function () {
         var v = this.value;
         if (v === "") {
-            setActiveMessageQuickFilter("all");
-            A.renderMessages({ page: 1, pageSize: 50 });
+            setActiveMessageQuickFilter("inbox");
+            A.renderMessages({ direction: "Inbox", page: 1, pageSize: 50 });
         } else {
             setActiveMessageQuickFilter("");
-            A.renderMessages({ finalCategory: Number(v), page: 1, pageSize: 50 });
+            A.renderMessages({ direction: "All", finalCategory: Number(v), page: 1, pageSize: 50 });
         }
     });
 
@@ -465,8 +471,8 @@
     setActiveRequestQuickFilter("pending");
     A.renderCourseRequests(A.readCourseRequestFilters());
     setActiveCourseToolbarAction("refresh");
-    setActiveMessageQuickFilter("all");
-    A.renderMessages({ page: 1, pageSize: 50 });
+    setActiveMessageQuickFilter("inbox");
+    A.renderMessages({ direction: "Inbox", page: 1, pageSize: 50 });
     A.renderCourses();
     A.refreshAdminInboxUnreadUi(true);
     showAdminPane("requests");

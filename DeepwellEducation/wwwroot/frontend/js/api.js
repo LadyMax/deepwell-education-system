@@ -412,6 +412,7 @@ async function getAdminMessages(options = {}) {
     const page = options.page || 1;
     const pageSize = options.pageSize || 20;
     let url = `${baseUrl}/Messages/admin?page=${page}&pageSize=${pageSize}`;
+    if (options.direction) url += `&direction=${encodeURIComponent(options.direction)}`;
     if (options.uncategorizedOnly) url += "&uncategorizedOnly=true";
     if (options.unreadOnly) url += "&unreadOnly=true";
     if (options.finalCategory != null && options.finalCategory !== "") {

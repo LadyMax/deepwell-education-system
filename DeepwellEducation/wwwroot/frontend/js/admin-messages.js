@@ -77,6 +77,25 @@
         return r.length > 200 ? r.slice(0, 200) : r;
     }
 
+    function normalizeMessageDirection(options) {
+        return String((options && options.direction) || "Inbox").toLowerCase();
+    }
+
+    function adminAccountButton(userId, label, title, ariaLabel) {
+        if (!userId) return "<span>" + escapeHtml(label || "—") + "</span>";
+        return (
+            '<button type="button" class="btn btn-outline-secondary btn-sm admin-msg-sender-profile" data-user-id="' +
+            escapeHtml(String(userId)) +
+            '" title="' +
+            escapeHtml(title) +
+            '" aria-label="' +
+            escapeHtml(ariaLabel) +
+            '">' +
+            escapeHtml(label || "—") +
+            "</button>"
+        );
+    }
+
     A.renderMessages = async function (options) {
         A._lastMessagesListOptions = options || {};
         if (!A._adminDraftReplyDelegationBound) {
@@ -153,6 +172,12 @@
         }
         const msgTable = document.getElementById("msg-table");
         const tbody = document.getElementById("msg-body");
+        const direction = normalizeMessageDirection(options);
+        const isSentView = direction === "sent";
+        const partyHeading = document.getElementById("admin-msg-party-heading");
+        if (partyHeading) {
+            partyHeading.textContent = isSentView ? "To" : direction === "all" ? "From / To" : "From";
+        }
         setInlineStatus("status", "Loading…", "info");
         tbody.innerHTML = "";
         msgTable.classList.add("d-none");
@@ -205,6 +230,7 @@
                 pick(m, "senderSuggestedCategory", "SenderSuggestedCategory")
             );
             const senderUserId = pick(m, "senderUserId", "SenderUserId");
+            const receiverUserId = pick(m, "receiverUserId", "ReceiverUserId");
             const subjectRawForReply = pick(m, "subject", "Subject") || "";
             const aiCatRaw = pick(m, "aiSuggestedCategory", "AiSuggestedCategory");
             const aiCell = A.formatAiAssistCell(
@@ -216,7 +242,7 @@
                 pick(m, "aiExtractedJson", "AiExtractedJson"),
                 pick(m, "aiModelVersion", "AiModelVersion"),
                 {
-                    receiverUserId: senderUserId,
+                    receiverUserId: isSentView ? receiverUserId : senderUserId,
                     replySubjectBase: subjectRawForReply
                 }
             );
@@ -234,14 +260,25 @@
                     : "") +
                 "</div>";
             const senderUserName = (pick(m, "senderUserName", "SenderUserName") || "").trim();
+            const receiverUserName = (pick(m, "receiverUserName", "ReceiverUserName") || "").trim();
             const senderLabel = senderUserName || "—";
-            const fromCell = senderUserId
-                ? '<button type="button" class="btn btn-outline-secondary btn-sm admin-msg-sender-profile" data-user-id="' +
-                  escapeHtml(String(senderUserId)) +
-                  '" title="Open their account record" aria-label="View sender account">' +
-                  escapeHtml(senderLabel) +
-                  "</button>"
-                : "<span>" + escapeHtml(senderLabel) + "</span>";
+            const receiverLabel = receiverUserName || "—";
+            const fromCell =
+                direction === "all"
+                    ? adminAccountButton(senderUserId, senderLabel, "Open sender account record", "View sender account") +
+                      '<span class="text-muted mx-1">&rarr;</span>' +
+                      adminAccountButton(
+                          receiverUserId,
+                          receiverLabel,
+                          "Open recipient account record",
+                          "View recipient account"
+                      )
+                    : adminAccountButton(
+                          isSentView ? receiverUserId : senderUserId,
+                          isSentView ? receiverLabel : senderLabel,
+                          isSentView ? "Open recipient account record" : "Open sender account record",
+                          isSentView ? "View recipient account" : "View sender account"
+                      );
             const subjectRaw = subjectRawForReply;
             const subjectEsc = escapeHtml(subjectRaw);
             tr.innerHTML =
@@ -269,9 +306,11 @@
                 "<td>" +
                 (isRead
                     ? "Yes"
-                    : 'No <button type="button" class="btn btn-outline-primary btn-sm ml-2 msg-mark-read" data-id="' +
-                      escapeHtml(String(id)) +
-                      '">Mark read</button>') +
+                    : direction !== "inbox"
+                      ? "No"
+                      : 'No <button type="button" class="btn btn-outline-primary btn-sm ml-2 msg-mark-read" data-id="' +
+                        escapeHtml(String(id)) +
+                        '">Mark read</button>') +
                 "</td>" +
                 '<td class="msg-cat-cell">' +
                 '<div class="admin-select-apply">' +
@@ -291,7 +330,7 @@
                 '" disabled>Confirm</button>' +
                 "</div></td>";
             var msgColLabels = [
-                "From",
+                isSentView ? "To" : direction === "all" ? "From / To" : "From",
                 "Subject",
                 "Message",
                 "Sender topic",

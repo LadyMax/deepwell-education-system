@@ -32,14 +32,23 @@ public interface IMessageService
     /// <summary>Admin: re-run the optional AI classifier to populate or refresh AI assist fields.</summary>
     Task<ReassistAiResult> ReassistAiAsync(Guid messageId, CancellationToken ct = default);
 
-    /// <summary>All messages for admin console with optional filters (mutually exclusive), paginated.</summary>
+    /// <summary>Messages for admin console with optional direction and category filters, paginated.</summary>
     Task<PagedResult<MessageAdminItemDto>> GetAllForAdminAsync(
+        Guid adminUserId,
+        AdminMessageDirection direction,
         bool uncategorizedOnly,
         bool unreadOnly,
         MessageCategory? category,
         int page,
         int pageSize,
         CancellationToken ct = default);
+}
+
+public enum AdminMessageDirection
+{
+    All,
+    Inbox,
+    Sent
 }
 
 public enum SendMessageError

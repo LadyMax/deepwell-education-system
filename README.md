@@ -35,6 +35,15 @@ dotnet run --project DeepwellEducation/DeepwellEducation.csproj
 
 With the default Development profile, the API listens on `https://localhost:7169` and `http://localhost:5190` and opens **Swagger** (`/swagger`). Use **one origin** locally if you rely on JWT in `localStorage` (avoid mixing HTTP and HTTPS URLs for the same app).
 
+### Demo login 
+
+Login Admin uses **email + password** 
+
+Sign in with:
+
+| Email | `admin@deepwell.se` |
+| Password | `Admin123!` |
+
 CI (`.github/workflows/ci.yml`): `dotnet` job restores/builds/tests the solution; `ai-service` job runs pytest.
 
 ## Starting ai-service (optional)

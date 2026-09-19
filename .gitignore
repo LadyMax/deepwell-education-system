@@ -392,7 +392,8 @@ healthchecksdb
 *.db
 *.db-shm
 *.db-wal
-
+# Keep the Deepwell demo database in Git
+!DeepwellEducation/Data/DeepwellEducation.db
 # Backup folder for Package Reference Convert tool in Visual Studio 2017
 MigrationBackup/
 

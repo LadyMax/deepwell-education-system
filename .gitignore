@@ -420,6 +420,3 @@ FodyWeavers.xsd
 
 # Local-only dev config (may contain passwords). Copy from appsettings.Development.json.example.
 DeepwellEducation/appsettings.Development.json
-
-# Include Deepwell database for portfolio demo
-!DeepwellEducation/Data/DeepwellEducation.db
